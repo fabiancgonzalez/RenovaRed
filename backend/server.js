@@ -9,8 +9,9 @@ app.use(cors()); // Habilita CORS para todas las rutas
 app.use(express.json()); // Para parsear JSON
 app.use(express.urlencoded({ extended: true })); // Para formularios
 
-// == RUTAS ==
-// aca van a ir las futuras rutas
+// == RUTAS DE LA API ==
+const homeRoutes = require('./src/routes/home.routes');
+app.use('/api/home', homeRoutes);
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {
