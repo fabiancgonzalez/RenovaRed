@@ -11,3 +11,11 @@ cd backend
 npm install
 cp .env.example .env
 npm run dev
+```
+
+## Documentación
+
+La API cuenta con documentación automática usando Swagger:
+
+- **Swagger UI**: `http://localhost:3000/api-docs`
+- **Especificación JSON**: `http://localhost:3000/api-docs.json`
