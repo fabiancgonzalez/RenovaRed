@@ -11,6 +11,11 @@ app.use(cors()); // Habilita CORS para todas las rutas
 app.use(express.json()); // Para parsear JSON
 app.use(express.urlencoded({ extended: true })); // Para formularios
 
+// REDIRECCION DE RAIZ A HOME
+app.get('/', (req, res) => {
+  res.redirect('/api/home');
+});
+
 // ========== DOCUMENTACION SWAGGER ==========
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
   explorer: true,
