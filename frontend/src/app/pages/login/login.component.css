@@ -1,0 +1,120 @@
+.login-page {
+    min-height: 100vh;
+    padding: 40px;
+    box-sizing: border-box;
+    color: white;
+    background: linear-gradient(135deg, #0F172A, #0EA5E9, #22C55E);
+}
+.logo {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-weight: bold;
+    font-size: 20px;
+    margin-left: -40px;
+}
+.logo img{
+    width: 100px;
+    transform: scale(2.5) translateY(4.7px);
+    transform-origin: left center;
+}
+
+.login-card{
+    margin-top: 20px;
+    justify-content: center;
+    gap: 80px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    padding: 20px 40px;
+    border-radius: 20px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+.login-card h1 {
+    margin: 0;
+    margin-bottom: 18px;
+    font-size: 25px;
+    text-align: center;    
+}
+form {
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+.input-group {
+    position: relative;
+    width: 100%;
+}
+.input-group input {
+    width: 80%;
+    padding: 12px 40px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.8);
+    outline: none;
+    transform: all .25s ease;
+}
+.input-group i:first-child {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6B7280;
+    font-size: 16px;
+}
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6B7280;
+}
+.input-group input:focus + .toggle-password,
+.input-group input:focus ~ i{
+    color: #22C55E;
+}
+.input-group input:focus {
+    border: 2px solid #22C55E;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+    background: rgba(255, 255, 255, 0.678);
+}
+
+button {
+    margin-top: 20px;
+    align-self: center;
+    padding: 10px 50px;
+    border-radius: 12px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #22C55E,#16a34a);
+    cursor: pointer;
+    transition: all .23s ease;
+}
+button:hover {
+    background: #20b456;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 1px rgba(0, 0, 0, 0.25);
+}
+
+.login-card{
+    animation: fadeLogin 0.7s ease;
+}
+
+@keyframes fadeLogin{
+
+    from{
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to{
+       opacity: 1;
+       transform: translateY(0);
+    }
+}
