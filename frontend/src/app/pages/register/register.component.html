@@ -6,24 +6,71 @@
             <!--    CARD REGISTER      -->
             <div class="register-card">
                 <h1>Registrarse</h1>
-                <form>
-                    <div class="input-group">
-                        <i class="fa-solid fa-envelope"></i>
-                        <input type="email" placeholder="Correo Electrónico">
+                <form (ngSubmit)="onSubmit()">
+                   <div class="input-group">
+                        <i class="fa-solid fa-user"></i>
+                        <input
+                            type="text"
+                            name="nombre"
+                            [(ngModel)]="form.nombre"
+                            placeholder="Nombre"
+                            required>
                     </div>
                     <div class="input-group">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input
+                            type="email"
+                            name="email"
+                            [(ngModel)]="form.email"
+                            placeholder="Correo Electrónico"
+                            required>
+                    </div>
+                  
+                    <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-                        <input [type]="showPassword ? 'text' : 'password'" placeholder="Contraseña">
+                        <input
+                            [type]="showPassword ? 'text' : 'password'"
+                            name="password"
+                            [(ngModel)]="form.password"
+                            placeholder="Contraseña"
+                            required>
                         <i class="fa-solid toggle-password" [class.fa-eye]="!showPassword" 
                         [class.fa-eye-slash]="showPassword" (click)="togglePassword()"></i>
                     </div>
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-                        <input [type]="showConfirmPassword ? 'text' : 'password'" placeholder="Confirmar Contraseña">
+                        <input
+                            [type]="showConfirmPassword ? 'text' : 'password'"
+                            name="confirmPassword"
+                            [(ngModel)]="form.confirmPassword"
+                            placeholder="Confirmar Contraseña"
+                            required>
                         <i class="fa-solid toggle-password" [class.fa-eye]="!showConfirmPassword" 
                         [class.fa-eye-slash]="showConfirmPassword" (click)="toggleConfirmPassword()"></i>
                     </div>
-                    
-                    <button type="submit" routerLink="/marketplace" >Registrar</button>
+
+                                      
+                                        <div class="input-group">
+                        <i class="fa-solid fa-user-tag"></i>
+                        <select name="tipo" [(ngModel)]="form.tipo" required>
+                                                        <option value="Recicladora">Recicladora</option>
+                                                        <option value="Cooperativa">Cooperativa</option>
+                                                        <option value="Emprendedor">Emprendedor</option>
+                                                        
+                        </select>
+                    </div>
+                                       @if (errorMessage) {
+                                            <div>
+                                                <p>{{ errorMessage }}</p>
+                                            </div>
+                                        }
+
+                                        @if (successMessage) {
+                                            <div>
+                                                <p>{{ successMessage }}</p>
+                                            </div>
+                                        }
+
+                    <button type="submit" [disabled]="isSubmitting">{{ isSubmitting ? 'Registrando...' : 'Registrar' }}</button>
                 </form>
             </div>

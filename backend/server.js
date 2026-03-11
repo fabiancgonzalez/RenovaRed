@@ -33,6 +33,9 @@ app.get('/api-docs.json', (req, res) => {
 const homeRoutes = require('./src/routes/home.routes');
 app.use('/api/home', homeRoutes);
 
+const authRoutes = require('./src/routes/auth.routes');
+app.use('/api/auth', authRoutes);
+
 // Health check
 const healthRoutes = require('./src/routes/health.routes');
 app.use('/api/health', healthRoutes);

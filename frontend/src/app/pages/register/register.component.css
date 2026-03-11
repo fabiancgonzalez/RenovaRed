@@ -49,14 +49,31 @@ form {
     width: 100%;
 }
 .input-group input {
-    width: 80%;
+    width: 100%;
     padding: 12px 40px;
     border-radius: 12px;
     border: 2px solid transparent;
     font-size: 16px;
     background: rgba(255, 255, 255, 0.8);
     outline: none;
-    transform: all .25s ease;
+    transition: all .25s ease;
+      box-sizing: border-box;
+}
+.input-group select {
+    width: 100%;
+    padding: 12px 40px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.8);
+    outline: none;
+    transition: all .25s ease;
+     box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    color: #111827;
+    
 }
 .input-group i:first-child {
     position: absolute;
@@ -75,10 +92,16 @@ form {
     color: #6B7280;
 }
 .input-group input:focus + .toggle-password,
-.input-group input:focus ~ i{
+.input-group input:focus ~ i,
+.input-group select:focus ~ i{
     color: #22C55E;
 }
 .input-group input:focus {
+    border: 2px solid #22C55E;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+    background: rgba(255, 255, 255, 0.678);
+}
+.input-group select:focus {
     border: 2px solid #22C55E;
     box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
     background: rgba(255, 255, 255, 0.678);
