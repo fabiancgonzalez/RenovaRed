@@ -1,5 +1,6 @@
-const { DailyStats, User, Category } = require('../models');
 const { Op } = require('sequelize');
+const { DailyStats, User, Category } = require('../models');
+const UserDTO = require('../dtos/user.dto');
 
 class HomeService {
   
@@ -87,19 +88,19 @@ async getMetrics() {
 
   // Usuarios destacados (últimos registrados)
   async getDestacados(limit = 6) {
-    try {
-      const destacados = await User.findAll({
-        where: { is_active: true },
-        attributes: ['id', 'nombre', 'tipo', 'avatar_url', 'ubicacion_texto'],
-        order: [['created_at', 'DESC']],
-        limit
-      });
-      
-      return destacados;
-    } catch (error) {
-      return [];
-    }
+  try {
+    const destacados = await User.findAll({
+      where: { is_active: true },
+      attributes: ['id', 'nombre', 'tipo', 'avatar_url', 'ubicacion_texto'],
+      order: [['created_at', 'DESC']],
+      limit
+    });
+    
+    return destacados.map(user => UserDTO.forHome(user));
+  } catch (error) {
+    return [];
   }
+}
 
   // Home completo
   async getHomeData() {

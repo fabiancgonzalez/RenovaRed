@@ -29,12 +29,19 @@ app.get('/api-docs.json', (req, res) => {
   res.send(swaggerSpecs);
 });
 
-// == RUTAS DE LA API ==
-const homeRoutes = require('./src/routes/home.routes');
+
+
+// ========== RUTAS ==========
+const homeRoutes = require('./src/routes/home.routes'); // Ruta para la pagina de inicio
 app.use('/api/home', homeRoutes);
 
-const authRoutes = require('./src/routes/auth.routes');
+const authRoutes = require('./src/routes/auth.routes'); // Ruta de autenticacion (registro/login)
 app.use('/api/auth', authRoutes);
+
+const profileRoutes = require('./src/routes/profile.routes'); // Ruta para perfil de usuario (ver/editar perfil)
+app.use('/api/profile', profileRoutes);
+
+
 
 // Health check
 const healthRoutes = require('./src/routes/health.routes');
