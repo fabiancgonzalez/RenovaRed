@@ -27,6 +27,13 @@ const options = {
       }
     ],
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
+        }
+      },
       schemas: {
         HealthResponse: {
           type: 'object',
@@ -141,7 +148,7 @@ const options = {
                             properties: {
                               id: { type: 'string', example: 'uuid' },
                               nombre: { type: 'string', example: 'Recicla Sur' },
-                              tipo: { type: 'string', example: 'cooperativa' },
+                              tipo: { type: 'string', example: 'Cooperativa' },
                               avatar_url: { type: 'string', example: 'https://...' },
                               ubicacion_texto: { type: 'string', example: 'Zona Sur' }
                             }
@@ -163,7 +170,7 @@ const options = {
                             properties: {
                               id: { type: 'string', example: 'uuid' },
                               nombre: { type: 'string', example: 'Green Point' },
-                              tipo: { type: 'string', example: 'reciclador' },
+                              tipo: { type: 'string', example: 'Recicladora' },
                               avatar_url: { type: 'string', example: 'https://...' },
                               ubicacion_texto: { type: 'string', example: 'Centro' }
                             }
@@ -185,7 +192,7 @@ const options = {
                             properties: {
                               id: { type: 'string', example: 'uuid' },
                               nombre: { type: 'string', example: 'EcoArte' },
-                              tipo: { type: 'string', example: 'emprendedor' },
+                              tipo: { type: 'string', example: 'Emprendedor' },
                               avatar_url: { type: 'string', example: 'https://...' },
                               ubicacion_texto: { type: 'string', example: 'Zona Oeste' }
                             }
@@ -226,6 +233,102 @@ const options = {
               }
             }
           }
+        },
+        RegisterRequest: {
+          type: 'object',
+          required: ['nombre', 'email', 'password', 'tipo'],
+          properties: {
+            nombre: { type: 'string', example: 'Cooperativa Norte' },
+            email: { type: 'string', format: 'email', example: 'coop@test.com' },
+            password: { type: 'string', format: 'password', minLength: 6, example: '123456' },
+            tipo: { 
+              type: 'string', 
+              enum: ['Cooperativa', 'Recicladora', 'Emprendedor', 'Persona', 'Admin'], 
+              example: 'Cooperativa' 
+            },
+            telefono: { type: 'string', example: '123456789' }
+          }
+        },
+        LoginRequest: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            email: { type: 'string', format: 'email', example: 'coop@test.com' },
+            password: { type: 'string', format: 'password', example: '123456' }
+          }
+        },
+        AuthResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            message: { type: 'string', example: 'Login exitoso' },
+            data: {
+              type: 'object',
+              properties: {
+                user: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string', example: '550e8400-e29b-41d4-a716-446655440000' },
+                    nombre: { type: 'string', example: 'Cooperativa Norte' },
+                    email: { type: 'string', example: 'coop@test.com' },
+                    tipo: { type: 'string', example: 'Cooperativa' },
+                    telefono: { type: 'string', example: '123456789' },
+                    avatar_url: { type: 'string', example: null },
+                    is_active: { type: 'boolean', example: true },
+                    created_at: { type: 'string', format: 'date-time', example: '2026-03-11T12:00:00Z' }
+                  }
+                },
+                token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }
+              }
+            }
+          }
+        },
+        ProfileResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', example: '550e8400-e29b-41d4-a716-446655440000' },
+                nombre: { type: 'string', example: 'Cooperativa Norte' },
+                email: { type: 'string', example: 'coop@test.com' },
+                tipo: { type: 'string', example: 'Cooperativa' },
+                telefono: { type: 'string', example: '123456789' },
+                avatar_url: { type: 'string', example: null },
+                ubicacion_texto: { type: 'string', example: 'Zona Norte' },
+                is_active: { type: 'boolean', example: true },
+                last_login: { type: 'string', format: 'date-time', example: '2026-03-11T12:00:00Z' },
+                created_at: { type: 'string', format: 'date-time', example: '2026-03-10T10:00:00Z' },
+                updated_at: { type: 'string', format: 'date-time', example: '2026-03-11T12:00:00Z' }
+              }
+            }
+          }
+        },
+        ProfileUpdateRequest: {
+          type: 'object',
+          properties: {
+            nombre: { type: 'string', example: 'Nuevo Nombre' },
+            telefono: { type: 'string', example: '987654321' },
+            avatar_url: { type: 'string', example: 'https://ejemplo.com/avatar.jpg' },
+            ubicacion_texto: { type: 'string', example: 'Nueva dirección' }
+          }
+        },
+        ChangePasswordRequest: {
+          type: 'object',
+          required: ['currentPassword', 'newPassword'],
+          properties: {
+            currentPassword: { type: 'string', format: 'password', example: '123456' },
+            newPassword: { type: 'string', format: 'password', minLength: 6, example: 'nueva123' }
+          }
+        },
+        ErrorResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            message: { type: 'string', example: 'Error al registrar usuario' },
+            error: { type: 'string', example: 'El email ya está registrado' }
+          }
         }
       }
     },
@@ -237,6 +340,14 @@ const options = {
       {
         name: 'Home',
         description: 'Endpoints de la página principal'
+      },
+      {
+        name: 'Auth',
+        description: 'Endpoints de autenticación (públicos)'
+      },
+      {
+        name: 'Profile',
+        description: 'Endpoints de perfil de usuario (requieren token)'
       }
     ]
   },

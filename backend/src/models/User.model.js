@@ -25,7 +25,7 @@ const User = sequelize.define('User', {
   tipo: {
     type: DataTypes.STRING(50),
     allowNull: false,
-    validate: { isIn: [['cooperativa', 'reciclador', 'emprendedor', 'admin']] }
+    validate: { isIn: [['Cooperativa', 'Recicladora', 'Emprendedor', 'Persona', 'Admin']] }
   },
   telefono: { type: DataTypes.STRING(50) },
   avatar_url: { type: DataTypes.TEXT },
