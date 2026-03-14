@@ -1,72 +1,160 @@
 <div class="home">
-    <!--    NAVBAR   -->
-        <nav class="navbar">
-            <div class="logo">
-                <img routerLink="/login" src="logoRenovared.png" alt="RenovaRed">
-            </div>
+  <!-- LOADING -->
+  @if (loading) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando información...</p>
+    </div>
+  }
 
-            <div class="nav-links">
-                <a routerLink="/login" class="login">Iniciar sesión</a>
-                <a routerLink="/register" class="register">Registrarse</a>
-            </div>
-        </nav>
-        <!--    Contenido   -->
-            <div class="home-content">
-                <h1>Economía Circular Inteligente</h1>
-                <p>Conectamos cooperativas, reclicladoras y emprendedores <br>
-                    para fortalecer el impacto ambiental local.
-                </p>
+  <!-- ERROR -->
+  @if (error) {
+    <div class="error-container">
+      <p>Error al cargar los datos</p>
+      <button (click)="loadHomeData()" class="btn-primary">Reintentar</button>
+    </div>
+  }
 
-                <div class="home-buttons">
-                    <button routerLink="/login" class="btn-primary">Explorar Materiales</button>
-                    <button routerLink="/login" class="btn-secondary">Publicar Recursos</button>
-                </div>
-            </div>
+  <!-- CONTENIDO PRINCIPAL -->
+  @if (!loading && !error && data) {
+    <!-- NAVBAR -->
+    <nav class="navbar">
+      <div class="logo">
+        <img routerLink="/" src="logoRenovared.png" alt="RenovaRed">
+      </div>
+      <div class="nav-links">
+        <a routerLink="/login" class="login">Iniciar sesión</a>
+        <a routerLink="/register" class="register">Registrarse</a>
+      </div>
+    </nav>
 
-        <!--    STATS   -->
-            <div class="stats">
-                <div class="stat">
-                    <div class="stat-top">
-                        <i class="fa-solid fa-recycle" style="color: rgb(255, 255, 255);"></i>
-                        <h2>3.450</h2>
-                    </div>
-                    <span>Interceptados</span>
-                </div>
-                
-                <div class="stat">
-                    <div class="stat-top">
-                        <i class="fa-solid fa-box" style="color: rgb(255, 255, 255);"></i>
-                        <h2>19.000 kg</h2>
-                    </div>
-                <span>Reutilizados</span>
-                </div>
-                <div class="stat">
-                    <div class="stat-top">
-                        <i class="fa-solid fa-user-group" style="color: rgb(255, 255, 255);"></i>
-                        <h2>600</h2>
-                    </div>
-                  <span>Activos</span>            
-                </div>
-            </div>
-            <!--    CARDS      -->
-                <div class="cards">
-                    <div class="card">
-                        <img src="cooperativa.png" alt="">
-                        <div class="overlay">
-                        <span>Cooperativas</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="recicladoras.png" alt="">
-                        <div class="overlay">
-                        <span>Recicladoras</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <img src="emprendedores.png" alt="">
-                        <div class="overlay">
-                        <span>Emprendedores</span>
-                        </div>
-                    </div>
-                </div>
+    <!-- HERO -->
+    <div class="home-content">
+      <h1>Economía Circular Inteligente</h1>
+      <p>Conectamos cooperativas, recicladoras y emprendedores <br> para fortalecer el impacto ambiental local.</p>
+      <div class="home-buttons">
+        <button routerLink="/login" class="btn-primary">Explorar Materiales</button>
+        <button routerLink="/login" class="btn-secondary">Publicar Recursos</button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-top">
+          <i class="fa-solid fa-recycle"></i>
+          <h2>{{ data.metrics.intercambios | number }}</h2>
+        </div>
+        <span>INTERCAMBIOS</span>
+      </div>
+      <div class="stat">
+        <div class="stat-top">
+          <i class="fa-solid fa-box"></i>
+          <h2>{{ data.metrics.reutilizados }} kg</h2>
+        </div>
+        <span>REUTILIZADOS</span>
+      </div>
+      <div class="stat">
+        <div class="stat-top">
+          <i class="fa-solid fa-user-group"></i>
+          <h2>{{ data.metrics.activos | number }}</h2>
+        </div>
+        <span>ACTIVOS</span>
+      </div>
+      <div class="stat">
+        <div class="stat-top">
+          <i class="fa-solid fa-leaf"></i>
+          <h2>{{ data.metrics.co2 }} kg</h2>
+        </div>
+        <span>CO₂ AHORRADO</span>
+      </div>
+    </div>
+
+    <!-- CARDS -->
+    <div class="cards">
+      @for (actor of getActorsList(); track actor.name) {
+        <div class="card">
+          <img [src]="actor.image" [alt]="actor.name" (load)="onImageLoad()" loading="eager">
+          <div class="overlay">
+            <span>{{ actor.name }}</span>
+            <small>Activos: <span class="numero-verde">{{ actor.count }}</span></small>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- CÓMO FUNCIONA -->
+    <section class="section how-it-works">
+      <div class="container">
+        <h2 class="section-title">¿Cómo funciona?</h2>
+        <div class="grid-3">
+          <div class="feature-card">
+            <div class="feature-number">1</div>
+            <i class="fas fa-user-plus feature-icon"></i>
+            <h3>Registrate</h3>
+            <p>Creá tu cuenta como cooperativa, recicladora o emprendedor</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-number">2</div>
+            <i class="fas fa-box-open feature-icon"></i>
+            <h3>Publicá</h3>
+            <p>Ofrecé materiales, productos o servicios disponibles</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-number">3</div>
+            <i class="fas fa-handshake feature-icon"></i>
+            <h3>Conectate</h3>
+            <p>Contactate con otros actores y concretá intercambios</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOBRE RENOVARED -->
+    <section class="section about-section">
+      <div class="container">
+        <h2 class="section-title">Sobre RenovaRed</h2>
+        <div class="about-grid">
+          <div class="about-image-col">
+            <img src="equipo.png" alt="Equipo de RenovaRed" class="about-image">
+          </div>
+          <div class="about-text-col">
+            <p class="about-text">Somos una plataforma que conecta cooperativas, recicladoras y emprendedores para fortalecer la economía circular local. Facilitamos el intercambio de materiales reciclables, productos sustentables y servicios ecológicos.</p>
+            <p class="about-text">Nuestra misión es reducir residuos y crear un impacto ambiental positivo en la comunidad.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENEFICIOS -->
+    <section class="section benefits">
+      <div class="container">
+        <h2 class="section-title">Beneficios</h2>
+        <div class="grid-3">
+          <div class="benefit-card">
+            <i class="fas fa-leaf benefit-icon"></i>
+            <h3>Ambiental</h3>
+            <p>Reducí residuos y colaborá con el medio ambiente</p>
+          </div>
+          <div class="benefit-card">
+            <i class="fas fa-hand-holding-heart benefit-icon"></i>
+            <h3>Social</h3>
+            <p>Fortalecé cooperativas y emprendimientos locales</p>
+          </div>
+          <div class="benefit-card">
+            <i class="fas fa-chart-line benefit-icon"></i>
+            <h3>Económico</h3>
+            <p>Accedé a nuevos contactos y oportunidades</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-container">
+        <p>© 2026 RenovaRed - Todos los derechos reservados</p>
+      </div>
+    </footer>
+  }
 </div>
