@@ -2,41 +2,42 @@ import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
+import { environment } from '../../../environments/environment';
 
 interface RegisterPayload {
   nombre: string;
   email: string;
   password: string;
   tipo: string;
-}
-
-interface AuthResponse {
-  success: boolean;
-  message: string;
+  telefono?: string;
 }
 
 @Component({
   selector: 'app-register',
-  imports: [RouterLink, FormsModule],
+  standalone: true,
+  imports: [RouterLink, FormsModule, CommonModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
-
 export class RegisterComponent {
-  private readonly apiUrl = 'http://localhost:3000/api/auth/register';
+  private readonly apiUrl = `${environment.apiUrl}/auth/register`;
 
   showPassword = false;
   showConfirmPassword = false;
   isSubmitting = false;
   errorMessage = '';
   successMessage = '';
+  infoMessage = '';
 
-  form: RegisterPayload & { confirmPassword: string } = {
+  form = {
     nombre: '',
     email: '',
     password: '',
     confirmPassword: '',
-    tipo: 'Recicladora'
+    tipo: '',
+    telefono: '',
+    aceptaTerminos: false
   };
 
   constructor(
@@ -44,20 +45,52 @@ export class RegisterComponent {
     private readonly router: Router
   ) {}
 
-  togglePassword(){
-    this.showPassword = !this.showPassword
+  togglePassword() {
+    this.showPassword = !this.showPassword;
   }
 
-  toggleConfirmPassword(){
-    this.showConfirmPassword = !this.showConfirmPassword
+  toggleConfirmPassword() {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  showLoginMessage() {
+    this.infoMessage = 'Ya tenés una cuenta? Usá el login desde la página principal';
+    setTimeout(() => this.infoMessage = '', 4000);
+  }
+
+  isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 
   onSubmit(): void {
+    // Limpiar mensajes
     this.errorMessage = '';
     this.successMessage = '';
 
-    if (!this.form.nombre || !this.form.email || !this.form.password || !this.form.confirmPassword || !this.form.tipo) {
-      this.errorMessage = 'Completa todos los campos obligatorios';
+    // Validaciones
+    if (!this.form.nombre?.trim()) {
+      this.errorMessage = 'El nombre es obligatorio';
+      return;
+    }
+
+    if (!this.form.email?.trim()) {
+      this.errorMessage = 'El email es obligatorio';
+      return;
+    }
+
+    if (!this.isValidEmail(this.form.email)) {
+      this.errorMessage = 'El email no es válido';
+      return;
+    }
+
+    if (!this.form.password) {
+      this.errorMessage = 'La contraseña es obligatoria';
+      return;
+    }
+
+    if (this.form.password.length < 6) {
+      this.errorMessage = 'La contraseña debe tener al menos 6 caracteres';
       return;
     }
 
@@ -66,8 +99,13 @@ export class RegisterComponent {
       return;
     }
 
-    if (this.form.password.length < 6) {
-      this.errorMessage = 'La contraseña debe tener al menos 6 caracteres';
+    if (!this.form.tipo) {
+      this.errorMessage = 'Seleccioná un tipo de usuario';
+      return;
+    }
+
+    if (!this.form.aceptaTerminos) {
+      this.errorMessage = 'Debés aceptar los términos y condiciones';
       return;
     }
 
@@ -78,17 +116,29 @@ export class RegisterComponent {
       tipo: this.form.tipo
     };
 
+    // Solo incluir teléfono si tiene valor
+    if (this.form.telefono?.trim()) {
+      payload.telefono = this.form.telefono.trim();
+    }
+
     this.isSubmitting = true;
 
-    this.http.post<AuthResponse>(this.apiUrl, payload).subscribe({
+    this.http.post<any>(this.apiUrl, payload).subscribe({
       next: (response) => {
         this.isSubmitting = false;
-        this.successMessage = response.message || 'Registro exitoso';
-        void this.router.navigate(['/marketplace']);
+        if (response.success) {
+          this.successMessage = '¡Registro exitoso! Redirigiendo...';
+          setTimeout(() => {
+            this.router.navigate(['/marketplace']);
+          }, 2000);
+        } else {
+          this.errorMessage = response.message || 'Error en el registro';
+        }
       },
       error: (error) => {
         this.isSubmitting = false;
-        this.errorMessage = error?.error?.message || 'No se pudo completar el registro';
+        this.errorMessage = error.error?.message || 'No se pudo completar el registro';
+        console.error('Error registro:', error);
       }
     });
   }

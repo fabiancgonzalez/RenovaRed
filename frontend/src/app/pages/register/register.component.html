@@ -1,76 +1,147 @@
 <div class="register-page">
-            <a routerLink="/" class="logo">
-                <img src="logoRenovared.png" alt="RenovaRed">
-            </a>
+    <a routerLink="/" class="logo">
+        <img src="logoRenovared.png" alt="RenovaRed">
+    </a>
 
-            <!--    CARD REGISTER      -->
-            <div class="register-card">
-                <h1>Registrarse</h1>
-                <form (ngSubmit)="onSubmit()">
-                   <div class="input-group">
-                        <i class="fa-solid fa-user"></i>
-                        <input
-                            type="text"
-                            name="nombre"
-                            [(ngModel)]="form.nombre"
-                            placeholder="Nombre"
-                            required>
-                    </div>
-                    <div class="input-group">
-                        <i class="fa-solid fa-envelope"></i>
-                        <input
-                            type="email"
-                            name="email"
-                            [(ngModel)]="form.email"
-                            placeholder="Correo Electrónico"
-                            required>
-                    </div>
-                  
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input
-                            [type]="showPassword ? 'text' : 'password'"
-                            name="password"
-                            [(ngModel)]="form.password"
-                            placeholder="Contraseña"
-                            required>
-                        <i class="fa-solid toggle-password" [class.fa-eye]="!showPassword" 
-                        [class.fa-eye-slash]="showPassword" (click)="togglePassword()"></i>
-                    </div>
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input
-                            [type]="showConfirmPassword ? 'text' : 'password'"
-                            name="confirmPassword"
-                            [(ngModel)]="form.confirmPassword"
-                            placeholder="Confirmar Contraseña"
-                            required>
-                        <i class="fa-solid toggle-password" [class.fa-eye]="!showConfirmPassword" 
-                        [class.fa-eye-slash]="showConfirmPassword" (click)="toggleConfirmPassword()"></i>
-                    </div>
+    <div class="register-card" [class.shake]="errorMessage">
+        <h1>Crear cuenta</h1>
+        <p class="subtitle">Unite a la comunidad de RenovaRed</p>
 
-                                      
-                                        <div class="input-group">
-                        <i class="fa-solid fa-user-tag"></i>
-                        <select name="tipo" [(ngModel)]="form.tipo" required>
-                                                        <option value="Recicladora">Recicladora</option>
-                                                        <option value="Cooperativa">Cooperativa</option>
-                                                        <option value="Emprendedor">Emprendedor</option>
-                                                        
-                        </select>
-                    </div>
-                                       @if (errorMessage) {
-                                            <div>
-                                                <p>{{ errorMessage }}</p>
-                                            </div>
-                                        }
-
-                                        @if (successMessage) {
-                                            <div>
-                                                <p>{{ successMessage }}</p>
-                                            </div>
-                                        }
-
-                    <button type="submit" [disabled]="isSubmitting">{{ isSubmitting ? 'Registrando...' : 'Registrar' }}</button>
-                </form>
+        <!-- Mensajes de éxito -->
+        @if (successMessage) {
+            <div class="alert success">
+                <i class="fa-solid fa-circle-check"></i>
+                {{ successMessage }}
             </div>
+        }
+
+        <!-- Mensajes de error -->
+        @if (errorMessage) {
+            <div class="alert error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {{ errorMessage }}
+            </div>
+        }
+
+        <!-- Mensajes informativos -->
+        @if (infoMessage) {
+            <div class="alert info">
+                <i class="fa-solid fa-info-circle"></i>
+                {{ infoMessage }}
+            </div>
+        }
+
+        <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+            <!-- Nombre -->
+            <div class="input-group">
+                <i class="fa-solid fa-user"></i>
+                <input
+                    type="text"
+                    name="nombre"
+                    [(ngModel)]="form.nombre"
+                    placeholder="Nombre completo"
+                    required
+                    #nombre="ngModel"
+                    [class.error]="registerForm.submitted && nombre.invalid && nombre.touched">
+            </div>
+
+            <!-- Email -->
+            <div class="input-group">
+                <i class="fa-solid fa-envelope"></i>
+                <input
+                    type="email"
+                    name="email"
+                    [(ngModel)]="form.email"
+                    placeholder="Correo electrónico"
+                    required
+                    email
+                    #email="ngModel"
+                    [class.error]="registerForm.submitted && email.invalid && email.touched">
+            </div>
+
+            <!-- Teléfono (opcional) -->
+            <div class="input-group">
+                <i class="fa-solid fa-phone"></i>
+                <input
+                    type="tel"
+                    name="telefono"
+                    [(ngModel)]="form.telefono"
+                    placeholder="Teléfono (opcional)">
+            </div>
+
+            <!-- Contraseña -->
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input
+                    [type]="showPassword ? 'text' : 'password'"
+                    name="password"
+                    [(ngModel)]="form.password"
+                    placeholder="Contraseña"
+                    required
+                    minlength="6"
+                    #password="ngModel"
+                    [class.error]="registerForm.submitted && password.invalid && password.touched">
+                <i class="fa-solid toggle-password" 
+                   [class.fa-eye]="!showPassword" 
+                   [class.fa-eye-slash]="showPassword" 
+                   (click)="togglePassword()"></i>
+            </div>
+
+            <!-- Confirmar Contraseña -->
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input
+                    [type]="showConfirmPassword ? 'text' : 'password'"
+                    name="confirmPassword"
+                    [(ngModel)]="form.confirmPassword"
+                    placeholder="Confirmar contraseña"
+                    required
+                    #confirmPassword="ngModel"
+                    [class.error]="registerForm.submitted && confirmPassword.invalid && confirmPassword.touched">
+                <i class="fa-solid toggle-password" 
+                   [class.fa-eye]="!showConfirmPassword" 
+                   [class.fa-eye-slash]="showConfirmPassword" 
+                   (click)="toggleConfirmPassword()"></i>
+            </div>
+
+            <!-- Tipo de usuario -->
+            <div class="input-group">
+                <i class="fa-solid fa-user-tag"></i>
+                <select name="tipo" [(ngModel)]="form.tipo" required #tipo="ngModel">
+                    <option value="" disabled selected hidden>Seleccioná tu tipo</option>
+                    <option value="Recicladora">Recicladora</option>
+                    <option value="Cooperativa">Cooperativa</option>
+                    <option value="Emprendedor">Emprendedor</option>
+                </select>
+            </div>
+
+            <!-- Términos y condiciones -->
+            <div class="terms-group">
+                <label class="checkbox-container">
+                    <input 
+                        type="checkbox" 
+                        name="aceptaTerminos"
+                        [(ngModel)]="form.aceptaTerminos"
+                        required>
+                    <span class="checkmark"></span>
+                    Acepto los <a href="javascript:void(0)" (click)="showLoginMessage()">términos y condiciones</a>
+                </label>
+            </div>
+
+            <!-- Botón de registro -->
+            <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+                @if (isSubmitting) {
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                    Registrando...
+                } @else {
+                    Registrarse
+                }
+            </button>
+        </form>
+
+        <!-- Link a login -->
+        <div class="login-link">
+            ¿Ya tenés cuenta? <a routerLink="/login">Iniciá sesión</a>
+        </div>
+    </div>
+</div>

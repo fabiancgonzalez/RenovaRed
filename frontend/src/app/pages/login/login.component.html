@@ -1,22 +1,91 @@
 <div class="login-page">
-            <a routerLink="/" class="logo">
-                <img src="logoRenovared.png" alt="RenovaRed">
-            </a>
+    <a routerLink="/" class="logo">
+        <img src="logoRenovared.png" alt="RenovaRed">
+    </a>
 
-            <!--    CARD LOGIN      -->
-            <div class="login-card">
-                <h1>Inicio Sesión</h1>
-                <form>
-                    <div class="input-group">
-                        <i class="fa-solid fa-envelope"></i>
-                        <input type="email" placeholder="Correo Electrónico">
-                    </div>
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input [type]="showPassword ? 'text' : 'password'" placeholder="Contraseña">
-                        <i class="fa-solid toggle-password" [class.fa-eye]="!showPassword" 
-                        [class.fa-eye-slash]="showPassword" (click)="togglePassword()"></i>
-                    </div>
-                    <button type="submit" routerLink="/marketplace" >Ingresar</button>
-                </form>
+    <div class="login-card" [class.shake]="errorMessage">
+        <h1>Bienvenido a RenovaRed</h1>
+        <p class="subtitle">Ingresá a tu cuenta para continuar</p>
+
+        <!-- Mensajes de éxito -->
+        @if (successMessage) {
+            <div class="alert success">
+                <i class="fa-solid fa-circle-check"></i>
+                {{ successMessage }}
             </div>
+        }
+
+        <!-- Mensajes de error -->
+        @if (errorMessage) {
+            <div class="alert error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {{ errorMessage }}
+            </div>
+        }
+
+        <!-- Mensajes informativos (mockup) -->
+        @if (infoMessage) {
+            <div class="alert info">
+                <i class="fa-solid fa-info-circle"></i>
+                {{ infoMessage }}
+            </div>
+        }
+
+        <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+            <div class="input-group">
+                <i class="fa-solid fa-envelope"></i>
+                <input 
+                    type="email" 
+                    placeholder="Correo Electrónico"
+                    [(ngModel)]="credentials.email"
+                    name="email"
+                    required
+                    [class.error]="loginForm.submitted && !credentials.email">
+            </div>
+
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input 
+                    [type]="showPassword ? 'text' : 'password'" 
+                    placeholder="Contraseña"
+                    [(ngModel)]="credentials.password"
+                    name="password"
+                    required
+                    [class.error]="loginForm.submitted && !credentials.password">
+                <i class="fa-solid toggle-password" 
+                   [class.fa-eye]="!showPassword" 
+                   [class.fa-eye-slash]="showPassword" 
+                   (click)="togglePassword()"></i>
+            </div>
+
+            <div class="forgot-password">
+                <a href="javascript:void(0)" (click)="showForgotPasswordMessage()">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <button type="submit" [disabled]="loading">
+                @if (loading) {
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                    Ingresando...
+                } @else {
+                    Ingresar
+                }
+            </button>
+        </form>
+
+        <div class="register-link">
+            ¿No tenés cuenta? <a routerLink="/register">Registrate acá</a>
+        </div>
+
+        <div class="social-login">
+            <p class="divider">O continuá con</p>
+            <div class="social-buttons">
+                <button class="social-btn google" (click)="showSocialMessage('Google')">
+                    <i class="fa-brands fa-google"></i>
+                </button>
+                <button class="social-btn facebook" (click)="showSocialMessage('Facebook')">
+                    <i class="fa-brands fa-facebook"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
