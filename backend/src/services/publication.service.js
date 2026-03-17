@@ -15,7 +15,7 @@ class PublicationService {
       where,
       include: [
         { model: User, as: 'usuario', attributes: ['id', 'nombre', 'tipo', 'avatar_url', 'telefono'] },
-        { model: Category, as: 'categoria', attributes: ['id', 'nombre', 'icono', 'descripcion'], required: false }
+        { model: Category, as: 'categoria', attributes: ['id', 'nombre', 'icono', 'descripcion', 'color'], required: false }
       ],
       limit: parseInt(limit),
       offset,
@@ -36,7 +36,7 @@ class PublicationService {
     const pub = await Publication.findByPk(id, {
       include: [
         { model: User, as: 'usuario', attributes: ['id', 'nombre', 'tipo', 'avatar_url', 'telefono', 'ubicacion_texto'] },
-        { model: Category, as: 'categoria', attributes: ['id', 'nombre', 'icono', 'descripcion'], required: false }
+        { model: Category, as: 'categoria', attributes: ['id', 'nombre', 'icono', 'descripcion', 'color'], required: false }
       ]
     });
     if (!pub) return { status: 404, body: { success: false, message: 'Publicación no encontrada' } };

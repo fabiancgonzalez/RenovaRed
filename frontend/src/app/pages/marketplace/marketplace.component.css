@@ -178,7 +178,9 @@ button:disabled {
 }
 
 .publication-form input,
-.publication-form textarea {
+.publication-form textarea,
+.publication-form select,
+.filter-label select {
 	padding: 12px;
 	border: 1px solid rgba(255,255,255,0.2);
 	border-radius: 8px;
@@ -196,11 +198,18 @@ button:disabled {
 }
 
 .publication-form input:focus,
-.publication-form textarea:focus {
+.publication-form textarea:focus,
+.publication-form select:focus,
+.filter-label select:focus {
 	outline: none;
 	background: rgba(255, 255, 255, 0.15);
 	border-color: rgba(34, 197, 94, 0.6);
 	box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}
+
+.publication-form select option,
+.filter-label select option {
+	color: #0f172a;
 }
 
 .form-row {
@@ -215,6 +224,30 @@ button:disabled {
 	align-items: center;
 	flex-wrap: wrap;
 	margin-top: 20px;
+}
+
+.filter-bar {
+	display: flex;
+	gap: 16px;
+	align-items: end;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	margin-bottom: 24px;
+}
+
+.filter-label {
+	display: grid;
+	gap: 8px;
+	font-weight: 600;
+	min-width: min(100%, 320px);
+}
+
+.filter-label select {
+	min-width: min(100%, 320px);
+}
+
+.filter-clear {
+	white-space: nowrap;
 }
 
 /* ==================== CARDS ==================== */
@@ -258,6 +291,46 @@ button:disabled {
 	opacity: 0.95;
 	line-height: 1.4;
 	color: rgba(255, 255, 255, 0.9);
+}
+
+.card .meta {
+	margin: 8px 0;
+	font-size: 14px;
+	color: rgba(255, 255, 255, 0.78);
+}
+
+.category-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 6px 0 10px;
+	padding: 6px 10px;
+	border-radius: 999px;
+	border: 1px solid rgba(255,255,255,0.25);
+	background: rgba(255, 255, 255, 0.08);
+	font-size: 13px;
+	font-weight: 600;
+	color: rgba(255,255,255,0.92);
+}
+
+.category-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 999px;
+	box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+	flex-shrink: 0;
+}
+
+.category-icon {
+	font-size: 14px;
+	line-height: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.category-name {
+	line-height: 1;
 }
 
 .card .meta {

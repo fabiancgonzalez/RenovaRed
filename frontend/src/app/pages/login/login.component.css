@@ -277,6 +277,15 @@ button[type="submit"]:disabled {
     display: flex;
     gap: 15px;
     justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.google-button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
 }
 
 .social-btn {

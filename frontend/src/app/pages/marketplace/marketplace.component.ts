@@ -21,8 +21,16 @@ interface Publication {
   precio?: number | string;
   cantidad?: number | string;
   estado?: string;
+  categoria_id?: string | null;
   ubicacion_texto?: string;
   imagenes?: string[];
+  categoria?: {
+    id: string;
+    nombre: string;
+    icono?: string;
+    descripcion?: string;
+    color?: string;
+  };
   usuario?: {
     id: string;
     nombre: string;
@@ -31,9 +39,18 @@ interface Publication {
   };
 }
 
+interface MaterialCategory {
+  id: string;
+  nombre: string;
+  icono?: string;
+  descripcion?: string;
+  color?: string;
+}
+
 interface PublicationForm {
   titulo: string;
   descripcion: string;
+  categoria_id: string;
   ubicacion_texto: string;
   precio: string;
   cantidad: string;
@@ -63,15 +80,41 @@ export class MarketplaceComponent implements OnInit {
 
   allPublications: Publication[] = [];
   myPublications: Publication[] = [];
+  categories: MaterialCategory[] = [];
   currentUser: MarketplaceUser | null = null;
+  selectedCategoryId = '';
 
   publicationForm: PublicationForm = {
     titulo: '',
     descripcion: '',
+    categoria_id: '',
     ubicacion_texto: '',
     precio: '',
     cantidad: '',
     estado: 'Disponible'
+  };
+
+  private readonly categoryNameEsMap: Record<string, string> = {
+    plastico: 'Plástico',
+    plastic: 'Plástico',
+    papel: 'Papel',
+    paper: 'Papel',
+    carton: 'Cartón',
+    cardboard: 'Cartón',
+    vidrio: 'Vidrio',
+    glass: 'Vidrio',
+    metal: 'Metal',
+    metals: 'Metal',
+    aluminio: 'Aluminio',
+    aluminum: 'Aluminio',
+    organico: 'Orgánico',
+    organic: 'Orgánico',
+    electronicos: 'Electrónicos',
+    electronics: 'Electrónicos',
+    textil: 'Textil',
+    textile: 'Textil',
+    madera: 'Madera',
+    wood: 'Madera'
   };
 
   constructor(
@@ -102,6 +145,10 @@ export class MarketplaceComponent implements OnInit {
     this.errorMessage = '';
 
     try {
+      if (this.categories.length === 0) {
+        await this.loadCategories();
+      }
+
       this.allPublications = await this.fetchAllPublications();
       await this.loadMyPublications();
       this.loading = false;
@@ -111,20 +158,27 @@ export class MarketplaceComponent implements OnInit {
     }
   }
 
+  async loadCategories(): Promise<void> {
+    const response = await firstValueFrom(this.http.get<any>(`${environment.apiUrl}/categories`));
+    this.categories = response?.data ?? [];
+  }
+
   async loadMyPublications(): Promise<void> {
     const headers = this.getAuthHeaders();
+    const query = new URLSearchParams({ limit: '1000' });
+
+    if (this.selectedCategoryId) {
+      query.set('categoria_id', this.selectedCategoryId);
+    }
 
     try {
-      const response = await firstValueFrom(this.http.get<any>(`${environment.apiUrl}/users/me/publications?limit=1000`, { headers }));
+      const response = await firstValueFrom(this.http.get<any>(`${environment.apiUrl}/users/me/publications?${query.toString()}`, { headers }));
       this.myPublications = response?.data ?? [];
     } catch {
       this.myPublications = this.currentUser
         ? this.allPublications.filter((publication) => publication.usuario?.id === this.currentUser?.id)
         : [];
     }
-
-
-    
   }
 
   async savePublication(): Promise<void> {
@@ -139,6 +193,7 @@ export class MarketplaceComponent implements OnInit {
     const payload = {
       titulo: this.publicationForm.titulo.trim(),
       descripcion: this.publicationForm.descripcion.trim() || null,
+      categoria_id: this.publicationForm.categoria_id || null,
       ubicacion_texto: this.publicationForm.ubicacion_texto.trim(),
       precio: this.publicationForm.precio ? Number(this.publicationForm.precio) : null,
       cantidad: this.publicationForm.cantidad ? Number(this.publicationForm.cantidad) : null,
@@ -175,6 +230,7 @@ export class MarketplaceComponent implements OnInit {
     this.publicationForm = {
       titulo: publication.titulo || '',
       descripcion: publication.descripcion || '',
+      categoria_id: publication.categoria?.id || publication.categoria_id || '',
       ubicacion_texto: publication.ubicacion_texto || '',
       precio: publication.precio ? String(publication.precio) : '',
       cantidad: publication.cantidad ? String(publication.cantidad) : '',
@@ -190,6 +246,7 @@ export class MarketplaceComponent implements OnInit {
     this.publicationForm = {
       titulo: '',
       descripcion: '',
+      categoria_id: '',
       ubicacion_texto: '',
       precio: '',
       cantidad: '',
@@ -211,6 +268,65 @@ export class MarketplaceComponent implements OnInit {
     if (!this.mostrarMisPublicaciones) return;
 
     setTimeout(() => this.focusSectionWithAnimation(this.misPublicacionesSection?.nativeElement), 100);
+  }
+
+  async onCategoryFilterChange(): Promise<void> {
+    await this.loadMarketplaceData();
+  }
+
+  clearCategoryFilter(): void {
+    if (!this.selectedCategoryId) return;
+
+    this.selectedCategoryId = '';
+    void this.loadMarketplaceData();
+  }
+
+  get selectedCategoryName(): string {
+    if (!this.selectedCategoryId) {
+      return 'todas las categorías';
+    }
+
+    const category = this.categories.find((item) => item.id === this.selectedCategoryId);
+    return category ? this.getCategoryNameEs(category) : 'la categoría seleccionada';
+  }
+
+  getCategoryNameEs(category?: { nombre?: string | null }): string {
+    const rawName = category?.nombre?.trim();
+    if (!rawName) {
+      return 'Sin categoría';
+    }
+
+    const key = this.normalizeCategoryKey(rawName);
+    return this.categoryNameEsMap[key] || rawName;
+  }
+
+  isFontAwesomeIcon(icon?: string | null): boolean {
+    if (!icon) return false;
+    const value = icon.trim();
+    return value.startsWith('fa-') || /\bfa-[a-z0-9-]+\b/i.test(value);
+  }
+
+  getFontAwesomeIconClass(icon?: string | null): string {
+    const value = icon?.trim() || '';
+    if (!value) return '';
+
+    if (value.includes(' ')) {
+      return value;
+    }
+
+    if (value.startsWith('fa-')) {
+      return `fa-solid ${value}`;
+    }
+
+    return value;
+  }
+
+  private normalizeCategoryKey(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
   private focusSectionWithAnimation(section?: HTMLElement): void {
@@ -282,8 +398,17 @@ export class MarketplaceComponent implements OnInit {
     let pages = 1;
 
     do {
+      const query = new URLSearchParams({
+        page: String(page),
+        limit: '50'
+      });
+
+      if (this.selectedCategoryId) {
+        query.set('categoria_id', this.selectedCategoryId);
+      }
+
       const response = await firstValueFrom(
-        this.http.get<any>(`${environment.apiUrl}/publications?page=${page}&limit=50`)
+        this.http.get<any>(`${environment.apiUrl}/publications?${query.toString()}`)
       );
 
       publications.push(...(response?.data ?? []));

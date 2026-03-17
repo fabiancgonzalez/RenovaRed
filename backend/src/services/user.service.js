@@ -1,4 +1,4 @@
-const { User, Publication, Favorite } = require('../models');
+const { User, Publication, Favorite, Category } = require('../models');
 const bcrypt = require('bcryptjs');
 
 class UserService {
@@ -76,10 +76,19 @@ class UserService {
     return { status: 200, body: { success: true, message: 'Usuario desactivado' } };
   }
 
-  async getMyPublications(userId, { page = 1, limit = 10 } = {}) {
+  async getMyPublications(userId, { page = 1, limit = 10, categoria_id } = {}) {
     const offset = (page - 1) * limit;
+    const where = { user_id: userId };
+
+    if (categoria_id) {
+      where.categoria_id = categoria_id;
+    }
+
     const { count, rows } = await Publication.findAndCountAll({
-      where: { user_id: userId },
+      where,
+      include: [
+        { model: Category, as: 'categoria', attributes: ['id', 'nombre', 'icono', 'descripcion', 'color'], required: false }
+      ],
       limit: parseInt(limit),
       offset,
       order: [['created_at', 'DESC']]

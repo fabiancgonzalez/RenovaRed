@@ -79,4 +79,30 @@ router.post('/register', authController.register);
  */
 router.post('/login', authController.login);
 
+/**
+ * @swagger
+ * /auth/google:
+ *   post:
+ *     summary: Iniciar sesión con Google
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - credential
+ *             properties:
+ *               credential:
+ *                 type: string
+ *                 description: ID token devuelto por Google Identity Services
+ *     responses:
+ *       200:
+ *         description: Login con Google exitoso
+ *       401:
+ *         description: Token inválido o email no verificado
+ */
+router.post('/google', authController.googleLogin);
+
 module.exports = router;
