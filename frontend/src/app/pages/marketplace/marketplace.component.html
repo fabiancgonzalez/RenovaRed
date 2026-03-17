@@ -30,6 +30,28 @@
 				</select>
 			</label>
 
+			<!--<label>
+				Imagen del producto
+				<input  class="button" type="file" accept="image/*" (change)="onPublicationImageSelected($event)">
+			</label>-->
+<label class="btn-nueva-publicacion" for="publication-image-input" style="width: fit-content">
+  📷 Subir imagen
+</label>
+<input 
+  id="publication-image-input"
+  type="file" 
+  accept="image/*" 
+  (change)="onPublicationImageSelected($event)"
+  style="display: none">
+
+
+
+
+			<div class="publication-image-preview" *ngIf="publicationImagePreview">
+				<img [src]="publicationImagePreview" alt="Vista previa de la imagen de la publicación">
+				<button type="button" (click)="removePublicationImage()">Quitar imagen</button>
+			</div>
+
 			<label>
 				Ubicación *
 				<input type="text" name="ubicacion" [(ngModel)]="publicationForm.ubicacion_texto" required>
@@ -89,13 +111,13 @@
 
 		<div class="cards">
 			<article class="card" *ngFor="let publication of allPublications">
+				<img class="card-image" *ngIf="publication.imagenes?.length" [src]="publication.imagenes?.[0]" alt="Imagen del producto publicado">
 				<h3>{{ publication.titulo }}</h3>
 				<p class="description">{{ publication.descripcion || 'Sin descripción' }}</p>
 				<p class="meta">Publicado por: {{ publication.usuario?.nombre || 'Usuario' }}</p>
 				<div class="category-badge" [style.border-color]="publication.categoria?.color || 'rgba(255,255,255,0.25)'">
 					<span class="category-dot" [style.background-color]="publication.categoria?.color || 'rgba(255,255,255,0.45)'"></span>
-					<i class="category-icon" *ngIf="isFontAwesomeIcon(publication.categoria?.icono)" [class]="getFontAwesomeIconClass(publication.categoria?.icono)"></i>
-					<!--<span class="category-icon" *ngIf="publication.categoria?.icono && !isFontAwesomeIcon(publication.categoria?.icono)">{{ publication.categoria?.icono }}</span>-->
+				<!--	<i class="category-icon" *ngIf="isFontAwesomeIcon(publication.categoria?.icono)" [class]="getFontAwesomeIconClass(publication.categoria?.icono)"></i> -->
 					<span class="category-name">{{ getCategoryNameEs(publication.categoria) }}</span>
 				</div>
 				<p class="meta">Estado: {{ publication.estado || 'N/D' }}</p>
@@ -121,12 +143,13 @@
 
 		<div class="cards">
 			<article class="card" *ngFor="let publication of myPublications">
+				<img class="card-image" *ngIf="publication.imagenes?.length" [src]="publication.imagenes?.[0]" alt="Imagen del producto publicado">
 				<h3>{{ publication.titulo }}</h3>
 				<p class="description">{{ publication.descripcion || 'Sin descripción' }}</p>
 				<div class="category-badge" [style.border-color]="publication.categoria?.color || 'rgba(255,255,255,0.25)'">
 					<span class="category-dot" [style.background-color]="publication.categoria?.color || 'rgba(255,255,255,0.45)'"></span>
 					<i class="category-icon" *ngIf="isFontAwesomeIcon(publication.categoria?.icono)" [class]="getFontAwesomeIconClass(publication.categoria?.icono)"></i>
-					<span class="category-icon" *ngIf="publication.categoria?.icono && !isFontAwesomeIcon(publication.categoria?.icono)">{{ publication.categoria?.icono }}</span>
+					<!--<span class="category-icon" *ngIf="publication.categoria?.icono && !isFontAwesomeIcon(publication.categoria?.icono)">{{ publication.categoria?.icono }}</span>-->
 					<span class="category-name">{{ getCategoryNameEs(publication.categoria) }}</span>
 				</div>
 				<p class="meta">Estado: {{ publication.estado || 'N/D' }}</p>

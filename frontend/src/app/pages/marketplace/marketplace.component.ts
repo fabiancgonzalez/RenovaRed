@@ -83,6 +83,7 @@ export class MarketplaceComponent implements OnInit {
   categories: MaterialCategory[] = [];
   currentUser: MarketplaceUser | null = null;
   selectedCategoryId = '';
+  publicationImagePreview = '';
 
   publicationForm: PublicationForm = {
     titulo: '',
@@ -197,6 +198,7 @@ export class MarketplaceComponent implements OnInit {
       ubicacion_texto: this.publicationForm.ubicacion_texto.trim(),
       precio: this.publicationForm.precio ? Number(this.publicationForm.precio) : null,
       cantidad: this.publicationForm.cantidad ? Number(this.publicationForm.cantidad) : null,
+      imagenes: this.publicationImagePreview ? [this.publicationImagePreview] : [],
       estado: this.publicationForm.estado || 'Disponible'
     };
 
@@ -236,6 +238,7 @@ export class MarketplaceComponent implements OnInit {
       cantidad: publication.cantidad ? String(publication.cantidad) : '',
       estado: publication.estado || 'Disponible'
     };
+    this.publicationImagePreview = publication.imagenes?.[0] || '';
 
     setTimeout(() => this.focusSectionWithAnimation(this.nuevaPublicacionSection?.nativeElement), 100);
   }
@@ -252,6 +255,25 @@ export class MarketplaceComponent implements OnInit {
       cantidad: '',
       estado: 'Disponible'
     };
+    this.publicationImagePreview = '';
+  }
+
+  onPublicationImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.publicationImagePreview = reader.result as string;
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  removePublicationImage(): void {
+    this.publicationImagePreview = '';
   }
 
   toggleFormularioPublicacion(): void {
