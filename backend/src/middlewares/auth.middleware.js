@@ -75,7 +75,10 @@ const authorize = (...roles) => {
       });
     }
     
-    if (!roles.includes(req.user.tipo)) {
+    const normalizedRoles = roles.map((role) => String(role).toLowerCase());
+    const currentUserRole = String(req.user.tipo || '').toLowerCase();
+
+    if (!normalizedRoles.includes(currentUserRole)) {
       return res.status(403).json({ 
         success: false, 
         message: 'No tiene permisos para acceder a este recurso' 
@@ -86,4 +89,8 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { authMiddleware, authorize };
+module.exports = {
+  authMiddleware,
+  authenticate: authMiddleware,
+  authorize
+};

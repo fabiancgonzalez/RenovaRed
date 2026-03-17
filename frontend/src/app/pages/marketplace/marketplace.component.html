@@ -1,1 +1,113 @@
-<p>marketplace works!</p>
+<main class="marketplace">
+	<h1>Marketplace</h1>
+
+	<p *ngIf="loading" class="info">Cargando publicaciones...</p>
+	<p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+
+	<button class="btn-nueva-publicacion" (click)="toggleFormularioPublicacion()">
+		{{ mostrarFormulario ? 'Ocultar Nueva Publicacion' : 'Nueva publicación' }}
+	</button>
+
+	<section class="section-nueva-publicacion" *ngIf="mostrarFormulario" #nuevaPublicacionSection tabindex="-1">
+		<h2>{{ editingPublicationId ? 'Editar publicación' : 'Nueva publicación' }}</h2>
+
+		<form class="publication-form" (ngSubmit)="savePublication()">
+			<label>
+				Título *
+				<input type="text" name="titulo" [(ngModel)]="publicationForm.titulo" required>
+			</label>
+
+			<label>
+				Descripción
+				<textarea name="descripcion" rows="3" [(ngModel)]="publicationForm.descripcion"></textarea>
+			</label>
+
+			<label>
+				Ubicación *
+				<input type="text" name="ubicacion" [(ngModel)]="publicationForm.ubicacion_texto" required>
+			</label>
+
+			<div class="form-row">
+				<label>
+					Precio
+					<input type="number" name="precio" [(ngModel)]="publicationForm.precio">
+				</label>
+
+				<label>
+					Cantidad
+					<input type="number" name="cantidad" [(ngModel)]="publicationForm.cantidad">
+				</label>
+
+				<label>
+					Estado
+					<input type="text" name="estado" [(ngModel)]="publicationForm.estado">
+				</label>
+			</div>
+
+			<div class="actions">
+				<button type="submit" [disabled]="savingPublication">
+					{{ savingPublication ? 'Guardando...' : (editingPublicationId ? 'Actualizar publicación' : 'Crear publicación') }}
+				</button>
+				<button type="button" (click)="cancelEdit()">Cancelar nueva publicación</button>
+				<button type="button" *ngIf="editingPublicationId" (click)="cancelEdit()">Cancelar edición</button>
+			</div>
+		</form>
+	</section>
+
+	<button class="btn-mis-publicaciones" (click)="toggleMisPublicaciones()">
+		{{ mostrarMisPublicaciones ? 'Ocultar Mis Publicaciones' : 'Ver Todas Mis Publicaciones' }}
+	</button>
+
+	<section class="section-todas-publicaciones">
+		<h2>Todas las publicaciones</h2>
+
+		<div *ngIf="!loading && allPublications.length === 0" class="empty">
+			No hay publicaciones disponibles.
+		</div>
+
+		<div class="cards">
+			<article class="card" *ngFor="let publication of allPublications">
+				<h3>{{ publication.titulo }}</h3>
+				<p class="description">{{ publication.descripcion || 'Sin descripción' }}</p>
+				<p class="meta">Publicado por: {{ publication.usuario?.nombre || 'Usuario' }}</p>
+				<p class="meta">Estado: {{ publication.estado || 'N/D' }}</p>
+				<p class="meta" *ngIf="publication.precio">Precio: ${{ publication.precio }}</p>
+
+				<button
+					type="button"
+					*ngIf="canContact(publication)"
+					[disabled]="contactingPublicationId === publication.id"
+					(click)="contactOwner(publication)">
+					{{ contactingPublicationId === publication.id ? 'Contactando...' : 'Contactar usuario' }}
+				</button>
+			</article>
+		</div>
+	</section>
+
+	<section class="section-mis-publicaciones" *ngIf="mostrarMisPublicaciones" #misPublicacionesSection tabindex="-1">
+		<h2>Mis publicaciones</h2>
+
+		<div *ngIf="!loading && myPublications.length === 0" class="empty">
+			Aún no tenés publicaciones cargadas.
+		</div>
+
+		<div class="cards">
+			<article class="card" *ngFor="let publication of myPublications">
+				<h3>{{ publication.titulo }}</h3>
+				<p class="description">{{ publication.descripcion || 'Sin descripción' }}</p>
+				<p class="meta">Estado: {{ publication.estado || 'N/D' }}</p>
+				<p class="meta" *ngIf="publication.precio">Precio: ${{ publication.precio }}</p>
+
+				<div class="actions">
+					<button type="button" (click)="startEdit(publication)">Editar</button>
+					<button
+						type="button"
+						[disabled]="deletingPublicationId === publication.id"
+						(click)="deletePublication(publication.id)">
+						{{ deletingPublicationId === publication.id ? 'Eliminando...' : 'Eliminar' }}
+					</button>
+				</div>
+			</article>
+		</div>
+	</section>
+</main>

@@ -1,1 +1,138 @@
-<p>profile works!</p>
+
+<section class="profile-page">
+
+	<h1>Mi Perfil</h1>
+
+	@if (errorMessage) {
+	<div class="alert error">{{ errorMessage }}</div>
+	}
+
+	@if (successMessage) {
+	<div class="alert success">{{ successMessage }}</div>
+	}
+
+	@if (isLoading) {
+	<div class="state">Cargando perfil...</div>
+	}
+
+	@if (!isLoading && profile) {
+	<article class="card profile-card">
+		<h2>Datos del perfil</h2>
+
+		<div class="avatar-wrap">
+			<img [src]="profile.avatar_url || 'https://via.placeholder.com/140?text=Avatar'" alt="Avatar" />
+		</div>
+
+		<div class="profile-data">
+			<p><strong>Nombre:</strong> {{ profile.nombre }}</p>
+			<p><strong>Email:</strong> {{ profile.email }}</p>
+			<p><strong>Tipo:</strong> {{ profile.tipo }}</p>
+			<p><strong>Teléfono:</strong> {{ profile.telefono || 'N/A' }}</p>
+			<p><strong>Ubicación:</strong> {{ profile.ubicacion_texto || 'N/A' }}</p>
+			<p><strong>Activo:</strong> {{ profile.is_active ? 'Sí' : 'No' }}</p>
+			<p><strong>Último login:</strong> {{ formatDate(profile.last_login) }}</p>
+			<p><strong>Creado:</strong> {{ formatDate(profile.created_at) }}</p>
+			<p><strong>Actualizado:</strong> {{ formatDate(profile.updated_at) }}</p>
+		</div>
+
+		<div class="actions">
+			<button type="button" class="btn-edit" (click)="startEdit()">Editar perfil</button>
+			<button type="button" class="btn-password" (click)="togglePasswordForm()">Cambiar contraseña</button>
+		</div>
+	</article>
+
+
+	@if (isEditing) {
+	<article class="editar-perfil-card">
+		<h2>Editar perfil</h2>
+
+		<form class="form" (ngSubmit)="saveProfile()">
+				<label>
+					Nombre
+					<input type="text" name="nombre" [(ngModel)]="editForm.nombre" required />
+				</label>
+
+				<label>
+					Teléfono
+					<input type="text" name="telefono" [(ngModel)]="editForm.telefono" />
+				</label>
+
+				<label>
+					Avatar URL
+					<div style="display:flex; gap:8px; align-items:center;">
+						<input  hidden type="url" name="avatar_url" [(ngModel)]="editForm.avatar_url" placeholder="https://..."
+							style="flex:1;" />
+
+						<button type="button" (click)="fileInput.click()">
+							Seleccionar imagen
+						</button>
+
+						<input #fileInput type="file" accept="image/*" style="display:none;"
+							(change)="onImageSelected($event)" />
+					</div>
+
+					@if (editForm.avatar_url) {
+				<img [src]="editForm.avatar_url"
+					style="width:64px; height:64px; border-radius:50%; object-fit:cover;" />
+				}
+
+
+
+				</label>
+
+				<label>
+					Ubicación
+					<input type="text" name="ubicacion_texto" [(ngModel)]="editForm.ubicacion_texto" />
+				</label>
+
+				<div class="actions">
+					<button type="submit" [disabled]="isSavingProfile">
+						{{ isSavingProfile ? 'Guardando...' : 'Guardar cambios' }}
+					</button>
+				<button type="button" class="secondary" (click)="cancelEdit()" [disabled]="isSavingProfile">
+					Cancelar
+				</button>
+			</div>
+		</form>
+	</article>
+	}
+
+	@if (showPasswordForm) {
+	<article class="card profile-card">
+		<h2>Cambiar contraseña</h2>
+
+		@if (passwordError) {
+		<div class="alert error">{{ passwordError }}</div>
+		}
+
+		@if (passwordMessage) {
+		<div class="alert success">{{ passwordMessage }}</div>
+		}
+
+			<form class="form" (ngSubmit)="changePassword()">
+				<label>
+					Contraseña actual
+					<input type="password" name="currentPassword" [(ngModel)]="passwordForm.currentPassword" required />
+				</label>
+
+				<label>
+					Nueva contraseña
+					<input type="password" name="newPassword" [(ngModel)]="passwordForm.newPassword" required />
+				</label>
+
+				<label>
+					Confirmar nueva contraseña
+					<input type="password" name="confirmPassword" [(ngModel)]="passwordForm.confirmPassword" required />
+				</label>
+
+				<button type="submit" [disabled]="isChangingPassword">
+					{{ isChangingPassword ? 'Actualizando...' : 'Actualizar contraseña' }}
+				</button>
+               <button type="button" class="secondary" (click)="togglePasswordForm()" [disabled]="isChangingPassword">
+					Cancelar
+				</button>
+			</form>
+	</article>
+	}
+	}
+</section>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +12,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   showPassword = false;
   loading = false;
   errorMessage = '';
@@ -28,6 +28,13 @@ export class LoginComponent {
     private http: HttpClient,
     private router: Router
   ) {}
+
+  ngOnInit() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      this.router.navigate(['/marketplace'], { replaceUrl: true });
+    }
+  }
 
   togglePassword() {
     this.showPassword = !this.showPassword;
@@ -69,7 +76,7 @@ export class LoginComponent {
             
             this.successMessage = '¡Login exitoso! Redirigiendo...';
             setTimeout(() => {
-              this.router.navigate(['/marketplace']);
+              this.router.navigate(['/marketplace'], { replaceUrl: true });
             }, 1500);
           }
           this.loading = false;

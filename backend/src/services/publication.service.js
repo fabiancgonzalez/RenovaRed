@@ -2,11 +2,12 @@ const { Publication, User, Category } = require('../models');
 const { Op } = require('sequelize');
 
 class PublicationService {
-  async getAll({ page = 1, limit = 20, estado, tipo_usuario, categoria_id, search } = {}) {
+  async getAll({ page = 1, limit = 20, estado, tipo_usuario, categoria_id, search, user_id } = {}) {
     const where = {};
     if (estado)       where.estado = estado;
     if (tipo_usuario) where.tipo_usuario = tipo_usuario;
     if (categoria_id) where.categoria_id = categoria_id;
+    if (user_id)      where.user_id = user_id;
     if (search)       where.titulo = { [Op.iLike]: `%${search}%` };
 
     const offset = (page - 1) * limit;
@@ -14,7 +15,7 @@ class PublicationService {
       where,
       include: [
         { model: User, as: 'usuario', attributes: ['id', 'nombre', 'tipo', 'avatar_url', 'telefono'] },
-        { model: Category, as: 'categoria', attributes: ['id', 'nombre', 'icono', 'color'], required: false }
+        { model: Category, as: 'categoria', attributes: ['id', 'nombre', 'icono', 'descripcion'], required: false }
       ],
       limit: parseInt(limit),
       offset,
@@ -35,7 +36,7 @@ class PublicationService {
     const pub = await Publication.findByPk(id, {
       include: [
         { model: User, as: 'usuario', attributes: ['id', 'nombre', 'tipo', 'avatar_url', 'telefono', 'ubicacion_texto'] },
-        { model: Category, as: 'categoria', attributes: ['id', 'nombre', 'icono', 'color'], required: false }
+        { model: Category, as: 'categoria', attributes: ['id', 'nombre', 'icono', 'descripcion'], required: false }
       ]
     });
     if (!pub) return { status: 404, body: { success: false, message: 'Publicación no encontrada' } };
@@ -57,6 +58,10 @@ class PublicationService {
       return { status: 400, body: { success: false, message: 'ubicacion_texto es obligatorio' } };
     }
 
+    const safeGeom = ubicacion_geom && ubicacion_geom.type === 'Point'
+      ? ubicacion_geom
+      : { type: 'Point', coordinates: [0, 0] };
+
     const pub = await Publication.create({
       titulo: titulo.trim(),
       descripcion,
@@ -64,12 +69,12 @@ class PublicationService {
       tipo_usuario: tipoUsuario,
       categoria_id,
       ubicacion_texto,
-      ubicacion_geom,
+      ubicacion_geom: safeGeom,
       place_id,
       google_places_data,
       imagenes: imagenes || [],
-      disponibilidad,
-      cantidad,
+      disponibilidad: disponibilidad !== undefined ? String(disponibilidad) : null,
+      cantidad: cantidad !== undefined ? String(cantidad) : null,
       precio,
       estado: 'Disponible',
       published_at: new Date()
@@ -83,7 +88,7 @@ class PublicationService {
     if (!pub) return { status: 404, body: { success: false, message: 'Publicación no encontrada' } };
 
     // Solo el dueño o admin puede editar
-    if (pub.user_id !== userId && userTipo !== 'admin') {
+    if (pub.user_id !== userId && String(userTipo).toLowerCase() !== 'admin') {
       return { status: 403, body: { success: false, message: 'Sin permiso para editar esta publicación' } };
     }
 
@@ -100,7 +105,7 @@ class PublicationService {
     const pub = await Publication.findByPk(id);
     if (!pub) return { status: 404, body: { success: false, message: 'Publicación no encontrada' } };
 
-    if (pub.user_id !== userId && userTipo !== 'admin') {
+    if (pub.user_id !== userId && String(userTipo).toLowerCase() !== 'admin') {
       return { status: 403, body: { success: false, message: 'Sin permiso para eliminar esta publicación' } };
     }
 

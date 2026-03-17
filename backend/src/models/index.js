@@ -14,9 +14,9 @@ const DailyStats = require('./DailyStats.model');
 User.hasMany(Publication, { foreignKey: 'user_id', as: 'publicaciones' });
 Publication.belongsTo(User, { foreignKey: 'user_id', as: 'usuario' });
 
-// User - Conversation (como comprador)
-User.hasMany(Conversation, { foreignKey: 'buyer_id', as: 'compras' });
-User.hasMany(Conversation, { foreignKey: 'seller_id', as: 'ventas' });
+// Category - Publication
+Category.hasMany(Publication, { foreignKey: 'categoria_id', as: 'publicaciones' });
+Publication.belongsTo(Category, { foreignKey: 'categoria_id', as: 'categoria' });
 
 // Conversation - Publication
 Conversation.belongsTo(Publication, { foreignKey: 'publication_id' });

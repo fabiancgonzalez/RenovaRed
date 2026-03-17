@@ -8,9 +8,11 @@ import { ChatComponent } from './pages/chat/chat.component';
 
 export const routes: Routes = [
     { path: '', component: HomeComponent},
+    { path: 'dashboard', component: HomeComponent},
     { path: 'login', component: LoginComponent},
     { path: 'register', component: RegisterComponent},
     { path: 'marketplace', component: MarketplaceComponent},
     { path: 'profile', component: ProfileComponent},
     { path: 'chat', component: ChatComponent},
+    { path: 'chat/:id', component: ChatComponent},
 ];

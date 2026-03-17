@@ -41,6 +41,27 @@ app.use('/api/auth', authRoutes);
 const profileRoutes = require('./src/routes/profile.routes'); // Ruta para perfil de usuario (ver/editar perfil)
 app.use('/api/profile', profileRoutes);
 
+const userRoutes = require('./src/routes/user.routes');
+app.use('/api/users', userRoutes);
+
+const categoryRoutes = require('./src/routes/category.routes');
+app.use('/api/categories', categoryRoutes);
+
+const publicationRoutes = require('./src/routes/publication.routes');
+app.use('/api/publications', publicationRoutes);
+
+const conversationRoutes = require('./src/routes/conversation.routes');
+app.use('/api/conversations', conversationRoutes);
+
+const exchangeRoutes = require('./src/routes/exchange.routes');
+app.use('/api/exchanges', exchangeRoutes);
+
+const favoriteRoutes = require('./src/routes/favorite.routes');
+app.use('/api/favorites', favoriteRoutes);
+
+const dailyStatsRoutes = require('./src/routes/dailyStats.routes');
+app.use('/api/stats', dailyStatsRoutes);
+
 
 
 // Health check
