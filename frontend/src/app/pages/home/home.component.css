@@ -5,12 +5,13 @@
     background: linear-gradient(135deg, #0F172A, #0EA5E9, #22C55E);
 }
 
-.loading-state, .error-state {
+.loading-container, .error-container {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 20px;
 }
 
 .spinner {
@@ -24,57 +25,6 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transform: translateY(-8px);
-}
-
-.logo {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    font-weight: bold;
-    font-size: 20px;
-    margin-left: -40px;
-}
-.logo img{
-    width: 100px;
-    transform: scale(2.5) translateY(8px);
-    transform-origin: left center;
-}
-
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-.login {
-    text-decoration: none;
-    color: white;
-    font-weight: 500;
-    transition: opacity .25s ease;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-.login:hover{
-    transform: translateY(-2px);
-}
-.register {
-    text-decoration: none;
-    padding: 8px 18px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #22C55E, #16a34a);
-    color: white;
-    font-weight: 600;
-    transition: all .25s ease;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-.register:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
-}
 
 .home-content{
     text-align: center;
@@ -234,10 +184,6 @@
 }
 .card:hover img{
     transform: scale(1.1);
-}
-
-.extra-sections {
-    margin-top: 80px;
 }
 
 .container {
@@ -457,15 +403,6 @@
   white-space: nowrap;
 }
 
-.loading-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
     .home {
@@ -486,20 +423,6 @@
         flex-direction: column;
         align-items: center;
         grid-template-columns: 1fr;
-    }
-    
-    .cards {
-        display: flex;
-        flex-wrap: wrap;
-    }
-    
-    .navbar {
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .logo {
-        margin-left: 0;
     }
     
     .about-grid {

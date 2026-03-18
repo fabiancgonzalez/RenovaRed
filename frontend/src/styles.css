@@ -1,6 +1,14 @@
-html, body{
+html, body {
     margin: 0;
     padding: 0;
     height: 100%;
     font-family: 'Inter', sans-serif;
+    color: white;
+    background: linear-gradient(135deg, #0F172A, #0EA5E9, #22C55E);
+}
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0F172A, #0EA5E9, #22C55E);
+    background-attachment: fixed;
 }

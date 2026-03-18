@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -13,6 +13,8 @@ import { filter } from 'rxjs/operators';
 export class HeaderComponent implements OnInit {
   isAuthenticated = false;
   userName = '';
+  dropdownOpen = false;
+  mobileMenuOpen = false;
 
   constructor(private readonly router: Router) {}
 
@@ -21,7 +23,20 @@ export class HeaderComponent implements OnInit {
 
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
-      .subscribe(() => this.syncAuthState());
+      .subscribe(() => {
+        this.syncAuthState();
+        this.dropdownOpen = false;
+        this.mobileMenuOpen = false;
+      });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dropdown') && !target.closest('.hamburger')) {
+      this.dropdownOpen = false;
+      this.mobileMenuOpen = false;
+    }
   }
 
   private syncAuthState(): void {
@@ -41,12 +56,30 @@ export class HeaderComponent implements OnInit {
     }
   }
 
+  toggleDropdown(): void {
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  closeDropdown(): void {
+    this.dropdownOpen = false;
+  }
+
+  toggleMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
+
+  closeMenu(): void {
+    this.mobileMenuOpen = false;
+    this.dropdownOpen = false;
+  }
+
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     this.isAuthenticated = false;
     this.userName = '';
+    this.dropdownOpen = false;
+    this.mobileMenuOpen = false;
     this.router.navigate(['/login'], { replaceUrl: true });
   }
-
 }
