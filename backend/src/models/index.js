@@ -23,8 +23,14 @@ Conversation.belongsTo(Publication, { foreignKey: 'publication_id' });
 Publication.hasMany(Conversation, { foreignKey: 'publication_id' });
 
 // Conversation - Messages
-Conversation.hasMany(Message, { foreignKey: 'conversation_id' });
+Conversation.hasMany(Message, { foreignKey: 'conversation_id', as: 'mensajes' });
 Message.belongsTo(Conversation, { foreignKey: 'conversation_id' });
+
+// Conversation - User (comprador y vendedor)
+Conversation.belongsTo(User, { foreignKey: 'buyer_id', as: 'comprador' });
+Conversation.belongsTo(User, { foreignKey: 'seller_id', as: 'vendedor' });
+User.hasMany(Conversation, { foreignKey: 'buyer_id', as: 'conversacionesComoComprador' });
+User.hasMany(Conversation, { foreignKey: 'seller_id', as: 'conversacionesComoVendedor' });
 
 // User - Messages
 User.hasMany(Message, { foreignKey: 'sender_id' });

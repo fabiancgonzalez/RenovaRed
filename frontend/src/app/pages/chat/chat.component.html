@@ -1,4 +1,220 @@
+<div class="chat-container">
+  <!-- Sidebar de conversaciones -->
+  <aside class="conversations-sidebar" [class.hidden]="selectedConversationId">
+    <div class="sidebar-header">
+      <h2>Mensajes</h2>
+      <button routerLink="/marketplace" class="new-chat-btn">+ Nuevo</button>
+    </div>
 
+    <div class="search-box">
+      <i class="fa-solid fa-search"></i>
+      <input type="text" placeholder="Buscar conversación...">
+    </div>
 
-<p> chat works !!!!</p>
+    <div class="conversations-list">
+      @if (loading) {
+        <div class="loading-spinner">Cargando...</div>
+      }
 
+      @if (error) {
+        <div class="error-message">{{ error }}</div>
+      }
+
+      @if (successMessage) {
+        <div class="success-message">{{ successMessage }}</div>
+      }
+
+      @for (conv of conversations; track conv.id) {
+        <div class="conversation-item" 
+             [class.active]="selectedConversationId === conv.id"
+             (click)="selectConversation(conv.id)">
+          
+          <div class="avatar-container">
+            <img [src]="getAvatarSrc(conv.otro_usuario.avatar)" 
+                 class="conversation-avatar" 
+                 [alt]="'Avatar de ' + (conv.otro_usuario.nombre || 'Usuario')"
+                 (error)="handleConversationImageError($event, conv)">
+            <span class="status-dot" 
+                  [class.online]="isUserOnline(conv.otro_usuario.id)"></span>
+          </div>
+
+          <div class="conversation-info">
+            <div class="conversation-header">
+              <span class="conversation-name">{{ conv.otro_usuario.nombre || 'Usuario' }}</span>
+              <span class="conversation-time">{{ formatDate(conv.ultimo_mensaje_at) }}</span>
+            </div>
+            <div class="conversation-last-message">
+              <span class="message-preview">{{ conv.ultimo_mensaje || 'Sin mensajes aún' }}</span>
+              @if (conv.no_leidos > 0) {
+                <span class="unread-badge">{{ conv.no_leidos }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- Botón de eliminar conversación -->
+          <div class="conversation-actions">
+            <button class="delete-conv-btn" 
+                    (click)="confirmDeleteConversation(conv, $event)"
+                    title="Eliminar de mi lista">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      } @empty {
+        @if (!loading) {
+          <div class="empty-state">
+            <i class="fa-regular fa-comment-dots"></i>
+            <p>No tenés conversaciones</p>
+            <button routerLink="/marketplace" class="btn-primary">Explorar</button>
+          </div>
+        }
+      }
+    </div>
+  </aside>
+
+  <!-- Área de chat -->
+  <main class="chat-area" [class.expanded]="!selectedConversationId">
+    @if (selectedConversationId && currentConversation) {
+      <!-- Header del chat -->
+      <div class="chat-header">
+        <button class="back-button" (click)="goBack()">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        
+        <div class="chat-user-info">
+          <div class="avatar-container">
+            <img [src]="getAvatarSrc(getOtherUser().avatar)" 
+                 class="chat-avatar" 
+                 [alt]="'Avatar de ' + getOtherUser().nombre"
+                 (error)="handleHeaderImageError($event)">
+            <span class="status-dot" 
+                  [class.online]="isUserOnline(getOtherUser().id)"></span>
+          </div>
+          <div>
+            <h3>{{ getOtherUser().nombre }}</h3>
+            <p class="chat-status">{{ getUserStatus(getOtherUser().id, getOtherUser().last_login) }}</p>
+          </div>
+        </div>
+
+        <div class="chat-actions">
+          <button class="action-btn">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensajes -->
+      <div class="messages-container" #messagesContainer>
+        @for (msg of currentConversation.mensajes; track msg.id) {
+          <div class="message-wrapper" [class.my-message]="msg.remitenteId === currentUserId">
+            
+            @if (msg.remitenteId !== currentUserId) {
+              <img [src]="getAvatarSrc(msg.avatar)" 
+                   class="message-avatar" 
+                   [alt]="'Avatar de ' + msg.remitente"
+                   (error)="handleMessageImageError($event, msg)">
+            }
+            
+            <div class="message-content">
+              @if (msg.remitenteId !== currentUserId) {
+                <span class="message-sender-name">{{ msg.remitente }}</span>
+              }
+              
+              <div class="message-bubble">
+                {{ msg.content }}
+              </div>
+              
+              <div class="message-time">
+                {{ formatTime(msg.created_at) }}
+                @if (msg.remitenteId === currentUserId) {
+                  @if (msg.read) {
+                    <i class="fa-solid fa-check-double read-icon blue-check"></i>
+                  } @else {
+                    <i class="fa-solid fa-check read-icon"></i>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-chat">
+            <i class="fa-regular fa-comment-dots"></i>
+            <p>No hay mensajes aún</p>
+            <p class="empty-chat-hint">Envía un mensaje para comenzar la conversación</p>
+          </div>
+        }
+      </div>
+
+      <!-- Input de mensaje -->
+      <div class="message-input-container">
+        <button class="attach-btn" title="Adjuntar archivo">
+          <i class="fa-solid fa-paperclip"></i>
+        </button>
+        
+        <input 
+          type="text" 
+          [(ngModel)]="newMessage" 
+          (keyup.enter)="sendMessage()"
+          placeholder="Escribí un mensaje..."
+          class="message-input"
+          [disabled]="!selectedConversationId">
+        
+        <button class="send-btn" 
+                [disabled]="!newMessage.trim() || !selectedConversationId" 
+                (click)="sendMessage()"
+                title="Enviar mensaje">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    } @else {
+      <!-- Estado sin chat seleccionado -->
+      <div class="no-chat-selected">
+        <i class="fa-regular fa-comment-dots"></i>
+        <h3>Tus mensajes</h3>
+        <p>Seleccioná una conversación para empezar a chatear</p>
+        <button routerLink="/marketplace" class="btn-primary">Explorar publicaciones</button>
+      </div>
+    }
+  </main>
+</div>
+
+<!-- Modal de confirmación para eliminar conversación -->
+@if (showDeleteModal) {
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Eliminar conversación</h3>
+        <button class="close-btn" (click)="cancelDelete()">✕</button>
+      </div>
+      
+      <div class="modal-body">
+        <p>¿Eliminar conversación con <strong>{{ conversationToDelete?.otro_usuario?.nombre }}</strong>?</p>
+        
+        <div class="delete-options">
+          <div class="delete-option">
+            <i class="fa-solid fa-eye-slash"></i>
+            <div>
+              <strong>Eliminar para mí</strong>
+              <p>La conversación desaparecerá de tu lista. La otra persona aún podrá verla.</p>
+            </div>
+          </div>
+          
+          <div class="delete-option note">
+            <i class="fa-solid fa-info-circle"></i>
+            <div>
+              <strong>Nota:</strong>
+              <p>Si la otra persona ya había borrado esta conversación, se eliminará permanentemente para ambos.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="cancelDelete()">Cancelar</button>
+        <button class="delete-btn" (click)="deleteConversationForMe()">
+          <i class="fa-solid fa-trash"></i> Eliminar para mí
+        </button>
+      </div>
+    </div>
+  </div>
+}

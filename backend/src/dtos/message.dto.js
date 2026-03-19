@@ -1,5 +1,3 @@
-const UserDTO = require('./user.dto');
-
 class MessageDTO {
   static item(msg) {
     return {
@@ -10,7 +8,9 @@ class MessageDTO {
       attachments: msg.attachments || [],
       read: msg.read,
       created_at: msg.created_at,
-      remitente: msg.remitente ? UserDTO.list(msg.remitente) : null
+      remitente: msg.remitente?.nombre || 'Usuario',
+      remitenteId: msg.remitente?.id,
+      avatar: msg.remitente?.avatar_url || null
     };
   }
 

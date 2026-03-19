@@ -2,8 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-
-
+import { CommonModule } from '@angular/common';
 
 interface UserProfile {
   id: string;
@@ -27,7 +26,8 @@ interface ApiResponse<T> {
 
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule],
+  standalone: true,
+  imports: [FormsModule, CommonModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
@@ -74,6 +74,13 @@ export class ProfileComponent implements OnInit {
     if (this.token) {
       this.loadProfile();
     }
+  }
+
+  getAvatarSrc(avatarUrl: string | null | undefined): string {
+    if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== '') {
+      return avatarUrl;
+    }
+    return '/assets/default-avatar.png';
   }
 
   private getStoredToken(): string {
@@ -270,18 +277,15 @@ export class ProfileComponent implements OnInit {
     return date.toLocaleString();
   }
 
-
   onImageSelected(event: Event): void {
-  const input = event.target as HTMLInputElement;
-  if (!input.files?.length) return;
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
 
-  const file = input.files[0];
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    this.editForm.avatar_url = reader.result as string;
-  };
-  reader.readAsDataURL(file);
-}
-
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.editForm.avatar_url = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
 }

@@ -1,10 +1,23 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const cors = require('cors');
-require('dotenv').config(); 
+require('dotenv').config();
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./src/config/swagger');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:4200",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// ========== WEBSOCKET ==========
+require('./src/websocket')(io);
 
 // Middlewares 
 app.use(cors()); // Habilita CORS para todas las rutas
@@ -28,8 +41,6 @@ app.get('/api-docs.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpecs);
 });
-
-
 
 // ========== RUTAS ==========
 const homeRoutes = require('./src/routes/home.routes'); // Ruta para la pagina de inicio
@@ -62,6 +73,8 @@ app.use('/api/favorites', favoriteRoutes);
 const dailyStatsRoutes = require('./src/routes/dailyStats.routes');
 app.use('/api/stats', dailyStatsRoutes);
 
+const messageRoutes = require('./src/routes/message.routes');
+app.use('/api/conversations/:conversationId/messages', messageRoutes);
 
 
 // Health check
@@ -80,7 +93,7 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 
 // Iniciar servidor
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`==========RenovaRed==========`);
     console.log(` - RenovaRed activo en: http://localhost:${PORT}`);
     console.log(` - Health check: http://localhost:${PORT}/api/health`);
