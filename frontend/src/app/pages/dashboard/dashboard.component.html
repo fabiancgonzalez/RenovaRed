@@ -1,0 +1,117 @@
+<div class="dashboard">
+
+<!--   SIDEBAR      -->
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="logoRenovared.png" alt="RenovaRed">
+        </div>
+
+        <nav class="menu">
+            <a class="active">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+            <a>
+                <i class="fa-solid fa-users"></i> Usuarios
+            </a>
+            <a>
+                <i class="fa-solid fa-cube"></i> Materiales
+            </a>
+            <a>
+                <i class="fa-solid fa-message"></i> Mensajes
+            </a>
+            <a>
+                <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+            </a>
+        </nav>
+    </aside>
+
+    <!--    CONTENIDO   -->
+    <main class="content">
+        <!-- NAVBAR -->
+        <header class="topbar">
+            <input class="search" placeholder="Buscar...">
+            <div class="user">
+                <i class="fa-solid fa-bell"></i>
+                <i class="fa-solid fa-gear"></i>
+                <div class="user-box">
+                    <img src="https://i.pravatar.cc/40">
+                    <span>Hola, <b>Admin</b></span>
+                </div>
+            </div>
+        </header>
+        <h1>Dashboard</h1>
+        <p class="subtitle">Resumen de la plataforma.</p>
+
+    <!-- METRICAS   -->
+    <section class="metrics">
+        <div class="card">
+            <i class="fa-solid fa-users"></i>
+            <div>
+                <span>Usuarios registrados</span>
+                <h2>{{ data?.metrics?.activos }}</h2>
+            </div>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-cube"></i>
+            <div>
+                <span>Materiales reutilizados</span>
+                <h2>{{ data?.metrics?.reutilizados }}</h2>
+            </div>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-repeat"></i>
+            <div>
+                <span>Intercambios</span>
+                <h2>{{ data?.metrics?.intercambios }}</h2>
+            </div>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-leaf"></i>
+            <div>
+                <span>CO₂ ahorrado</span>
+                <h2>{{ data?.metrics?.co2 }}</h2>
+            </div>
+        </div>    
+    </section>
+    <!-- GRAFICOS -->
+    <section class="charts">
+        <div class="chart-card">
+            <h3>Crecimiento de usuarios</h3>
+            <canvas id="usersChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Materiales por categoría</h3>
+            <canvas id="materialsChart"></canvas>
+        </div>
+    </section>
+    <!-- ACTIVIDAD -->
+     <div class="bottom-section">
+        <div class="activity">
+        <h3>Actividad reciente</h3>
+        <ul class="activity-list">
+            <li *ngFor="let act of data?.activity || []" class="activity-item">
+                <div class="icon" [ngClass]="act.tipo">
+                    <i *ngIf="act.tipo === 'usuario'" class="fa-solid fa-user"></i>
+                    <i *ngIf="act.tipo === 'publicacion'" class="fa-solid fa-newspaper"></i>
+                </div>
+                <div class="info">
+                    <p class="text">{{ act.texto }}</p>
+                    <span class="time">{{ act.fecha | date:'short' }}</span>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div class="quick-actions">
+        <h3>Acciones rápidas</h3>
+        <div class="action-card">
+            <i class="fa-solid fa-plus"></i>
+            <p>Publicar material</p>
+        </div>
+        <div class="action-card">
+            <i class="fa-solid fa-store"></i>
+            <p routerLink="/marketplace">Ver marketplace</p>
+        </div>
+    </div>
+     </div>
+</main>
+</div>

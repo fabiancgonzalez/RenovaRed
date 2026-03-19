@@ -41,7 +41,13 @@ app.use('/api/auth', authRoutes);
 const profileRoutes = require('./src/routes/profile.routes'); // Ruta para perfil de usuario (ver/editar perfil)
 app.use('/api/profile', profileRoutes);
 
+// AGREGADO
 
+const categoryRouter = require('./src/routes/category.routes'); // Rutas para categorias (CRUD)
+app.use('/api/categories', categoryRouter);
+
+const userRoutes = require('./src/routes/user.routes'); // Rutas para usuarios (CRUD, stats)
+app.use('/api/users', userRoutes);
 
 // Health check
 const healthRoutes = require('./src/routes/health.routes');

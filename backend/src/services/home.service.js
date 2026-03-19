@@ -1,4 +1,4 @@
-const { DailyStats, User, Category } = require('../models');
+const { DailyStats, User, Category, Publication } = require('../models');
 const { Op } = require('sequelize');
 
 class HomeService {
@@ -65,9 +65,10 @@ class HomeService {
 
   // Home completo
   async getHomeData() {
-    const [metrics, categories] = await Promise.all([
+    const [metrics, categories, activity] = await Promise.all([
       this.getMetrics(),
-      this.getCategories()
+      this.getCategories(),
+      this.getRecentActivity()
     ]);
 
     return {
@@ -86,8 +87,55 @@ class HomeService {
         id: c.id,
         nombre: c.nombre
       })),
+      activity,
       lastUpdated: new Date().toISOString().split('T')[0]
     };
+  }
+
+  // ACTIVIDAD RECIENTE -> AGREGADO
+  async getRecentActivity() {
+    try {
+      // Ultimas publicaciones
+      const publications = await Publication.findAll({
+        attributes: ['id','titulo', 'published_at'],
+        include:[{
+          model: User,
+          as: 'usuario',
+          attributes: ['nombre']
+        }],
+        order: [['published_at', 'DESC']],
+        limit: 5
+      });
+      // Ultimos usuarios registrados
+      const users = await User.findAll({
+        attributes: ['nombre', 'created_at'],
+        order: [['created_at', 'DESC']],
+        limit: 5
+      });
+      // Formatear actividades
+      const activity = [];
+
+      publications.forEach(pub => {
+        activity.push({
+          tipo: 'publicacion',
+          texto: `${pub.usuario?.nombre} publicó: ${pub.titulo}`,
+          fecha: pub.published_at
+        });
+      });
+      users.forEach(user => {
+        activity.push({
+          tipo: 'usuario',
+          texto: `${user.nombre} se registró`,
+          fecha: user.createdAt
+        });
+      });
+      // Ordenar por fecha
+      activity.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      return activity.slice(0, 5);
+    } catch (error) {
+      console.error('Error obteniendo actividad reciente:', error);
+      return [];
+    }
   }
 }
 

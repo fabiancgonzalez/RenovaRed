@@ -49,3 +49,14 @@ exports.getMyPublications = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Error al obtener publicaciones', error: error.message });
   }
 };
+
+// AGREGADO
+exports.getUserStats = async (req, res) => {
+  try {
+    const result = await userService.getUserStats();
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('UserController.getUserStats:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener estadísticas de usuarios', error: error.message });
+  }
+};
