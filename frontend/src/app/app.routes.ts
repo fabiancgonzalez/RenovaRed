@@ -5,6 +5,7 @@ import { RegisterComponent } from './pages/register/register.component';
 import { MarketplaceComponent } from './pages/marketplace/marketplace.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { ChatComponent } from './pages/chat/chat.component';
+import { MapsComponent } from './pages/maps/maps.component';
 
 export const routes: Routes = [
     { path: '', component: HomeComponent},
@@ -12,7 +13,9 @@ export const routes: Routes = [
     { path: 'login', component: LoginComponent},
     { path: 'register', component: RegisterComponent},
     { path: 'marketplace', component: MarketplaceComponent},
+    { path: 'maps', component: MapsComponent},
     { path: 'profile', component: ProfileComponent},
+   // { path: 'profile/:id', component: ProfileComponent},
     { path: 'chat', component: ChatComponent},
     { path: 'chat/:id', component: ChatComponent},
 ];
