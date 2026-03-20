@@ -312,15 +312,6 @@ export class ProfileComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
 
-<<<<<<< HEAD
-    const file = input.files[0];
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.editForm.avatar_url = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  }
-=======
   onCoordinatesInputChange(): void {
     const lat = Number(this.editForm.latitud);
     const lng = Number(this.editForm.longitud);
@@ -402,5 +393,4 @@ export class ProfileComponent implements OnInit {
     this.profileMarker = undefined;
   }
 
->>>>>>> main
 }
