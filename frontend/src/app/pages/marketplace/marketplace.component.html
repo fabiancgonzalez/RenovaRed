@@ -1,1 +1,170 @@
-<p>marketplace works!</p>
+<main class="marketplace">
+	<h1>Marketplace</h1>
+
+	<p *ngIf="loading" class="info">Cargando publicaciones...</p>
+	<p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+
+	<button class="btn-nueva-publicacion" (click)="toggleFormularioPublicacion()">
+		{{ mostrarFormulario ? 'Ocultar Nueva Publicacion' : 'Nueva publicación' }}
+	</button>
+
+	<section class="section-nueva-publicacion" *ngIf="mostrarFormulario" #nuevaPublicacionSection tabindex="-1">
+		<h2>{{ editingPublicationId ? 'Editar publicación' : 'Nueva publicación' }}</h2>
+
+		<form class="publication-form" (ngSubmit)="savePublication()">
+			<label>
+				Título *
+				<input type="text" name="titulo" [(ngModel)]="publicationForm.titulo" required>
+			</label>
+
+			<label>
+				Descripción
+				<textarea name="descripcion" rows="3" [(ngModel)]="publicationForm.descripcion"></textarea>
+			</label>
+
+			<label>
+				Categoría de material
+				<select name="categoria_id" [(ngModel)]="publicationForm.categoria_id">
+					<option value="">Sin categoría</option>
+					<option *ngFor="let category of categories" [value]="category.id">{{ getCategoryNameEs(category) }}</option>
+				</select>
+			</label>
+
+			<!--<label>
+				Imagen del producto
+				<input  class="button" type="file" accept="image/*" (change)="onPublicationImageSelected($event)">
+			</label>-->
+<label class="btn-nueva-publicacion" for="publication-image-input" style="width: fit-content">
+  📷 Subir imagen
+</label>
+<input 
+  id="publication-image-input"
+  type="file" 
+  accept="image/*" 
+  (change)="onPublicationImageSelected($event)"
+  style="display: none">
+
+
+
+
+			<div class="publication-image-preview" *ngIf="publicationImagePreview">
+				<img [src]="publicationImagePreview" alt="Vista previa de la imagen de la publicación">
+				<button type="button" (click)="removePublicationImage()">Quitar imagen</button>
+			</div>
+
+			<label>
+				Ubicación *
+				<input type="text" name="ubicacion" [(ngModel)]="publicationForm.ubicacion_texto" required>
+			</label>
+
+			<div class="form-row">
+				<label>
+					Precio
+					<input type="number" name="precio" [(ngModel)]="publicationForm.precio">
+				</label>
+
+				<label>
+					Cantidad
+					<input type="number" name="cantidad" [(ngModel)]="publicationForm.cantidad">
+				</label>
+
+				<label>
+					Estado
+					<input type="text" name="estado" [(ngModel)]="publicationForm.estado">
+				</label>
+			</div>
+
+			<div class="actions">
+				<button type="submit" [disabled]="savingPublication">
+					{{ savingPublication ? 'Guardando...' : (editingPublicationId ? 'Actualizar publicación' : 'Crear publicación') }}
+				</button>
+				<button type="button" (click)="cancelEdit()">Cancelar nueva publicación</button>
+				<button type="button" *ngIf="editingPublicationId" (click)="cancelEdit()">Cancelar edición</button>
+			</div>
+		</form>
+	</section>
+
+	<button class="btn-mis-publicaciones" (click)="toggleMisPublicaciones()">
+		{{ mostrarMisPublicaciones ? 'Ocultar Mis Publicaciones' : 'Ver Todas Mis Publicaciones' }}
+	</button>
+
+	<section class="section-todas-publicaciones">
+		<h2>Todas las publicaciones</h2>
+
+		<div class="filter-bar">
+			<label class="filter-label">
+				Filtrar por categoría
+				<select name="selectedCategoryId" [(ngModel)]="selectedCategoryId" (ngModelChange)="onCategoryFilterChange()">
+					<option value="">Todas las categorías</option>
+					<option *ngFor="let category of categories" [value]="category.id">{{ getCategoryNameEs(category) }}</option>
+				</select>
+			</label>
+
+			<button type="button" class="filter-clear" [disabled]="!selectedCategoryId || loading" (click)="clearCategoryFilter()">
+				Limpiar filtro
+			</button>
+		</div>
+
+		<div *ngIf="!loading && allPublications.length === 0" class="empty">
+			No hay publicaciones disponibles para {{ selectedCategoryName }}.
+		</div>
+
+		<div class="cards">
+			<article class="card" *ngFor="let publication of allPublications">
+				<img class="card-image" *ngIf="publication.imagenes?.length" [src]="publication.imagenes?.[0]" alt="Imagen del producto publicado">
+				<h3>{{ publication.titulo }}</h3>
+				<p class="description">{{ publication.descripcion || 'Sin descripción' }}</p>
+				<p class="meta">Publicado por: {{ publication.usuario?.nombre || 'Usuario' }}</p>
+				<div class="category-badge" [style.border-color]="publication.categoria?.color || 'rgba(255,255,255,0.25)'">
+					<span class="category-dot" [style.background-color]="publication.categoria?.color || 'rgba(255,255,255,0.45)'"></span>
+				<!--	<i class="category-icon" *ngIf="isFontAwesomeIcon(publication.categoria?.icono)" [class]="getFontAwesomeIconClass(publication.categoria?.icono)"></i> -->
+					<span class="category-name">{{ getCategoryNameEs(publication.categoria) }}</span>
+				</div>
+				<p class="meta">Estado: {{ publication.estado || 'N/D' }}</p>
+				<p class="meta" *ngIf="publication.precio">Precio: ${{ publication.precio }}</p>
+
+				<button
+					type="button"
+					*ngIf="canContact(publication)"
+					[disabled]="contactingPublicationId === publication.id"
+					(click)="contactOwner(publication)">
+					{{ contactingPublicationId === publication.id ? 'Contactando...' : 'Contactar usuario' }}
+				</button>
+			</article>
+		</div>
+	</section>
+
+	<section class="section-mis-publicaciones" *ngIf="mostrarMisPublicaciones" #misPublicacionesSection tabindex="-1">
+		<h2>Mis publicaciones</h2>
+
+		<div *ngIf="!loading && myPublications.length === 0" class="empty">
+			Aún no tenés publicaciones cargadas para {{ selectedCategoryName }}.
+		</div>
+
+		<div class="cards">
+			<article class="card" *ngFor="let publication of myPublications">
+				<img class="card-image" *ngIf="publication.imagenes?.length" [src]="publication.imagenes?.[0]" alt="Imagen del producto publicado">
+				<h3>{{ publication.titulo }}</h3>
+				<p class="description">{{ publication.descripcion || 'Sin descripción' }}</p>
+				<div class="category-badge" [style.border-color]="publication.categoria?.color || 'rgba(255,255,255,0.25)'">
+					<span class="category-dot" [style.background-color]="publication.categoria?.color || 'rgba(255,255,255,0.45)'"></span>
+					<i class="category-icon" *ngIf="isFontAwesomeIcon(publication.categoria?.icono)" [class]="getFontAwesomeIconClass(publication.categoria?.icono)"></i>
+					<!--<span class="category-icon" *ngIf="publication.categoria?.icono && !isFontAwesomeIcon(publication.categoria?.icono)">{{ publication.categoria?.icono }}</span>-->
+					<span class="category-name">{{ getCategoryNameEs(publication.categoria) }}</span>
+				</div>
+				<p class="meta">Estado: {{ publication.estado || 'N/D' }}</p>
+				<p class="meta" *ngIf="publication.precio">Precio: ${{ publication.precio }}</p>
+
+				<div class="actions">
+					<button type="button" (click)="startEdit(publication)">Editar</button>
+					<button
+						type="button"
+						[disabled]="deletingPublicationId === publication.id"
+						(click)="deletePublication(publication.id)">
+						{{ deletingPublicationId === publication.id ? 'Eliminando...' : 'Eliminar' }}
+					</button>
+				</div>
+			</article>
+		</div>
+	</section>
+</main>

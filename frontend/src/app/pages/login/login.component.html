@@ -1,7 +1,7 @@
 <div class="login-page">
-    <a routerLink="/" class="logo">
+   <!-- <a routerLink="/" class="logo">
         <img src="logoRenovared.png" alt="RenovaRed">
-    </a>
+    </a> -->
 
     <div class="login-card" [class.shake]="errorMessage">
         <h1>Bienvenido a RenovaRed</h1>
@@ -79,10 +79,14 @@
         <div class="social-login">
             <p class="divider">O continuá con</p>
             <div class="social-buttons">
-                <button class="social-btn google" (click)="showSocialMessage('Google')">
-                    <i class="fa-brands fa-google"></i>
-                </button>
-                <button class="social-btn facebook" (click)="showSocialMessage('Facebook')">
+                @if (googleLoginEnabled) {
+                    <div class="google-button-container" #googleButtonContainer></div>
+                } @else {
+                    <button type="button" class="social-btn google" (click)="showSocialMessage('Google')">
+                        <i class="fa-brands fa-google"></i>
+                    </button>
+                }
+                <button type="button" class="social-btn facebook" (click)="showSocialMessage('Facebook')">
                     <i class="fa-brands fa-facebook"></i>
                 </button>
             </div>

@@ -29,8 +29,6 @@ app.get('/api-docs.json', (req, res) => {
   res.send(swaggerSpecs);
 });
 
-
-
 // ========== RUTAS ==========
 const homeRoutes = require('./src/routes/home.routes'); // Ruta para la pagina de inicio
 app.use('/api/home', homeRoutes);
@@ -42,6 +40,26 @@ const profileRoutes = require('./src/routes/profile.routes'); // Ruta para perfi
 app.use('/api/profile', profileRoutes);
 
 // AGREGADO
+const userRoutes = require('./src/routes/user.routes');
+app.use('/api/users', userRoutes);
+
+const categoryRoutes = require('./src/routes/category.routes');
+app.use('/api/categories', categoryRoutes);
+
+const publicationRoutes = require('./src/routes/publication.routes');
+app.use('/api/publications', publicationRoutes);
+
+const conversationRoutes = require('./src/routes/conversation.routes');
+app.use('/api/conversations', conversationRoutes);
+
+const exchangeRoutes = require('./src/routes/exchange.routes');
+app.use('/api/exchanges', exchangeRoutes);
+
+const favoriteRoutes = require('./src/routes/favorite.routes');
+app.use('/api/favorites', favoriteRoutes);
+
+const dailyStatsRoutes = require('./src/routes/dailyStats.routes');
+app.use('/api/stats', dailyStatsRoutes);
 
 const categoryRouter = require('./src/routes/category.routes'); // Rutas para categorias (CRUD)
 app.use('/api/categories', categoryRouter);

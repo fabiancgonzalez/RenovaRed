@@ -1,0 +1,52 @@
+<header class="app-header">
+    <nav class="navbar">
+        <div class="logo">
+            <img routerLink="/" src="logoRenovared.png" alt="RenovaRed">
+        </div>
+
+        <!-- Menu hamburguesa -->
+        <button class="hamburger" (click)="toggleMenu()" [class.active]="mobileMenuOpen">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Menú principal -->
+        <div class="nav-links" [class.mobile-open]="mobileMenuOpen">
+            <!-- Links para NO logueados -->
+            <ng-container *ngIf="!isAuthenticated">
+                <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link" (click)="closeMenu()">Inicio</a>
+                <a routerLink="/login" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Iniciar sesión</a>
+                <a routerLink="/register" routerLinkActive="active" class="register-link" (click)="closeMenu()">Registrarse</a>
+            </ng-container>
+
+            <!-- Links para SI logueados -->
+            <ng-container *ngIf="isAuthenticated">
+                <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link" (click)="closeMenu()">Inicio</a>
+                <a routerLink="/marketplace" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Marketplace</a>
+                <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Dashboard</a>
+                <a routerLink="/chat" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Chat</a>
+               <a routerLink="/maps" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Maps</a>
+               <!-- Menú desplegable -->
+                <div class="dropdown">
+                    <button class="dropdown-toggle" (click)="toggleDropdown()">
+                        <span class="user-name">{{ userName }}</span>
+                        <i class="fa-solid fa-chevron-down" [class.rotated]="dropdownOpen"></i>
+                    </button>
+                    
+                    <div class="dropdown-menu" *ngIf="dropdownOpen" (clickOutside)="closeDropdown()">
+                        <a routerLink="/profile" class="dropdown-item" (click)="closeMenu(); closeDropdown()">
+                            <i class="fa-regular fa-user"></i>
+                            Mi perfil
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout" (click)="logout()">
+                            <i class="fa-solid fa-sign-out-alt"></i>
+                            Cerrar sesión
+                        </button>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </nav>
+</header>

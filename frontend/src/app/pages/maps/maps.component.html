@@ -1,0 +1,138 @@
+<section class="maps-page">
+	<div class="maps-hero">
+		<div>
+			<p class="eyebrow">Mapa colaborativo</p>
+			<h1>Usuarios ubicados en la red</h1>
+			<p class="hero-copy">
+				Visualizá dónde está cada usuario, compará proximidad entre ellos y detectá de inmediato la pareja con menor distancia.
+			</p>
+		</div>
+
+		<div class="hero-metrics">
+			<article class="metric-card">
+				<span class="metric-label">Usuarios ubicados</span>
+				<strong>{{ centeredUserCount }}</strong>
+			</article>
+
+			<article class="metric-card highlight" *ngIf="closestPairGlobal; else noClosestPairMetric">
+				<span class="metric-label">Distancia mínima</span>
+				<strong>{{ formatDistance(closestPairGlobal.distanceKm) }}</strong>
+			</article>
+
+			<article class="metric-card" *ngIf="loggedUserDistance">
+				<span class="metric-label">Tu vecino más cercano</span>
+				<strong>{{ formatDistance(loggedUserDistance.distanceKm) }}</strong>
+			</article>
+
+			<ng-template #noClosestPairMetric>
+				<article class="metric-card muted">
+					<span class="metric-label">Distancia mínima</span>
+					<strong>Sin datos</strong>
+				</article>
+			</ng-template>
+		</div>
+	</div>
+
+	<div class="state-card" *ngIf="loading">Cargando ubicaciones de usuarios...</div>
+	<div class="state-card error" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
+
+	<div class="maps-layout" *ngIf="!loading && !errorMessage">
+		<section class="map-panel">
+			<div class="filters-row" *ngIf="userTypes.length">
+				<button type="button" class="filter-action" (click)="activateAllTypes()">Mostrar todos</button>
+				<label class="filter-chip" *ngFor="let type of userTypes">
+					<input
+						type="checkbox"
+						[checked]="selectedTypes[type]"
+						(change)="toggleType(type)"
+					/>
+					<span>{{ type }}</span>
+				</label>
+			</div>
+
+			<div class="map-toolbar">
+				<span class="legend-item">
+					<span class="legend-dot regular"></span>
+					Usuarios
+				</span>
+				<span class="legend-item">
+					<span class="legend-dot closest"></span>
+					Pareja más cercana
+				</span>
+			</div>
+
+			<div #mapContainer class="map-canvas"></div>
+		</section>
+
+		<aside class="insights-panel">
+			<article class="closest-card" *ngIf="closestPairGlobal; else insufficientUsers">
+				<p class="section-label">Pareja global más cercana</p>
+				<h2>{{ closestPairGlobal.first.nombre }} y {{ closestPairGlobal.second.nombre }}</h2>
+				<p class="closest-distance">{{ formatDistance(closestPairGlobal.distanceKm) }}</p>
+				<p class="closest-copy">
+					Son los dos usuarios con menor separación geográfica dentro de la red actual.
+				</p>
+				<div class="closest-users">
+	     			<a [routerLink]="['/chat', closestPairGlobal.first.id]" class="user-name"   >{{ closestPairGlobal.first.nombre }}</a>
+	     			<span>{{ closestPairGlobal.first.tipo }} · {{ closestPairGlobal.first.ubicacion_texto || 'Sin detalle' }}</span>
+					
+					<a [routerLink]="['/chat', closestPairGlobal.second.id]" class="user-name">{{ closestPairGlobal.second.nombre }}</a>
+					<span>{{ closestPairGlobal.second.tipo }} · {{ closestPairGlobal.second.ubicacion_texto || 'Sin detalle' }}</span>
+				</div>
+			</article>
+
+			<article class="closest-card" *ngIf="loggedUserDistance">
+				<p class="section-label">Distancia desde tu cuenta</p>
+				<h2>{{ loggedUserDistance.currentUser.nombre }} → {{ loggedUserDistance.nearestUser.nombre }}</h2>
+				<p class="closest-distance">{{ formatDistance(loggedUserDistance.distanceKm) }}</p>
+				<p class="closest-copy">Este es el usuario más cercano respecto a tu ubicación guardada.</p>
+			</article>
+
+			<ng-template #insufficientUsers>
+				<article class="closest-card empty">
+					<p class="section-label">Pareja global más cercana</p>
+					<h2>Faltan ubicaciones suficientes</h2>
+					<p class="closest-copy">
+						Se necesitan al menos dos usuarios con coordenadas válidas para calcular la distancia más cercana.
+					</p>
+				</article>
+			</ng-template>
+
+			<section class="distance-list" *ngIf="userDistances.length; else noUsers">
+				<div class="distance-header">
+					<h3>Referencia por usuario</h3>
+					<span>Vecinos más cercanos</span>
+				</div>
+
+				<article
+					class="distance-item"
+					*ngFor="let item of userDistances"
+					[class.highlighted]="highlightedUserIds.includes(item.user.id)"
+					
+				>
+					<div>
+						<a [routerLink]="['/chat', item.user.id]" class="user-name">{{ item.user.nombre }}</a>
+						<!--<p class="user-name">{{ item.user.nombre }}</p> -->
+						<p class="user-meta">{{ item.user.tipo }} · {{ item.user.ubicacion_texto || 'Ubicación sin detalle' }}</p>
+					</div>
+
+					<div class="distance-meta" *ngIf="item.nearestUser; else withoutReference">
+						<strong>{{ formatDistance(item.distanceKm) }}</strong>
+						<span>{{ item.nearestUser.nombre }}</span>
+					</div>
+
+					<ng-template #withoutReference>
+						<div class="distance-meta muted">
+							<strong>Sin dato</strong>
+							<span>Sin vecino</span>
+						</div>
+					</ng-template>
+				</article>
+			</section>
+
+			<ng-template #noUsers>
+				<div class="state-card compact">No hay usuarios con coordenadas disponibles para mostrar en el mapa.</div>
+			</ng-template>
+		</aside>
+	</div>
+</section>

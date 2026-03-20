@@ -2,6 +2,8 @@ const { User } = require('../models');
 const bcrypt = require('bcryptjs');
 const UserDTO = require('../dtos/user.dto');
 
+const isValidCoordinate = (value, min, max) => Number.isFinite(value) && value >= min && value <= max;
+
 // Ver perfil (GET)
 const getProfile = async (req, res) => {
   try {
@@ -21,7 +23,7 @@ const getProfile = async (req, res) => {
 // Editar perfil (PUT)
 const updateProfile = async (req, res) => {
   try {
-    const { nombre, telefono, avatar_url, ubicacion_texto } = req.body;
+    const { nombre, telefono, avatar_url, ubicacion_texto, latitud, longitud } = req.body;
     
     // Actualizar solo los campos proporcionados
     const updateData = {};
@@ -29,6 +31,30 @@ const updateProfile = async (req, res) => {
     if (telefono !== undefined) updateData.telefono = telefono;
     if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
     if (ubicacion_texto !== undefined) updateData.ubicacion_texto = ubicacion_texto;
+
+    const parsedLat = latitud === null || latitud === '' || latitud === undefined ? null : Number(latitud);
+    const parsedLng = longitud === null || longitud === '' || longitud === undefined ? null : Number(longitud);
+
+    if ((parsedLat === null) !== (parsedLng === null)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Latitud y longitud deben enviarse juntas'
+      });
+    }
+
+    if (parsedLat !== null && parsedLng !== null) {
+      if (!isValidCoordinate(parsedLat, -90, 90) || !isValidCoordinate(parsedLng, -180, 180)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Latitud o longitud fuera de rango válido'
+        });
+      }
+
+      updateData.ubicacion_geom = {
+        type: 'Point',
+        coordinates: [parsedLng, parsedLat]
+      };
+    }
     
     await req.user.update(updateData);
 

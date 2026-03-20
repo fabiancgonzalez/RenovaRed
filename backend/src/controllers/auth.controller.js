@@ -1,7 +1,29 @@
 const { User } = require('../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const UserDTO = require('../dtos/user.dto');
+
+const GOOGLE_DEFAULT_USER_TYPE = 'Persona';
+
+const getGoogleClient = () => {
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    return null;
+  }
+
+  return new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+};
+
+const generateToken = (user) => jwt.sign(
+  {
+    id: user.id,
+    email: user.email,
+    tipo: user.tipo
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: '7d' }
+);
 
 // Registro de usuario
 const register = async (req, res) => {
@@ -66,15 +88,7 @@ const register = async (req, res) => {
     });
 
     // Generar token JWT
-    const token = jwt.sign(
-      { 
-        id: user.id, 
-        email: user.email, 
-        tipo: user.tipo 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = generateToken(user);
 
     res.status(201).json({
       success: true,
@@ -135,15 +149,7 @@ const login = async (req, res) => {
     await user.update({ last_login: new Date() });
 
     // Generar token
-    const token = jwt.sign(
-      { 
-        id: user.id, 
-        email: user.email, 
-        tipo: user.tipo 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = generateToken(user);
 
     res.json({
       success: true,
@@ -161,7 +167,95 @@ const login = async (req, res) => {
   }
 };
 
+const googleLogin = async (req, res) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        message: 'El token de Google es obligatorio'
+      });
+    }
+
+    const googleClient = getGoogleClient();
+    if (!googleClient) {
+      return res.status(500).json({
+        success: false,
+        message: 'GOOGLE_CLIENT_ID no está configurado en el servidor'
+      });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload?.email || !payload.email_verified) {
+      return res.status(401).json({
+        success: false,
+        message: 'La cuenta de Google no tiene un email verificado'
+      });
+    }
+
+    const normalizedEmail = payload.email.toLowerCase();
+    let user = await User.findOne({ where: { email: normalizedEmail } });
+
+    if (!user) {
+      const randomPassword = crypto.randomUUID();
+      const password_hash = await bcrypt.hash(randomPassword, 10);
+
+      user = await User.create({
+        nombre: payload.name || normalizedEmail.split('@')[0],
+        email: normalizedEmail,
+        password_hash,
+        tipo: GOOGLE_DEFAULT_USER_TYPE,
+        avatar_url: payload.picture || null,
+        is_active: true,
+        last_login: new Date()
+      });
+    } else {
+      if (!user.is_active) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuario desactivado. Contacte al administrador'
+        });
+      }
+
+      const updates = { last_login: new Date() };
+
+      if ((!user.nombre || user.nombre.trim() === '') && payload.name) {
+        updates.nombre = payload.name;
+      }
+
+      if (!user.avatar_url && payload.picture) {
+        updates.avatar_url = payload.picture;
+      }
+
+      await user.update(updates);
+    }
+
+    const token = generateToken(user);
+
+    res.json({
+      success: true,
+      message: 'Login con Google exitoso',
+      data: UserDTO.withToken(user, token)
+    });
+
+  } catch (error) {
+    console.error('Error en login con Google:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al iniciar sesión con Google',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   register,
-  login
+  login,
+  googleLogin
 };

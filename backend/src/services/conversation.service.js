@@ -1,30 +1,35 @@
+const { Op } = require('sequelize');
 const { Conversation, Message, User, Publication } = require('../models');
 
 class ConversationService {
   async getMyConversations(userId) {
-    // Conversaciones donde el usuario es buyer o seller
+    // Conversaciones donde el usuario es dueño de la publicación o ya participó con mensajes
     const conversations = await Conversation.findAll({
-      where: {
-        $or: [{ buyer_id: userId }, { seller_id: userId }]
-      },
       include: [
-        { model: Publication, attributes: ['id', 'titulo', 'imagenes', 'estado'] },
+        { model: Publication, attributes: ['id', 'titulo', 'imagenes', 'estado', 'user_id'] },
         {
           model: Message,
-          limit: 1,
-          order: [['created_at', 'DESC']],
-          attributes: ['content', 'created_at', 'read']
+          where: { sender_id: userId },
+          required: false,
+          attributes: ['id', 'sender_id', 'created_at']
         }
       ],
       order: [['updated_at', 'DESC']]
     });
-    return { status: 200, body: { success: true, data: conversations } };
+
+    const filtered = conversations.filter((conversation) => {
+      const isPublicationOwner = conversation.Publication?.user_id === userId;
+      const hasMessagesFromUser = (conversation.Messages || []).length > 0;
+      return isPublicationOwner || hasMessagesFromUser;
+    });
+
+    return { status: 200, body: { success: true, data: filtered } };
   }
 
   async getById(id, userId) {
     const conv = await Conversation.findByPk(id, {
       include: [
-        { model: Publication, attributes: ['id', 'titulo', 'imagenes', 'estado', 'precio'] },
+        { model: Publication, attributes: ['id', 'titulo', 'imagenes', 'estado', 'precio', 'user_id'] },
         {
           model: Message,
           include: [{ model: User, as: 'remitente', attributes: ['id', 'nombre', 'avatar_url'] }],
@@ -35,38 +40,39 @@ class ConversationService {
 
     if (!conv) return { status: 404, body: { success: false, message: 'Conversación no encontrada' } };
 
-    // Solo los participantes pueden ver
-    if (conv.buyer_id !== userId && conv.seller_id !== userId) {
-      return { status: 403, body: { success: false, message: 'Sin acceso a esta conversación' } };
-    }
-
     // Marcar mensajes como leídos
     await Message.update(
       { read: true },
-      { where: { conversation_id: id, sender_id: { $ne: userId }, read: false } }
+      { where: { conversation_id: id, sender_id: { [Op.ne]: userId }, read: false } }
     );
 
     return { status: 200, body: { success: true, data: conv } };
   }
 
-  async create(buyerId, data) {
-    const { publication_id, seller_id } = data;
-    if (!publication_id || !seller_id) {
-      return { status: 400, body: { success: false, message: 'publication_id y seller_id son obligatorios' } };
-    }
-    if (buyerId === seller_id) {
-      return { status: 400, body: { success: false, message: 'No podés iniciar una conversación con vos mismo' } };
+  async create(userId, data) {
+    const { publication_id } = data;
+    if (!publication_id) {
+      return { status: 400, body: { success: false, message: 'publication_id es obligatorio' } };
     }
 
-    // Verificar si ya existe conversación entre estos usuarios para esta publicación
+    const publication = await Publication.findByPk(publication_id, { attributes: ['id', 'user_id'] });
+    if (!publication) {
+      return { status: 404, body: { success: false, message: 'Publicación no encontrada' } };
+    }
+
+    if (publication.user_id === userId) {
+      return { status: 400, body: { success: false, message: 'No podés iniciar una conversación con tu propia publicación' } };
+    }
+
+    // Una conversación por publicación
     const existing = await Conversation.findOne({
-      where: { publication_id, buyer_id: buyerId, seller_id }
+      where: { publication_id }
     });
     if (existing) {
       return { status: 200, body: { success: true, message: 'Conversación existente', data: existing } };
     }
 
-    const conv = await Conversation.create({ publication_id, buyer_id: buyerId, seller_id });
+    const conv = await Conversation.create({ publication_id });
     return { status: 201, body: { success: true, message: 'Conversación iniciada', data: conv } };
   }
 
@@ -80,9 +86,6 @@ class ConversationService {
 
     const conv = await Conversation.findByPk(conversationId);
     if (!conv) return { status: 404, body: { success: false, message: 'Conversación no encontrada' } };
-    if (conv.buyer_id !== senderId && conv.seller_id !== senderId) {
-      return { status: 403, body: { success: false, message: 'No sos participante de esta conversación' } };
-    }
 
     const msg = await Message.create({
       conversation_id: conversationId,

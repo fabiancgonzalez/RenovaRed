@@ -7,6 +7,9 @@ const { authMiddleware, authorize } = require('../middlewares/auth.middleware');
 // GET  /api/users/stats   
 router.get('/stats', userController.getUserStats);
 
+// GET  /api/users/map/locations  → Ubicaciones públicas para el mapa
+router.get('/map/locations', userController.getMapLocations);
+
 // GET  /api/users              → Lista todos los usuarios (solo admin)
 router.get('/', authMiddleware, authorize('Admin'), userController.getAll);
 
