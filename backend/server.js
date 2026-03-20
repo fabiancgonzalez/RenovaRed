@@ -64,9 +64,6 @@ app.use('/api/stats', dailyStatsRoutes);
 const categoryRouter = require('./src/routes/category.routes'); // Rutas para categorias (CRUD)
 app.use('/api/categories', categoryRouter);
 
-const userRoutes = require('./src/routes/user.routes'); // Rutas para usuarios (CRUD, stats)
-app.use('/api/users', userRoutes);
-
 // Health check
 const healthRoutes = require('./src/routes/health.routes');
 app.use('/api/health', healthRoutes);
