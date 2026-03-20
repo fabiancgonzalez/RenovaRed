@@ -28,6 +28,8 @@
 			<p><strong>Tipo:</strong> {{ profile.tipo }}</p>
 			<p><strong>Teléfono:</strong> {{ profile.telefono || 'N/A' }}</p>
 			<p><strong>Ubicación:</strong> {{ profile.ubicacion_texto || 'N/A' }}</p>
+			<p><strong>Latitud:</strong> {{ profile.coordinates?.lat ?? 'N/A' }}</p>
+			<p><strong>Longitud:</strong> {{ profile.coordinates?.lng ?? 'N/A' }}</p>
 			<p><strong>Activo:</strong> {{ profile.is_active ? 'Sí' : 'No' }}</p>
 			<p><strong>Último login:</strong> {{ formatDate(profile.last_login) }}</p>
 			<p><strong>Creado:</strong> {{ formatDate(profile.created_at) }}</p>
@@ -61,8 +63,58 @@
 					<input hidden type="url" name="avatar_url" [(ngModel)]="editForm.avatar_url" placeholder="https://..."
 						style="flex:1;" />
 
-					<button type="button" (click)="fileInput.click()">
-						Seleccionar imagen
+						<button type="button" (click)="fileInput.click()">
+							Seleccionar imagen
+						</button>
+
+						<input #fileInput type="file" accept="image/*" style="display:none;"
+							(change)="onImageSelected($event)" />
+					</div>
+
+					@if (editForm.avatar_url) {
+				<img [src]="editForm.avatar_url"
+					style="width:64px; height:64px; border-radius:50%; object-fit:cover;" />
+				}
+
+
+
+				</label>
+
+				<label>
+					Ubicación
+					<input type="text" name="ubicacion_texto" [(ngModel)]="editForm.ubicacion_texto" />
+				</label>
+
+				<div class="coords-grid">
+					<label>
+						Latitud
+						<input
+							type="number"
+							step="0.000001"
+							name="latitud"
+							[(ngModel)]="editForm.latitud"
+							(change)="onCoordinatesInputChange()"
+						/>
+					</label>
+
+					<label>
+						Longitud
+						<input
+							type="number"
+							step="0.000001"
+							name="longitud"
+							[(ngModel)]="editForm.longitud"
+							(change)="onCoordinatesInputChange()"
+						/>
+					</label>
+				</div>
+
+				<div class="location-helper">Seleccioná un punto en el mapa o cargá latitud/longitud manualmente.</div>
+				<div #profileMapContainer class="profile-map"></div>
+
+				<div class="actions">
+					<button type="submit" [disabled]="isSavingProfile">
+						{{ isSavingProfile ? 'Guardando...' : 'Guardar cambios' }}
 					</button>
 
 					<input #fileInput type="file" accept="image/*" style="display:none;"

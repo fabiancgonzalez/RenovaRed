@@ -20,6 +20,16 @@ exports.getById = async (req, res) => {
   }
 };
 
+exports.getMapLocations = async (req, res) => {
+  try {
+    const result = await userService.getMapLocations();
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('UserController.getMapLocations:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener ubicaciones de usuarios', error: error.message });
+  }
+};
+
 exports.update = async (req, res) => {
   try {
     const result = await userService.update(req.params.id, req.user.id, req.user.tipo, req.body);

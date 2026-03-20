@@ -1,4 +1,6 @@
-html, body {
+@import 'leaflet/dist/leaflet.css';
+
+html, body{
     margin: 0;
     padding: 0;
     height: 100%;

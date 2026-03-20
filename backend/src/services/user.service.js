@@ -1,5 +1,6 @@
 const { User, Publication, Favorite, Category } = require('../models');
 const bcrypt = require('bcryptjs');
+const UserDTO = require('../dtos/user.dto');
 
 class UserService {
   // Campos seguros a devolver (sin password_hash)
@@ -7,6 +8,66 @@ class UserService {
     return ['id', 'nombre', 'email', 'tipo', 'telefono', 'avatar_url',
       'ubicacion_texto', 'place_id', 'is_active', 'last_login',
       'created_at', 'updated_at'];
+  }
+
+  _isValidCoordinate(lat, lng) {
+    return Number.isFinite(lat)
+      && Number.isFinite(lng)
+      && lat >= -90
+      && lat <= 90
+      && lng >= -180
+      && lng <= 180;
+  }
+
+  _extractCoordinatesFromObject(value, depth = 0) {
+    if (!value || depth > 5 || typeof value !== 'object') {
+      return null;
+    }
+
+    const lat = Number(value.lat ?? value.latitude);
+    const lng = Number(value.lng ?? value.lon ?? value.longitude);
+
+    if (this._isValidCoordinate(lat, lng)) {
+      return { lat, lng };
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const nested = this._extractCoordinatesFromObject(item, depth + 1);
+        if (nested) {
+          return nested;
+        }
+      }
+
+      return null;
+    }
+
+    for (const nestedValue of Object.values(value)) {
+      const nested = this._extractCoordinatesFromObject(nestedValue, depth + 1);
+      if (nested) {
+        return nested;
+      }
+    }
+
+    return null;
+  }
+
+  _extractCoordinates(user) {
+    const geometryCoordinates = user?.ubicacion_geom?.coordinates;
+
+    if (Array.isArray(geometryCoordinates) && geometryCoordinates.length >= 2) {
+      const [lng, lat] = geometryCoordinates;
+      if (this._isValidCoordinate(lat, lng)) {
+        return { lat, lng };
+      }
+    }
+
+    const placesCoordinates = this._extractCoordinatesFromObject(user?.google_places_data);
+    if (placesCoordinates) {
+      return placesCoordinates;
+    }
+
+    return null;
   }
 
   async getAll({ page = 1, limit = 20, tipo, is_active } = {}) {
@@ -39,6 +100,41 @@ class UserService {
     });
     if (!user) return { status: 404, body: { success: false, message: 'Usuario no encontrado' } };
     return { status: 200, body: { success: true, data: user } };
+  }
+
+  async getMapLocations() {
+    const users = await User.findAll({
+      where: { is_active: true },
+      attributes: [
+        'id',
+        'nombre',
+        'tipo',
+        'avatar_url',
+        'ubicacion_texto',
+        'ubicacion_geom',
+        'google_places_data'
+      ],
+      order: [['nombre', 'ASC']]
+    });
+
+    const locations = users
+      .map((user) => {
+        const coordinates = this._extractCoordinates(user);
+        if (!coordinates) {
+          return null;
+        }
+
+        return UserDTO.mapLocation(user, coordinates);
+      })
+      .filter(Boolean);
+
+    return {
+      status: 200,
+      body: {
+        success: true,
+        data: locations
+      }
+    };
   }
 
   async update(id, requesterId, requesterTipo, data) {

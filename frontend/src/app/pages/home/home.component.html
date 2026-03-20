@@ -1,4 +1,14 @@
 <div class="home">
+  <div class="home-header">
+    <div class="logo">
+      <img src="logoRenovared.png" alt="RenovaRed">
+    </div>
+    <div class="auth-buttons">
+      <a routerLink="/login" class="btn-login">Iniciar sesión</a>
+      <a routerLink="/register" class="btn-register">Registrarse</a>
+    </div>
+  </div>
+
   <!-- LOADING -->
   @if (loading) {
     <div class="loading-container">
@@ -22,8 +32,8 @@
       <h1>Economía Circular Inteligente</h1>
       <p>Conectamos cooperativas, recicladoras y emprendedores <br> para fortalecer el impacto ambiental local.</p>
       <div class="home-buttons">
-        <button routerLink="/login" class="btn-primary">Explorar Materiales</button>
-        <button routerLink="/login" class="btn-secondary">Publicar Recursos</button>
+        <button routerLink="/marketplace" class="btn-primary">Explorar Materiales</button>
+        <button routerLink="/publicar" class="btn-secondary">Publicar Recursos</button>
       </div>
     </div>
 

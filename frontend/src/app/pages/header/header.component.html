@@ -13,28 +13,26 @@
 
         <!-- Menú principal -->
         <div class="nav-links" [class.mobile-open]="mobileMenuOpen">
-            <!-- Links para NO logueados -->
-            <ng-container *ngIf="!isAuthenticated">
-                <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link" (click)="closeMenu()">Inicio</a>
-                <a routerLink="/login" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Iniciar sesión</a>
-                <a routerLink="/register" routerLinkActive="active" class="register-link" (click)="closeMenu()">Registrarse</a>
-            </ng-container>
-
             <!-- Links para SI logueados -->
             <ng-container *ngIf="isAuthenticated">
-                <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link" (click)="closeMenu()">Inicio</a>
                 <a routerLink="/marketplace" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Marketplace</a>
                 <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Dashboard</a>
                 <a routerLink="/chat" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Chat</a>
+                <a routerLink="/maps" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Maps</a>
                 
                 <!-- Menú desplegable -->
                 <div class="dropdown">
                     <button class="dropdown-toggle" (click)="toggleDropdown()">
+                        <div class="user-avatar">
+                            <img [src]="getAvatarSrc(userAvatar)" 
+                                 alt="Avatar"
+                                 (error)="handleAvatarError($event)">
+                        </div>
                         <span class="user-name">{{ userName }}</span>
                         <i class="fa-solid fa-chevron-down" [class.rotated]="dropdownOpen"></i>
                     </button>
                     
-                    <div class="dropdown-menu" *ngIf="dropdownOpen" (clickOutside)="closeDropdown()">
+                    <div class="dropdown-menu" *ngIf="dropdownOpen">
                         <a routerLink="/profile" class="dropdown-item" (click)="closeMenu(); closeDropdown()">
                             <i class="fa-regular fa-user"></i>
                             Mi perfil

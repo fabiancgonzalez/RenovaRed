@@ -8,11 +8,12 @@ import { filter } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.css'
+  styleUrls: ['./header.component.css']
 })
 export class HeaderComponent implements OnInit {
   isAuthenticated = false;
   userName = '';
+  userAvatar: string | null = '';
   dropdownOpen = false;
   mobileMenuOpen = false;
 
@@ -44,16 +45,29 @@ export class HeaderComponent implements OnInit {
     const userRaw = localStorage.getItem('user');
 
     this.isAuthenticated = !!token;
-    this.userName = '';
 
     if (!userRaw) return;
 
     try {
       const user = JSON.parse(userRaw);
       this.userName = user?.nombre || user?.name || user?.email || '';
+      this.userAvatar = user?.avatar_url || null;
     } catch {
       this.userName = '';
+      this.userAvatar = null;  
     }
+  }
+
+  getAvatarSrc(avatarUrl: string | null): string {
+    if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== '') {
+      return avatarUrl;
+    }
+    return '/assets/default-avatar.png';
+  }
+
+  handleAvatarError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = '/assets/default-avatar.png';
   }
 
   toggleDropdown(): void {
@@ -78,8 +92,9 @@ export class HeaderComponent implements OnInit {
     localStorage.removeItem('user');
     this.isAuthenticated = false;
     this.userName = '';
+    this.userAvatar = null;
     this.dropdownOpen = false;
     this.mobileMenuOpen = false;
-    this.router.navigate(['/login'], { replaceUrl: true });
+    this.router.navigate(['/'], { replaceUrl: true });
   }
 }

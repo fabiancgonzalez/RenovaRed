@@ -1,6 +1,64 @@
+.auth-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+}
+
+.logo a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.logo img {
+    width: 140px;
+    height: auto;
+    display: block;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.btn-login {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 16px;
+    transition: opacity 0.3s;
+}
+
+.btn-login:hover {
+    opacity: 0.8;
+}
+
+.btn-register {
+  background: linear-gradient(135deg, #22C55E, #16a34a);
+  color: white;
+  text-decoration: none;
+  padding: 8px 22px;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.btn-register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(34,197,94,0.3);
+}
+
 .login-page {
     min-height: 100vh;
-    padding: 40px;
+    padding: 100px 40px 40px;
     box-sizing: border-box;
     color: white;
     background: linear-gradient(135deg, #0F172A, #0EA5E9, #22C55E);
@@ -17,28 +75,6 @@
     bottom: 0;
     background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
     pointer-events: none;
-}
-
-.logo {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    font-weight: bold;
-    font-size: 20px;
-    margin-left: -40px;
-    position: relative;
-    z-index: 2;
-    transition: transform 0.3s ease;
-}
-
-.logo:hover {
-    transform: scale(1.02);
-}
-
-.logo img {
-    width: 100px;
-    transform: scale(2.5) translateY(4.7px);
-    transform-origin: left center;
 }
 
 .login-card {
@@ -83,6 +119,7 @@
     margin: 10px 0 25px;
     opacity: 0.8;
     font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .alert {
@@ -119,6 +156,12 @@
     color: #fff;
 }
 
+.alert.info {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    color: #fff;
+}
+
 form {
     width: 100%;
     display: flex;
@@ -141,10 +184,11 @@ form {
     outline: none;
     transition: all 0.25s ease;
     box-sizing: border-box;
+    color: #111827;
 }
 
 .input-group input.error {
-    border-color: #ef4444;
+    border-color: #ef4444 !important;
 }
 
 .input-group i:first-child {
@@ -330,29 +374,93 @@ button[type="submit"]:disabled {
     }
 }
 
+/* Spinner */
+.fa-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* Responsive */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+    .auth-header {
+        padding: 15px 20px;
+    }
+    
+    .logo img {
+        width: 120px;
+    }
+    
+    .auth-buttons {
+        gap: 10px;
+    }
+    
+    .btn-login {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+    
+    .btn-register {
+        padding: 6px 18px;
+        font-size: 14px;
+    }
+    
     .login-page {
-        padding: 20px;
+        padding: 80px 20px 30px;
     }
     
     .login-card {
         width: 100%;
+        max-width: 380px;
         padding: 30px 20px;
     }
     
-    .logo {
-        margin-left: 0;
-        justify-content: center;
-    }
-    
-    .logo img {
-        transform: scale(2) translateY(4px);
+    .input-group input {
+        padding: 12px 40px;
+        font-size: 14px;
     }
 }
 
-.alert.info {
-    background: rgba(59, 130, 246, 0.2);
-    border: 1px solid rgba(59, 130, 246, 0.5);
-    color: #fff;
+@media (max-width: 480px) {
+    .auth-header {
+        padding: 12px 15px;
+    }
+    
+    .logo img {
+        width: 100px;
+    }
+    
+    .auth-buttons {
+        gap: 8px;
+    }
+    
+    .btn-login {
+        padding: 5px 10px;
+        font-size: 13px;
+    }
+    
+    .btn-register {
+        padding: 5px 15px;
+        font-size: 13px;
+    }
+    
+    .login-page {
+        padding: 70px 15px 20px;
+    }
+    
+    .login-card {
+        padding: 25px 15px;
+    }
+    
+    .login-card h1 {
+        font-size: 24px;
+    }
+    
+    button[type="submit"] {
+        padding: 12px;
+        font-size: 15px;
+    }
 }

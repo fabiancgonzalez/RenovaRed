@@ -1,7 +1,16 @@
 <div class="register-page">
-    <!-- <a routerLink="/" class="logo">
-        <img src="logoRenovared.png" alt="RenovaRed">
-    </a> -->
+    <div class="auth-header">
+        <div class="logo">
+            <a routerLink="/">
+                <img src="logoRenovared.png" alt="RenovaRed">
+            </a>
+        </div>
+        <div class="auth-buttons">
+            <a routerLink="/" class="btn-login">Inicio</a>
+            <a routerLink="/login" class="btn-login">Iniciar sesión</a>
+            <a routerLink="/register" class="btn-register active">Registrarse</a>
+        </div>
+    </div>
 
     <div class="register-card" [class.shake]="errorMessage">
         <h1>Crear cuenta</h1>

@@ -3,6 +3,9 @@ const router = express.Router();
 const userController = require('../controllers/user.controller');
 const { authenticate, authorize } = require('../middlewares/auth.middleware');
 
+// GET  /api/users/map/locations  → Ubicaciones públicas para el mapa
+router.get('/map/locations', userController.getMapLocations);
+
 // GET  /api/users              → Lista todos los usuarios (solo admin)
 router.get('/', authenticate, authorize('admin'), userController.getAll);
 

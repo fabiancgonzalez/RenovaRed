@@ -180,3 +180,27 @@ h1 {
 .form button.secondary {
 	background: #0f172a;
 }
+
+.coords-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+}
+
+.location-helper {
+	font-size: 0.9rem;
+	opacity: 0.85;
+}
+
+.profile-map {
+	min-height: 480px;
+	border-radius: 12px;
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+@media (max-width: 720px) {
+	.coords-grid {
+		grid-template-columns: 1fr;
+	}
+}
