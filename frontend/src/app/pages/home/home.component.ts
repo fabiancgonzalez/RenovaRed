@@ -50,7 +50,6 @@ export class HomeComponent implements OnInit {
         next: (response) => {
           if (response.success) {
             this.data = response.data;
-            console.log('Datos cargados:', this.data);
           }
           this.loading = false;
           this.cdr.detectChanges();
