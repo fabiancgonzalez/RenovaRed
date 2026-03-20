@@ -18,7 +18,16 @@ router.get('/:id', authenticate, userController.getById);
 // PUT  /api/users/:id          → Actualizar perfil (propio o admin)
 router.put('/:id', authenticate, userController.update);
 
+// PATCH /api/users/:id/role    → Cambiar rol (solo admin)
+router.patch('/:id/role', authenticate, authorize('admin'), userController.changeRole);
+
+// PATCH /api/users/:id/reactivate → Reactivar usuario (solo admin)
+router.patch('/:id/reactivate', authenticate, authorize('admin'), userController.reactivate);
+
 // DELETE /api/users/:id        → Desactivar usuario (propio o admin)
 router.delete('/:id', authenticate, userController.deactivate);
+
+// DELETE /api/users/:id/hard   → Eliminar permanentemente (solo admin)
+router.delete('/:id/hard', authenticate, authorize('admin'), userController.hardDelete);
 
 module.exports = router;
