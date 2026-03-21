@@ -1,8 +1,22 @@
 const { User, Publication, Favorite, Category } = require('../models');
 const bcrypt = require('bcryptjs');
+const { Sequelize } = require('sequelize');
 const UserDTO = require('../dtos/user.dto');
 
 class UserService {
+  async getUserStats() {
+    const stats = await User.findAll({
+      attributes: [
+        [Sequelize.fn('DATE', Sequelize.col('created_at')), 'fecha'],
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'total']
+      ],
+      group: [Sequelize.fn('DATE', Sequelize.col('created_at'))],
+      order: [[Sequelize.fn('DATE', Sequelize.col('created_at')), 'ASC']],
+      raw: true
+    });
+    return { status: 200, body: { success: true, data: stats } };
+  }
+
   // Campos seguros a devolver (sin password_hash)
   _safeFields() {
     return ['id', 'nombre', 'email', 'tipo', 'telefono', 'avatar_url',

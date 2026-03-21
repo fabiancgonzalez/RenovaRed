@@ -29,8 +29,6 @@ app.get('/api-docs.json', (req, res) => {
   res.send(swaggerSpecs);
 });
 
-
-
 // ========== RUTAS ==========
 const homeRoutes = require('./src/routes/home.routes'); // Ruta para la pagina de inicio
 app.use('/api/home', homeRoutes);
@@ -41,6 +39,7 @@ app.use('/api/auth', authRoutes);
 const profileRoutes = require('./src/routes/profile.routes'); // Ruta para perfil de usuario (ver/editar perfil)
 app.use('/api/profile', profileRoutes);
 
+// AGREGADO
 const userRoutes = require('./src/routes/user.routes');
 app.use('/api/users', userRoutes);
 
@@ -62,7 +61,8 @@ app.use('/api/favorites', favoriteRoutes);
 const dailyStatsRoutes = require('./src/routes/dailyStats.routes');
 app.use('/api/stats', dailyStatsRoutes);
 
-
+const categoryRouter = require('./src/routes/category.routes'); // Rutas para categorias (CRUD)
+app.use('/api/categories', categoryRouter);
 
 // Health check
 const healthRoutes = require('./src/routes/health.routes');

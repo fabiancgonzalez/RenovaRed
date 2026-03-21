@@ -1,0 +1,143 @@
+<div class="dashboard">
+
+<!--   SIDEBAR      -->
+    <aside class="sidebar">
+        <nav class="menu">
+            <a [class.active]= "view === 'dashboard'" (click)="setView('dashboard')">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+            <a [class.active]= "view === 'users'" (click)="setView('users')">
+                <i class="fa-solid fa-users"></i> Usuarios
+            </a>
+            <a>
+                <i class="fa-solid fa-cube"></i> Materiales
+            </a>
+            <a>
+                <i class="fa-solid fa-message"></i> Mensajes
+            </a>
+        </nav>
+    </aside>
+
+    <!--    CONTENIDO   -->
+    <main class="content">
+        <!-- NAVBAR -->
+        <header class="topbar">
+            <input class="search" placeholder="Buscar..." 
+            [(ngModel)]="searchTerm" (input)="filterUsers()">
+        </header>
+    <div *ngIf="view === 'dashboard'">
+        <h1>Dashboard</h1>
+        <p class="subtitle">Resumen de la plataforma.</p>
+
+    <!-- METRICAS   -->
+    <section class="metrics">
+        <div class="card">
+            <i class="fa-solid fa-users"></i>
+            <div>
+                <span>Usuarios registrados</span>
+                <h2>{{ data?.metrics?.activos }}</h2>
+            </div>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-cube"></i>
+            <div>
+                <span>Materiales reutilizados</span>
+                <h2>{{ data?.metrics?.reutilizados }}</h2>
+            </div>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-repeat"></i>
+            <div>
+                <span>Intercambios</span>
+                <h2>{{ data?.metrics?.intercambios }}</h2>
+            </div>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-leaf"></i>
+            <div>
+                <span>CO₂ ahorrado</span>
+                <h2>{{ data?.metrics?.co2 }}</h2>
+            </div>
+        </div>    
+    </section>
+    <!-- GRAFICOS -->
+    <section class="charts">
+        <div class="chart-card">
+            <h3>Crecimiento de usuarios</h3>
+            <canvas id="usersChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Materiales por categoría</h3>
+            <canvas id="materialsChart"></canvas>
+        </div>
+    </section>
+    <!-- ACTIVIDAD -->
+     <div class="bottom-section">
+        <div class="activity">
+        <h3>Actividad reciente</h3>
+        <ul class="activity-list">
+            <li *ngFor="let act of data?.activity || []" class="activity-item">
+                <div class="icon" [ngClass]="act.tipo">
+                    <i *ngIf="act.tipo === 'usuario'" class="fa-solid fa-user"></i>
+                    <i *ngIf="act.tipo === 'publicacion'" class="fa-solid fa-newspaper"></i>
+                </div>
+                <div class="info">
+                    <p class="text">{{ act.texto }}</p>
+                    <span class="time">{{ act.fecha | date:'short' }}</span>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div class="quick-actions">
+        <h3>Acciones rápidas</h3>
+        <div class="action-card">
+            <i class="fa-solid fa-plus"></i>
+            <p>Publicar material</p>
+        </div>
+        <div class="action-card">
+            <i class="fa-solid fa-store"></i>
+            <p routerLink="/marketplace">Ver marketplace</p>
+        </div>
+    </div>
+     </div>
+    </div>
+    <div *ngIf="view === 'users'" class="user-section">
+        <h1>Usuarios</h1>
+        <p class="subtitle">Gestión de usuarios registrados</p>
+
+        <div class="users-table">
+            <div class="user-row header">
+                <span>Nombre</span>
+                <span>Email</span>
+                <span>Rol</span>
+                <span>Acciones</span>
+            </div>
+
+            <div class="user-row" *ngFor="let user of paginatedUsers">
+                <span>{{ user.nombre }}</span>
+                <span>{{ user.email }}</span>
+                <select [(ngModel)]="user.tipo" (change)="changeRole(user.id, user.tipo)">
+                    <option value="Admin">Administrador</option>
+                    <option value="Recicladora">Recicladora</option>
+                    <option value="Cooperativa">Cooperativa</option>
+                    <option value="Emprendedor">Emprendedor</option>
+                    <option value="Usuario">Usuario</option>
+                </select>
+                <div class="actions">
+                    <button routerLink="/profile" class="edit-btn">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="delete-btn" (click)="deleteUser(user.id)">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="pagination">
+            <button (click)="goToPage(currentPage - 1)">←</button>
+            <span>Página {{ currentPage }} de {{ totalPages }}</span>
+            <button (click)="goToPage(currentPage + 1)">→</button>
+        </div>
+    </div>
+</main>
+</div>
