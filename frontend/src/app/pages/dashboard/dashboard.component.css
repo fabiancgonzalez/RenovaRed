@@ -22,6 +22,7 @@
 
 .menu a {
     display: flex;
+    position: relative;
     align-items: center;
     gap: 10px;
     padding: 12px;
@@ -29,6 +30,19 @@
     cursor: pointer;
     transition: 0.2s;
     color: #9CA3AF;
+}
+.menu a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 0%;
+    background: #22C55E;
+    transition: 0.3s;
+}
+.menu a:hover::after {
+    width: 100%;
 }
 .menu a:hover {
     background: rgba(255, 255, 255, 0.05);
@@ -240,4 +254,115 @@ canvas {
 }
 .action-card:hover i {
     transform: scale(1.1);
+}
+
+.users-table {
+    background: #111827;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.user-row {
+    display: grid;
+    grid-template-columns: 1.5fr 2fr 1fr 1.5fr;
+    align-items: center;
+    padding: 16px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: 0.2s;
+    gap: 20px;
+}
+.user-row:last-child {
+    border-bottom: none;
+}
+.user-row:hover {
+    background: #151C2C;
+}
+.user-row.header {
+    font-size: 13px;
+    color: #6B7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0..5px;
+}
+.user-row span {
+    font-size: 14px;
+}
+.user-row select {
+    appearance: none;
+    background: #0F172A;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #E5E7EB;
+    padding: 8px 12px;
+    border-radius: 10px;
+    outline: none;
+    transition: 0.2s;
+    cursor: pointer;
+    font-size: 13px;
+    
+}
+.user-row select:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.user-row select:focus {
+    border: 1px solid #22C55E;
+    box-shadow: 0 0 0 2px rgba(34, 194, 97, 0.2);
+}
+.user-row button {
+    margin-top: 5px;
+}
+.actions {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+.edit-btn, .delete-btn {
+    padding: 12px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+    transition: 0.25s;
+    display: flex;
+    align-items: center;
+}
+.edit-btn {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60A5FA;
+}
+.edit-btn:hover {
+    background: rgba(59, 130, 246, 0.3);
+    transform: translateY(-1px);
+}
+.delete-btn {
+    background: rgba(239, 68, 68, 0.15);
+    color: #EF4444;
+}
+.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    transform: translateY(-1px);
+}
+.user-row:hover .edit-btn,
+.user-row:hover .delete-btn {
+    opacity: 1;
+}
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding: 10px;
+    background: #0F172A;
+    border-radius: 10px;
+}
+.pagination button {
+    background: #22C55E;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+}
+.pagination button:hover {
+    background: #16A34A;
 }

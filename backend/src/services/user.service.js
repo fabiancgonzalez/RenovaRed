@@ -4,7 +4,6 @@ const { Sequelize } = require('sequelize');
 const UserDTO = require('../dtos/user.dto');
 
 class UserService {
-  // AGREGADO
   async getUserStats() {
     const stats = await User.findAll({
       attributes: [
@@ -17,9 +16,6 @@ class UserService {
     });
     return { status: 200, body: { success: true, data: stats } };
   }
-
-////////////////////////////////////////
-
 
   // Campos seguros a devolver (sin password_hash)
   _safeFields() {
@@ -188,6 +184,44 @@ class UserService {
 
     await user.update({ is_active: false });
     return { status: 200, body: { success: true, message: 'Usuario desactivado' } };
+  }
+
+  async changeRole(id, requesterTipo, newTipo) {
+    const VALID_ROLES = ['usuario', 'empresa', 'admin'];
+    if (requesterTipo !== 'admin') {
+      return { status: 403, body: { success: false, message: 'Solo un administrador puede cambiar roles' } };
+    }
+    if (!VALID_ROLES.includes(newTipo)) {
+      return { status: 400, body: { success: false, message: `Rol inválido. Permitidos: ${VALID_ROLES.join(', ')}` } };
+    }
+    const user = await User.findByPk(id);
+    if (!user) return { status: 404, body: { success: false, message: 'Usuario no encontrado' } };
+
+    await user.update({ tipo: newTipo });
+    const fresh = await User.findByPk(id, { attributes: this._safeFields() });
+    return { status: 200, body: { success: true, message: `Rol actualizado a "${newTipo}"`, data: fresh } };
+  }
+
+  async reactivate(id, requesterTipo) {
+    if (requesterTipo !== 'admin') {
+      return { status: 403, body: { success: false, message: 'Solo un administrador puede reactivar usuarios' } };
+    }
+    const user = await User.findByPk(id);
+    if (!user) return { status: 404, body: { success: false, message: 'Usuario no encontrado' } };
+
+    await user.update({ is_active: true });
+    return { status: 200, body: { success: true, message: 'Usuario reactivado' } };
+  }
+
+  async hardDelete(id, requesterTipo) {
+    if (requesterTipo !== 'admin') {
+      return { status: 403, body: { success: false, message: 'Solo un administrador puede eliminar usuarios' } };
+    }
+    const user = await User.findByPk(id);
+    if (!user) return { status: 404, body: { success: false, message: 'Usuario no encontrado' } };
+
+    await user.destroy();
+    return { status: 200, body: { success: true, message: 'Usuario eliminado permanentemente' } };
   }
 
   async getMyPublications(userId, { page = 1, limit = 10, categoria_id } = {}) {

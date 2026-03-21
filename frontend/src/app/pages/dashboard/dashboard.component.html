@@ -3,10 +3,10 @@
 <!--   SIDEBAR      -->
     <aside class="sidebar">
         <nav class="menu">
-            <a class="active">
+            <a [class.active]= "view === 'dashboard'" (click)="setView('dashboard')">
                 <i class="fa-solid fa-chart-line"></i> Dashboard
             </a>
-            <a>
+            <a [class.active]= "view === 'users'" (click)="setView('users')">
                 <i class="fa-solid fa-users"></i> Usuarios
             </a>
             <a>
@@ -22,9 +22,10 @@
     <main class="content">
         <!-- NAVBAR -->
         <header class="topbar">
-            <input class="search" placeholder="Buscar...">
-            
+            <input class="search" placeholder="Buscar..." 
+            [(ngModel)]="searchTerm" (input)="filterUsers()">
         </header>
+    <div *ngIf="view === 'dashboard'">
         <h1>Dashboard</h1>
         <p class="subtitle">Resumen de la plataforma.</p>
 
@@ -99,5 +100,44 @@
         </div>
     </div>
      </div>
+    </div>
+    <div *ngIf="view === 'users'" class="user-section">
+        <h1>Usuarios</h1>
+        <p class="subtitle">Gestión de usuarios registrados</p>
+
+        <div class="users-table">
+            <div class="user-row header">
+                <span>Nombre</span>
+                <span>Email</span>
+                <span>Rol</span>
+                <span>Acciones</span>
+            </div>
+
+            <div class="user-row" *ngFor="let user of paginatedUsers">
+                <span>{{ user.nombre }}</span>
+                <span>{{ user.email }}</span>
+                <select [(ngModel)]="user.tipo" (change)="changeRole(user.id, user.tipo)">
+                    <option value="Admin">Administrador</option>
+                    <option value="Recicladora">Recicladora</option>
+                    <option value="Cooperativa">Cooperativa</option>
+                    <option value="Emprendedor">Emprendedor</option>
+                    <option value="Usuario">Usuario</option>
+                </select>
+                <div class="actions">
+                    <button routerLink="/profile" class="edit-btn">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="delete-btn" (click)="deleteUser(user.id)">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="pagination">
+            <button (click)="goToPage(currentPage - 1)">←</button>
+            <span>Página {{ currentPage }} de {{ totalPages }}</span>
+            <button (click)="goToPage(currentPage + 1)">→</button>
+        </div>
+    </div>
 </main>
 </div>

@@ -70,3 +70,32 @@ exports.getUserStats = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Error al obtener estadísticas de usuarios', error: error.message });
   }
 };
+exports.changeRole = async (req, res) => {
+  try {
+    const result = await userService.changeRole(req.params.id, req.user.tipo, req.body.tipo);
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('UserController.changeRole:', error);
+    return res.status(500).json({ success: false, message: 'Error al cambiar rol', error: error.message });
+  }
+};
+
+exports.reactivate = async (req, res) => {
+  try {
+    const result = await userService.reactivate(req.params.id, req.user.tipo);
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('UserController.reactivate:', error);
+    return res.status(500).json({ success: false, message: 'Error al reactivar usuario', error: error.message });
+  }
+};
+
+exports.hardDelete = async (req, res) => {
+  try {
+    const result = await userService.hardDelete(req.params.id, req.user.tipo);
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('UserController.hardDelete:', error);
+    return res.status(500).json({ success: false, message: 'Error al eliminar usuario', error: error.message });
+  }
+};

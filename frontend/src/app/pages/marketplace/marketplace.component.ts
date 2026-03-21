@@ -82,6 +82,7 @@ export class MarketplaceComponent implements OnInit {
   currentUser: MarketplaceUser | null = null;
   selectedCategoryId = '';
   publicationImagePreview = '';
+  expandedPublicationId: string | null = null;
 
   publicationForm: PublicationForm = {
     titulo: '',
@@ -382,6 +383,14 @@ export class MarketplaceComponent implements OnInit {
   canContact(publication: Publication): boolean {
     if (!this.currentUser || !publication?.usuario?.id) return false;
     return publication.usuario.id !== this.currentUser.id;
+  }
+
+  togglePublicationDetail(publicationId: string): void {
+    this.expandedPublicationId = this.expandedPublicationId === publicationId ? null : publicationId;
+  }
+
+  isPublicationDetailVisible(publicationId: string): boolean {
+    return this.expandedPublicationId === publicationId;
   }
 
   contactOwner(publication: Publication): void {

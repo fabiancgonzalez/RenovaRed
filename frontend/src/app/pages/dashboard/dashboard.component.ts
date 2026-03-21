@@ -4,6 +4,8 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 interface DashboardData {
   metrics: {
@@ -26,12 +28,16 @@ interface DashboardData {
 }
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, CommonModule],
+  imports: [RouterLink, CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
   data: DashboardData | null = null;
+  view: string = 'dashboard';
+  searchTerm: string = '';
+  users: any[] = [];
+  filteredUsers: any[] = [];
 
   constructor(private http: HttpClient) {}
 
@@ -43,6 +49,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {}
 
+  // CAMBIO DE VISTA
+  setView(v: string) {
+    this.view = v;
+    if (v === 'users'){
+      this.loadUsers();
+    }
+  }
   loadDashboardData() {
     this.http.get<any>(`${environment.apiUrl}/home`)
     .subscribe({
@@ -55,6 +68,66 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   });
 }
+  loadUsers() {
+    const token = localStorage.getItem('token');
+    this.http.get<any>(`${environment.apiUrl}/users`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }).subscribe({
+      next: (res) => {
+        this.users = res.data;
+        this.filteredUsers = [...this.users];
+        this.updatePagination();
+      },
+      error: (err) => console.error("ERROR USERS", err)
+    });
+  }
+  changeRole(userId: number, newRole: string) {
+    this.http.patch(`${environment.apiUrl}/users/${userId}/role`, {
+      tipo: newRole
+    }).subscribe({
+      next: () => this.loadUsers(),
+      error: (err) => console.error(err)
+    });
+  }
+  deleteUser(userId: number) {
+    if (!confirm('¿Eliminar usuario definitivamente?')) return;
+    this.http.delete(`${environment.apiUrl}/users/${userId}/hard`).subscribe({
+      next: () => this.loadUsers(),
+      error: (err) => console.error(err)
+    });
+  }
+  filterUsers() {
+    const term = this.searchTerm.toLowerCase();
+
+    this.filteredUsers = this.users.filter(u => 
+      u.nombre.toLowerCase().includes(term) ||
+      u.email.toLowerCase().includes(term)
+    );
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  currentPage: number = 1;
+  itemsPerPage: number = 5;
+  paginatedUsers: any[] = [];
+  totalPages: number = 0;
+
+  updatePagination() {
+    this.totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
+
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    this.paginatedUsers = this.filteredUsers.slice(start, end);
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePagination();
+  }
+
   loadCategoriesChart() {
     this.http.get<any>(`${environment.apiUrl}/categories/stats`).subscribe({
       next: (res) => {
@@ -169,14 +242,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           {
             data: data,
             backgroundColor: [
-              '#38BDF8', // Azul
+              '#38BDF8', // Celeste
               '#22C55E', // Verde
               '#F59E0B', // Amarillo
               '#A78BFA', // Violeta
               '#F472B6', // Rosa
               '#F43F5E', // Rojo
               '#d37b34', // Naranja
-              '#8cfa60', // Lima
+              '#4625ff', // Azul
             ],
             borderColor: 'rgba(255,255,255,0.15',
             borderWidth: 2,
