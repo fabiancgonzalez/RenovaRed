@@ -14,15 +14,6 @@
     border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.logo {
-    margin-bottom: 40px;
-}
-.logo img {
-    width: 100px;
-    transform: scale(2.2) translateY(8px);
-    transform-origin: left;
-}
-
 .menu {
     display: flex;
     flex-direction: column;
@@ -90,44 +81,7 @@ h3{
 .search:focus{
     border: 1px solid #22C55E;    
 }
-.user {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.user img{
-    width: 45px;
-    border-radius: 50%;
-}
-.user i{
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 8px;
-    width: 32px;
-    height: 32px;
-    background: #111827;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.2s;
-}
-.user i:hover {
-    background: #22C55E;
-}
-.user-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    background: #111827;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-.user-box img {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-}
+
 /*    METRICAS      */
 .metrics {
     display: grid;
