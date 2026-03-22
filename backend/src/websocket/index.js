@@ -19,23 +19,24 @@ module.exports = (io) => {
   });
 
   io.on('connection', async (socket) => {
-    const existingSocket = onlineUsers.get(socket.userId);
-    if (existingSocket) {
-      const oldSocket = io.sockets.sockets.get(existingSocket);
-      if (oldSocket) {
-        oldSocket.leave(`user:${socket.userId}`);
-      }
-    }
-    
+    console.log(`🟢 Usuario conectado: ${socket.userId}`);
+
     onlineUsers.set(socket.userId, socket.id);
-    
-    await User.update(
+
+    // fire & forget (no bloquea)
+    User.update(
       { last_login: new Date() },
       { where: { id: socket.userId } }
-    );
-    
-    io.emit('user-online', { userId: socket.userId });
+    ).catch(console.error);
+
     socket.join(`user:${socket.userId}`);
+
+    // enviar usuarios online al conectar
+    socket.emit('online-users', {
+      userIds: Array.from(onlineUsers.keys())
+    });
+
+    io.emit('user-online', { userId: socket.userId });
 
     socket.on('join-conversations', (conversationIds) => {
       conversationIds.forEach(id => {
@@ -46,7 +47,43 @@ module.exports = (io) => {
     socket.on('send-message', async (data) => {
       try {
         const { conversationId, content } = data;
+
+        // validaciones
+        if (!content || content.trim() === '') return;
+        if (content.length > 1000) return;
+
+        const conversation = await Conversation.findByPk(conversationId, {
+          attributes: ['buyer_id', 'seller_id', 'deleted_by_buyer', 'deleted_by_seller']
+        });
+
+        if (!conversation) return;
+
+        // seguridad
+        if (
+          conversation.buyer_id !== socket.userId &&
+          conversation.seller_id !== socket.userId
+        ) {
+          return socket.emit('error', { message: 'No autorizado' });
+        }
+
+        // 🔥 Verificar si el otro usuario eliminó la conversación
+        const otherUserId = conversation.buyer_id === socket.userId 
+          ? conversation.seller_id 
+          : conversation.buyer_id;
         
+        const otherUserDeleted = conversation.buyer_id === otherUserId 
+          ? conversation.deleted_by_buyer 
+          : conversation.deleted_by_seller;
+
+        if (otherUserDeleted) {
+          console.log(`⚠️ El usuario ${otherUserId} eliminó la conversación ${conversationId}`);
+          return socket.emit('error', { 
+            message: 'No puedes enviar mensajes. El otro usuario eliminó esta conversación.',
+            type: 'CONVERSATION_DELETED_BY_OTHER'
+          });
+        }
+
+        // crear mensaje
         const message = await Message.create({
           conversation_id: conversationId,
           sender_id: socket.userId,
@@ -54,31 +91,28 @@ module.exports = (io) => {
           read: false
         });
 
-        const messageWithUser = await Message.findByPk(message.id, {
-          include: [{ model: User, as: 'remitente', attributes: ['id', 'nombre', 'avatar_url'] }]
+        // evitar query extra
+        const user = await User.findByPk(socket.userId, {
+          attributes: ['id', 'nombre', 'avatar_url']
         });
 
-        const conversation = await Conversation.findByPk(conversationId, {
-          attributes: ['buyer_id', 'seller_id']
-        });
-
-        if (!conversation) return;
-
-        await Conversation.update(
+        // update async (no bloquea)
+        Conversation.update(
           { updated_at: new Date() },
           { where: { id: conversationId } }
-        );
+        ).catch(console.error);
 
-        io.to(`user:${conversation.buyer_id}`).to(`user:${conversation.seller_id}`)
+        io.to(`user:${conversation.buyer_id}`)
+          .to(`user:${conversation.seller_id}`)
           .emit('new-message', {
             conversationId,
             message: {
-              id: messageWithUser.id,
-              content: messageWithUser.content,
-              created_at: messageWithUser.created_at,
-              remitente: messageWithUser.remitente.nombre,
-              remitenteId: messageWithUser.remitente.id,
-              avatar: messageWithUser.remitente.avatar_url,
+              id: message.id,
+              content,
+              created_at: message.created_at,
+              remitente: user.nombre,
+              remitenteId: user.id,
+              avatar: user.avatar_url,
               read: false
             }
           });
@@ -92,64 +126,70 @@ module.exports = (io) => {
     socket.on('mark-read', async (data) => {
       try {
         const { conversationId, messageIds } = data;
-        
-        await Message.update(
+
+        console.log('📥 mark-read recibido:', { conversationId, messageIds });
+
+        if (!messageIds || messageIds.length === 0) return;
+
+        // Actualizar mensajes como leídos
+        const [updatedCount] = await Message.update(
           { read: true },
           {
             where: {
               id: { [Op.in]: messageIds },
-              conversation_id: conversationId
+              conversation_id: conversationId,
+              read: false
             }
           }
         );
-        
+
+        console.log(`✅ ${updatedCount} mensajes marcados como leídos`);
+
+        if (updatedCount === 0) return;
+
         const conversation = await Conversation.findByPk(conversationId, {
           attributes: ['buyer_id', 'seller_id']
         });
-        
-        if (conversation) {
-          const otherUserId = conversation.buyer_id === socket.userId 
-            ? conversation.seller_id 
+
+        if (!conversation) return;
+
+        const otherUserId =
+          conversation.buyer_id === socket.userId
+            ? conversation.seller_id
             : conversation.buyer_id;
-          
-          io.to(`user:${otherUserId}`).emit('messages-read', {
-            conversationId,
-            messageIds,
-            readerId: socket.userId
-          });
-        }
-        
+
+        io.to(`user:${otherUserId}`).emit('messages-read', {
+          conversationId,
+          messageIds,
+          readerId: socket.userId
+        });
+
+        console.log(`📤 Emitiendo messages-read a usuario: ${otherUserId}`);
+
       } catch (error) {
         console.error('Error al marcar mensajes como leídos:', error);
       }
     });
 
-    socket.on('get-online-users', () => {
-      const onlineUserIds = Array.from(onlineUsers.keys());
-      socket.emit('online-users', { userIds: onlineUserIds });
-    });
-
-    socket.on('disconnect', async () => {
-      setTimeout(async () => {
+    socket.on('disconnect', () => {
+      setTimeout(() => {
         const stillConnected = onlineUsers.get(socket.userId) === socket.id;
+
         if (stillConnected) {
           onlineUsers.delete(socket.userId);
+
           io.emit('user-offline', { userId: socket.userId });
-          
-          await User.update(
+
+          User.update(
             { last_login: new Date() },
             { where: { id: socket.userId } }
-          );
+          ).catch(console.error);
         }
       }, 1000);
     });
   });
 
-  function getOnlineUsers() {
-    return Array.from(onlineUsers.keys());
-  }
-
   return {
-    getOnlineUsers
+    getOnlineUsers: () => Array.from(onlineUsers.keys())
   };
 };

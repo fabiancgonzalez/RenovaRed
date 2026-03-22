@@ -43,21 +43,30 @@
               <span class="conversation-name">{{ conv.otro_usuario.nombre || 'Usuario' }}</span>
               <span class="conversation-time">{{ formatDate(conv.ultimo_mensaje_at) }}</span>
             </div>
-            <div class="conversation-last-message">
+            
+            <div class="conversation-footer">
               <span class="message-preview">{{ conv.ultimo_mensaje || 'Sin mensajes aún' }}</span>
-              @if (conv.no_leidos > 0) {
-                <span class="unread-badge">{{ conv.no_leidos }}</span>
-              }
+              
+              <div class="right-actions">
+                <div class="badge-actions-wrapper">
+                  <div class="conversation-actions">
+                    <button class="more-actions-btn" (click)="toggleActionsDropdown(conv.id, $event)" title="Más opciones">
+                      <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="actions-dropdown" *ngIf="activeDropdownId === conv.id" (click)="$event.stopPropagation()">
+                      <button (click)="confirmDeleteConversation(conv, $event)">
+                        <i class="fa-solid fa-trash"></i>
+                        Eliminar conversación
+                      </button>
+                    </div>
+                  </div>
+                  
+                  @if (conv.no_leidos > 0) {
+                    <span class="unread-badge">{{ conv.no_leidos }}</span>
+                  }
+                </div>
+              </div>
             </div>
-          </div>
-
-          <!-- Botón de eliminar conversación -->
-          <div class="conversation-actions">
-            <button class="delete-conv-btn" 
-                    (click)="confirmDeleteConversation(conv, $event)"
-                    title="Eliminar de mi lista">
-              <i class="fa-solid fa-trash"></i>
-            </button>
           </div>
         </div>
       } @empty {
@@ -81,7 +90,7 @@
           <i class="fa-solid fa-arrow-left"></i>
         </button>
         
-        <div class="chat-user-info">
+        <div class="chat-user-info" (click)="viewProfile()" style="cursor: pointer;">
           <div class="avatar-container">
             <img [src]="getAvatarSrc(getOtherUser().avatar)" 
                  class="chat-avatar" 
@@ -92,16 +101,101 @@
           </div>
           <div>
             <h3>{{ getOtherUser().nombre }}</h3>
+            <div class="user-meta">
+              @if (getUserType()) {
+                <span class="user-type">{{ getUserType() }}</span>
+              }
+              @if (getUserType() && getUserLocationText()) {
+                <span class="separator">•</span>
+              }
+              @if (getUserLocationText()) {
+                <span class="user-location">{{ getUserLocationText() }}</span>
+              }
+            </div>
             <p class="chat-status">{{ getUserStatus(getOtherUser().id, getOtherUser().last_login) }}</p>
           </div>
         </div>
 
-        <div class="chat-actions">
-          <button class="action-btn">
+        <div class="chat-actions" style="position: relative;">
+          <button class="action-btn" (click)="toggleHeaderDropdown($event)">
             <i class="fa-solid fa-ellipsis-vertical"></i>
           </button>
+          
+          <!-- Dropdown del header -->
+          @if (showHeaderDropdown) {
+            <div class="header-dropdown" (click)="$event.stopPropagation()">
+              <button (click)="viewProfile()" class="dropdown-item">
+                <i class="fa-solid fa-user"></i>
+                Ver perfil
+              </button>
+              <button (click)="deleteConversationFromHeader()" class="dropdown-item delete-item">
+                <i class="fa-solid fa-trash"></i>
+                Eliminar conversación
+              </button>
+            </div>
+          }
         </div>
       </div>
+
+      <!-- Mensaje de advertencia dinámico si el otro usuario cerró la conversación -->
+      @if (conversationDeletedByOther) {
+        <div class="chat-warning">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <div class="warning-content">
+            <strong>{{ getWarningMessage().title }}</strong>
+            <p>{{ getWarningMessage().message }}</p>
+            <p class="warning-suggestion">{{ getWarningMessage().suggestion }}</p>
+          </div>
+        </div>
+      }
+
+      <!-- Publicación info -->
+      @if (currentConversation.publication) {
+        <div class="publication-info-card">
+          <div class="publication-card">
+            <div class="publication-image">
+              @if (currentConversation.publication.imagenes && currentConversation.publication.imagenes.length > 0) {
+                <img [src]="currentConversation.publication.imagenes[0]" alt="Publicación">
+              } @else {
+                <div class="image-placeholder">
+                  <i class="fa-regular fa-image"></i>
+                </div>
+              }
+            </div>
+            <div class="publication-details">
+              <div class="publication-badge">
+                @if (currentConversation.comprador?.id === currentUserId) {
+                  <span class="badge outgoing">
+                    <i class="fa-regular fa-paper-plane"></i> Te estás contactando por:
+                  </span>
+                } @else {
+                  <span class="badge incoming">
+                    <i class="fa-regular fa-bell"></i> Se están contactando contigo por:
+                  </span>
+                }
+              </div>
+              <h4>{{ currentConversation.publication.titulo }}</h4>
+              <p class="publication-description">{{ currentConversation.publication.descripcion | slice:0:80 }}{{ currentConversation.publication.descripcion.length > 80 ? '...' : '' }}</p>
+              <div class="publication-meta">
+                @if (currentConversation.publication.precio) {
+                  <span class="price">${{ currentConversation.publication.precio }}</span>
+                }
+                @if (currentConversation.publication.cantidad) {
+                  <span class="quantity">Stock: {{ currentConversation.publication.cantidad }} kg</span>
+                }
+                <span class="status" [class.available]="currentConversation.publication.estado === 'disponible'">
+                  {{ currentConversation.publication.estado || 'Disponible' }}
+                </span>
+              </div>
+              <div class="publication-action">
+                <a [routerLink]="['/marketplace', currentConversation.publication_id]" class="view-publication-link">
+                  Ver publicación <i class="fa-solid fa-arrow-right"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
 
       <!-- Mensajes -->
       <div class="messages-container" #messagesContainer>
@@ -145,11 +239,28 @@
         }
       </div>
 
-      <!-- Input de mensaje -->
+      <!-- Input de mensaje con emojis y enviar -->
       <div class="message-input-container">
-        <button class="attach-btn" title="Adjuntar archivo">
-          <i class="fa-solid fa-paperclip"></i>
+        <button class="emoji-btn" (click)="toggleEmojiPicker()" title="Emojis" type="button" [disabled]="conversationDeletedByOther">
+          <i class="fa-regular fa-face-smile"></i>
         </button>
+        
+        <div class="emoji-picker-container" *ngIf="showEmojiPicker">
+          <div class="custom-emoji-picker">
+            <div class="emoji-picker-header">
+              <div class="header-left">
+                <img src="logoRenovared.png" alt="RenovaRed" class="emoji-header-logo">
+                <span>Emojis</span>
+              </div>
+              <button class="close-emoji-picker" (click)="closeEmojiPicker()">✕</button>
+            </div>
+            <div class="emoji-grid">
+              @for (emoji of emojis; track emoji) {
+                <span class="emoji-item" (click)="addEmoji(emoji)">{{ emoji }}</span>
+              }
+            </div>
+          </div>
+        </div>
         
         <input 
           type="text" 
@@ -157,10 +268,11 @@
           (keyup.enter)="sendMessage()"
           placeholder="Escribí un mensaje..."
           class="message-input"
-          [disabled]="!selectedConversationId">
+          #messageInput
+          [disabled]="!selectedConversationId || conversationDeletedByOther">
         
         <button class="send-btn" 
-                [disabled]="!newMessage.trim() || !selectedConversationId" 
+                [disabled]="(!newMessage.trim()) || !selectedConversationId || conversationDeletedByOther" 
                 (click)="sendMessage()"
                 title="Enviar mensaje">
           <i class="fa-solid fa-paper-plane"></i>
@@ -214,6 +326,67 @@
         <button class="delete-btn" (click)="deleteConversationForMe()">
           <i class="fa-solid fa-trash"></i> Eliminar para mí
         </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal de perfil del usuario -->
+@if (showProfileModal && selectedUserProfile) {
+  <div class="modal-overlay" (click)="closeProfileModal()">
+    <div class="modal-content profile-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Perfil de {{ selectedUserProfile.nombre }}</h3>
+        <button class="close-btn" (click)="closeProfileModal()">✕</button>
+      </div>
+      
+      <div class="modal-body profile-modal-body">
+        <div class="profile-avatar-container">
+          <img [src]="getAvatarSrc(selectedUserProfile.avatar_url)" 
+               class="profile-avatar-large" 
+               [alt]="'Avatar de ' + selectedUserProfile.nombre">
+        </div>
+        
+        <div class="profile-info">
+          <h4>{{ selectedUserProfile.nombre }}</h4>
+          <p class="profile-type">{{ selectedUserProfile.tipo || 'Usuario' }}</p>
+          
+          <div class="profile-details">
+            <div class="detail-item">
+              <i class="fa-solid fa-phone"></i>
+              <span>{{ selectedUserProfile.telefono || 'No disponible' }}</span>
+            </div>
+            <div class="detail-item">
+              <i class="fa-solid fa-envelope"></i>
+              <span>{{ selectedUserProfile.email || 'No disponible' }}</span>
+            </div>
+            <div class="detail-item">
+              <i class="fa-solid fa-location-dot"></i>
+              <span>{{ selectedUserProfile.ubicacion_texto || 'No especificada' }}</span>
+            </div>
+            <div class="detail-item">
+              <i class="fa-solid fa-circle"></i>
+              <span [class.active-user]="selectedUserProfile.is_active">
+                {{ selectedUserProfile.is_active ? 'Cuenta activa' : 'Cuenta inactiva' }}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Mapa mini solo si tiene coordenadas -->
+          @if (selectedUserProfile.coordinates?.lat && selectedUserProfile.coordinates?.lng) {
+            <div class="profile-mini-map-container">
+              <div class="mini-map" id="profileMiniMap"></div>
+              <p class="map-coordinates">
+                📍 {{ selectedUserProfile.coordinates.lat | number:'1.6' }}, 
+                {{ selectedUserProfile.coordinates.lng | number:'1.6' }}
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeProfileModal()">Cerrar</button>
       </div>
     </div>
   </div>

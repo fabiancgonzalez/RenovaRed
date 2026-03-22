@@ -1,4 +1,4 @@
-const { Conversation, User, Message } = require('../models');
+const { Conversation, User, Message, Publication, Category } = require('../models');
 const { Op } = require('sequelize');
 
 class ConversationService {
@@ -20,6 +20,7 @@ class ConversationService {
         };
       }
 
+      // Buscar conversación existente (INCLUYENDO LAS ELIMINADAS)
       const existing = await Conversation.findOne({
         where: {
           publication_id,
@@ -29,6 +30,57 @@ class ConversationService {
       });
 
       if (existing) {
+        // Verificar si la conversación está eliminada por ALGUNO de los dos
+        const estaEliminadaPorActual = existing.buyer_id === userId 
+          ? existing.deleted_by_buyer 
+          : existing.deleted_by_seller;
+        
+        const estaEliminadaPorOtro = existing.buyer_id === userId 
+          ? existing.deleted_by_seller 
+          : existing.deleted_by_buyer;
+
+        // Si está eliminada por el actual, el otro, o ambos, reactivar
+        if (estaEliminadaPorActual || estaEliminadaPorOtro) {
+          console.log(`🔄 Reactivando conversación ${existing.id} para usuario ${userId}`);
+          
+          // Resetear ambos flags (reactivar completamente)
+          await existing.update({ 
+            deleted_by_buyer: false,
+            deleted_by_seller: false
+          });
+          
+          // Obtener la conversación actualizada
+          const conversation = await this.getConversationWithUsers(existing.id);
+          
+          // Notificar al otro usuario que la conversación fue reactivada
+          const otroUsuarioId = existing.buyer_id === userId ? existing.seller_id : existing.buyer_id;
+          
+          // 🔥 USAR GLOBAL.IO
+          const io = global.io;
+          
+          if (io) {
+            console.log(`📢 Emitiendo conversation-reactivated a usuario: ${otroUsuarioId}`);
+            console.log(`📢 Sala: user:${otroUsuarioId}`);
+            
+            io.to(`user:${otroUsuarioId}`).emit('conversation-reactivated', {
+              conversationId: existing.id,
+              message: 'El otro usuario ha reactivado la conversación',
+              reactivatedBy: userId,
+              timestamp: new Date().toISOString()
+            });
+            
+            console.log(`✅ Evento conversation-reactivated emitido correctamente`);
+          } else {
+            console.error(`❌ Socket.io NO disponible en conversation.service`);
+          }
+          
+          return {
+            status: 200,
+            body: { success: true, message: 'Conversación reactivada', data: conversation }
+          };
+        }
+        
+        // Si no está eliminada por nadie, devolver la existente
         const conversation = await this.getConversationWithUsers(existing.id);
         return {
           status: 200,
@@ -36,6 +88,7 @@ class ConversationService {
         };
       }
 
+      // No existe, crear nueva
       const conversation = await Conversation.create({
         publication_id,
         buyer_id: userId,
@@ -61,10 +114,10 @@ class ConversationService {
 
     const [comprador, vendedor] = await Promise.all([
       User.findByPk(conversation.buyer_id, {
-        attributes: ['id', 'nombre', 'avatar_url', 'last_login']
+        attributes: ['id', 'nombre', 'email', 'telefono', 'avatar_url', 'last_login', 'tipo', 'ubicacion_texto']
       }),
       User.findByPk(conversation.seller_id, {
-        attributes: ['id', 'nombre', 'avatar_url', 'last_login']
+        attributes: ['id', 'nombre', 'email', 'telefono', 'avatar_url', 'last_login', 'tipo', 'ubicacion_texto']
       })
     ]);
 
@@ -88,12 +141,12 @@ class ConversationService {
           { 
             model: User, 
             as: 'comprador', 
-            attributes: ['id', 'nombre', 'avatar_url', 'last_login'] 
+            attributes: ['id', 'nombre', 'email', 'telefono', 'avatar_url', 'last_login', 'tipo', 'ubicacion_texto']
           },
           { 
             model: User, 
             as: 'vendedor', 
-            attributes: ['id', 'nombre', 'avatar_url', 'last_login'] 
+            attributes: ['id', 'nombre', 'email', 'telefono', 'avatar_url', 'last_login', 'tipo', 'ubicacion_texto']
           }
         ],
         order: [['updated_at', 'DESC']]
@@ -129,8 +182,8 @@ class ConversationService {
       const result = filteredConversations.map(conv => {
         const convPlain = conv.get({ plain: true });
         
-        const comprador = convPlain.comprador || { id: null, nombre: null, avatar_url: null, last_login: null };
-        const vendedor = convPlain.vendedor || { id: null, nombre: null, avatar_url: null, last_login: null };
+        const comprador = convPlain.comprador || { id: null, nombre: null, email: null, telefono: null, avatar_url: null, last_login: null, tipo: null, ubicacion_texto: null };
+        const vendedor = convPlain.vendedor || { id: null, nombre: null, email: null, telefono: null, avatar_url: null, last_login: null, tipo: null, ubicacion_texto: null };
         
         convPlain.ultimo_mensaje = lastMessageMap[convPlain.id]?.content || '';
         convPlain.ultimo_mensaje_at = lastMessageMap[convPlain.id]?.created_at || convPlain.updated_at;
@@ -175,12 +228,12 @@ class ConversationService {
           { 
             model: User, 
             as: 'comprador', 
-            attributes: ['id', 'nombre', 'avatar_url', 'last_login'] 
+            attributes: ['id', 'nombre', 'email', 'telefono', 'avatar_url', 'last_login', 'tipo', 'ubicacion_texto']
           },
           { 
             model: User, 
             as: 'vendedor', 
-            attributes: ['id', 'nombre', 'avatar_url', 'last_login'] 
+            attributes: ['id', 'nombre', 'email', 'telefono', 'avatar_url', 'last_login', 'tipo', 'ubicacion_texto']
           }
         ]
       });
@@ -199,6 +252,7 @@ class ConversationService {
         };
       }
 
+      // Si el usuario actual eliminó, no mostrar
       if (conversation.buyer_id === userId && conversation.deleted_by_buyer) {
         return { 
           status: 404, 
@@ -212,6 +266,20 @@ class ConversationService {
         };
       }
 
+      // Verificar si el otro usuario eliminó (para mostrar warning en frontend)
+      const otroUsuarioDeleted = conversation.buyer_id === userId 
+        ? conversation.deleted_by_seller 
+        : conversation.deleted_by_buyer;
+
+      const publication = await Publication.findByPk(conversation.publication_id, {
+        attributes: ['id', 'titulo', 'descripcion', 'imagenes', 'precio', 'cantidad', 'estado'],
+        include: [{
+          model: Category,
+          as: 'categoria',
+          attributes: ['id', 'nombre', 'color']
+        }]
+      });
+
       const mensajes = await Message.findAll({
         where: { conversation_id: id },
         include: [{ 
@@ -224,6 +292,8 @@ class ConversationService {
 
       const conversationData = conversation.get({ plain: true });
       conversationData.mensajes = mensajes;
+      conversationData.publication = publication;
+      conversationData.deleted_by_other = otroUsuarioDeleted; // Flag para el frontend
 
       return {
         status: 200,
@@ -261,6 +331,32 @@ class ConversationService {
         };
       }
       
+      // Guardar quién es el otro usuario antes de modificar
+      const otroUsuarioId = conversation.buyer_id === userId 
+        ? conversation.seller_id 
+        : conversation.buyer_id;
+      
+      // Verificar si la conversación tiene mensajes
+      const messagesCount = await Message.count({
+        where: { conversation_id: conversationId }
+      });
+      
+      // Si no tiene mensajes, eliminar directamente (sin notificar al otro)
+      if (messagesCount === 0) {
+        console.log(`🗑️ Eliminando conversación sin mensajes: ${conversationId}`);
+        await conversation.destroy();
+        
+        return {
+          status: 200,
+          body: { 
+            success: true, 
+            message: 'Conversación eliminada (no tenía mensajes)',
+            permanentlyDeleted: true
+          }
+        };
+      }
+      
+      // Si tiene mensajes, marcar como eliminado para el usuario
       if (conversation.buyer_id === userId) {
         await conversation.update({ deleted_by_buyer: true });
       } else {
@@ -268,19 +364,29 @@ class ConversationService {
       }
       
       const updated = await Conversation.findByPk(conversationId);
+      let permanentlyDeleted = false;
       
+      // Si ambos borraron, eliminar permanentemente
       if (updated.deleted_by_buyer && updated.deleted_by_seller) {
         await Message.destroy({ where: { conversation_id: conversationId } });
         await updated.destroy();
-        
-        return {
-          status: 200,
-          body: { 
-            success: true, 
-            message: 'Conversación eliminada permanentemente',
-            permanentlyDeleted: true
-          }
-        };
+        permanentlyDeleted = true;
+      }
+      
+      // Notificar al otro usuario que esta conversación fue eliminada
+      const io = global.io;
+      if (io) {
+        console.log(`📢 Emitiendo conversation-deleted a usuario: ${otroUsuarioId}`);
+        io.to(`user:${otroUsuarioId}`).emit('conversation-deleted', {
+          conversationId,
+          deletedBy: userId,
+          permanentlyDeleted: permanentlyDeleted,
+          message: 'La conversación fue eliminada por el otro usuario',
+          timestamp: new Date().toISOString()
+        });
+        console.log(`✅ Evento conversation-deleted emitido correctamente`);
+      } else {
+        console.error(`❌ Socket.io NO disponible para emitir conversation-deleted`);
       }
       
       return {

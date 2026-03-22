@@ -21,8 +21,12 @@ export interface Conversation {
   otro_usuario: {
     id: string;
     nombre: string;
+    email?: string;
+    telefono?: string;
     avatar: string | null;
     last_login?: string;
+    tipo?: string;
+    ubicacion_texto?: string;
   };
   ultimo_mensaje: string;
   ultimo_mensaje_at: string;
@@ -33,21 +37,44 @@ export interface Conversation {
 export interface ConversationDetail {
   id: string;
   publication_id: string;
+  publication?: {
+    id: string;
+    titulo: string;
+    descripcion: string;
+    imagenes?: string[];
+    precio?: number;
+    cantidad?: number;
+    estado?: string;
+    categoria?: {
+      id: string;
+      nombre: string;
+      color?: string;
+    };
+  };
   comprador: {
     id: string;
     nombre: string;
+    email?: string;
+    telefono?: string;
     avatar: string | null;
     last_login?: string;
+    tipo?: string;
+    ubicacion_texto?: string;
   } | null;
   vendedor: {
     id: string;
     nombre: string;
+    email?: string;
+    telefono?: string;
     avatar: string | null;
     last_login?: string;
+    tipo?: string;
+    ubicacion_texto?: string;
   } | null;
   estado: string;
   created_at: string;
   mensajes: Message[];
+  deleted_by_other?: boolean;
 }
 
 @Injectable({
@@ -96,5 +123,17 @@ export class ChatService {
   deleteConversationForMe(conversationId: string): Observable<any> {
     const headers = this.getAuthHeaders();
     return this.http.delete(`${this.apiUrl}/conversations/${conversationId}/for-me`, { headers });
+  }
+
+  // Método para obtener perfil de usuario
+  getUserProfile(userId: string): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get(`${this.apiUrl}/users/${userId}`, { headers });
+  }
+
+  // Método para obtener todas las ubicaciones de usuarios para el mapa
+  getUserLocations(): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get(`${this.apiUrl}/users/map/locations`, { headers });
   }
 }

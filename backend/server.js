@@ -16,6 +16,10 @@ const io = new Server(server, {
   }
 });
 
+// ========== EXPORTAR IO ==========
+global.io = io;
+module.exports.io = io;
+
 // ========== WEBSOCKET ==========
 require('./src/websocket')(io);
 
