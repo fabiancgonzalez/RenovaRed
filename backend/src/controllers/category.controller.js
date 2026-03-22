@@ -10,6 +10,12 @@ exports.getAll = async (req, res) => {
   }
 };
 
+// AGREGADO PARA ESTADISTICAS
+exports.getStats = async (req, res) => {
+  const result = await categoryService.getCategoryStats();
+  res.status(result.status).json(result.body);
+}
+
 exports.getById = async (req, res) => {
   try {
     const result = await categoryService.getById(req.params.id);

@@ -56,6 +56,7 @@ app.use('/api/auth', authRoutes);
 const profileRoutes = require('./src/routes/profile.routes'); // Ruta para perfil de usuario (ver/editar perfil)
 app.use('/api/profile', profileRoutes);
 
+// AGREGADO
 const userRoutes = require('./src/routes/user.routes');
 app.use('/api/users', userRoutes);
 
@@ -80,6 +81,8 @@ app.use('/api/stats', dailyStatsRoutes);
 const messageRoutes = require('./src/routes/message.routes');
 app.use('/api/conversations/:conversationId/messages', messageRoutes);
 
+const categoryRouter = require('./src/routes/category.routes'); // Rutas para categorias (CRUD)
+app.use('/api/categories', categoryRouter);
 
 // Health check
 const healthRoutes = require('./src/routes/health.routes');

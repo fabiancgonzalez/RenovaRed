@@ -123,13 +123,26 @@
 				<p class="meta">Estado: {{ publication.estado || 'N/D' }}</p>
 				<p class="meta" *ngIf="publication.precio">Precio: ${{ publication.precio }}</p>
 
-				<button
-					type="button"
-					*ngIf="canContact(publication)"
-					[disabled]="contactingPublicationId === publication.id"
-					(click)="contactOwner(publication)">
-					{{ contactingPublicationId === publication.id ? 'Contactando...' : 'Contactar usuario' }}
-				</button>
+				<div class="card-actions">
+					<button
+						type="button"
+						(click)="togglePublicationDetail(publication.id)">
+						{{ isPublicationDetailVisible(publication.id) ? 'Ocultar' : 'Ver' }}
+					</button>
+
+					<button
+						type="button"
+						*ngIf="canContact(publication)"
+						[disabled]="contactingPublicationId === publication.id"
+						(click)="contactOwner(publication)">
+						{{ contactingPublicationId === publication.id ? 'Contactando...' : 'Contactar usuario' }}
+					</button>
+				</div>
+
+				<div class="card-detail" *ngIf="isPublicationDetailVisible(publication.id)">
+					<p class="meta">Cantidad: {{ publication.cantidad || 'N/D' }}</p>
+					<p class="meta">Ubicación: {{ publication.ubicacion_texto || 'Sin detalle' }}</p>
+				</div>
 			</article>
 		</div>
 	</section>
@@ -155,7 +168,10 @@
 				<p class="meta">Estado: {{ publication.estado || 'N/D' }}</p>
 				<p class="meta" *ngIf="publication.precio">Precio: ${{ publication.precio }}</p>
 
-				<div class="actions">
+				<div class="card-actions">
+					<button type="button" (click)="togglePublicationDetail(publication.id)">
+						{{ isPublicationDetailVisible(publication.id) ? 'Ocultar' : 'Ver' }}
+					</button>
 					<button type="button" (click)="startEdit(publication)">Editar</button>
 					<button
 						type="button"
@@ -163,6 +179,11 @@
 						(click)="deletePublication(publication.id)">
 						{{ deletingPublicationId === publication.id ? 'Eliminando...' : 'Eliminar' }}
 					</button>
+				</div>
+
+				<div class="card-detail" *ngIf="isPublicationDetailVisible(publication.id)">
+					<p class="meta">Cantidad: {{ publication.cantidad || 'N/D' }}</p>
+					<p class="meta">Ubicación: {{ publication.ubicacion_texto || 'Sin detalle' }}</p>
 				</div>
 			</article>
 		</div>

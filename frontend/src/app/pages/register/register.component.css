@@ -198,7 +198,7 @@ form {
     -webkit-appearance: none;
     -moz-appearance: none;
     cursor: pointer;
-    color: #111827;
+    color: #6B7280;
     font-weight: 400;
 }
 
@@ -206,7 +206,6 @@ form {
     color: #111827;
     background: white;
 }
-
 .input-group input::placeholder,
 .input-group select::placeholder {
     color: #6B7280;

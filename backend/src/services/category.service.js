@@ -1,6 +1,23 @@
-const { Category } = require('../models');
+const { Publication ,Category } = require('../models');
 
 class CategoryService {
+  // AGREGADO:
+  async getCategoryStats() {
+
+    const categories = await Category.findAll({ raw: true });
+    const publications = await Publication.findAll({
+      attributes: ['categoria_id'],
+      raw: true
+    });
+
+    const stats = categories.map(cat => {
+      const count = publications.filter(pub => 
+        pub.categoria_id && pub.categoria_id.toString() === cat.id.toString()).length;
+      return { nombre: cat.nombre, total: count};
+  });
+      return { status: 200, body: { success: true, data: stats } };
+}
+/////////////////////
   async getAll() {
     const categories = await Category.findAll({ order: [['nombre', 'ASC']] });
     return { status: 200, body: { success: true, data: categories } };
