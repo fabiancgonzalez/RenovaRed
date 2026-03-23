@@ -1,0 +1,79 @@
+<main class="publication-page">
+  <section class="publication-hero">
+    <div>
+      <p class="eyebrow">Publicación de materiales</p>
+      <h1>{{ pageTitle }}</h1>
+      <p class="hero-copy">Completá los datos del material para publicarlo en el marketplace.</p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" class="btn-secondary" (click)="goBackToMarketplace()">Volver al marketplace</button>
+    </div>
+  </section>
+
+  <p *ngIf="loading || loadingPublication" class="info">Cargando formulario...</p>
+  <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+  <p *ngIf="successMessage" class="success">{{ successMessage }}</p>
+
+  <section class="section-publication-form" *ngIf="!loading && !loadingPublication">
+    <form class="publication-form" (ngSubmit)="savePublication()">
+      <label>
+        Título *
+        <input type="text" name="titulo" [(ngModel)]="publicationForm.titulo" required>
+      </label>
+
+      <label>
+        Descripción
+        <textarea name="descripcion" rows="3" [(ngModel)]="publicationForm.descripcion"></textarea>
+      </label>
+
+      <label>
+        Categoría de material
+        <select name="categoria_id" [(ngModel)]="publicationForm.categoria_id">
+          <option value="">Sin categoría</option>
+          <option *ngFor="let category of categories" [value]="category.id">{{ getCategoryNameEs(category) }}</option>
+        </select>
+      </label>
+
+      <label class="btn-upload" for="publication-image-input">📷 Subir imagen</label>
+      <input
+        id="publication-image-input"
+        type="file"
+        accept="image/*"
+        (change)="onPublicationImageSelected($event)"
+        style="display: none">
+
+      <div class="publication-image-preview" *ngIf="publicationImagePreview">
+        <img [src]="publicationImagePreview" alt="Vista previa de la imagen de la publicación">
+        <button type="button" (click)="removePublicationImage()">Quitar imagen</button>
+      </div>
+
+      <label>
+        Ubicación *
+        <input type="text" name="ubicacion" [(ngModel)]="publicationForm.ubicacion_texto" required>
+      </label>
+
+      <div class="form-row">
+        <label>
+          Precio
+          <input type="number" name="precio" [(ngModel)]="publicationForm.precio">
+        </label>
+
+        <label>
+          Cantidad
+          <input type="number" name="cantidad" [(ngModel)]="publicationForm.cantidad">
+        </label>
+
+        <label>
+          Estado
+          <input type="text" name="estado" [(ngModel)]="publicationForm.estado">
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="submit" [disabled]="savingPublication">{{ submitLabel }}</button>
+        <button type="button" class="btn-secondary" (click)="goBackToMarketplace()">Cancelar</button>
+      </div>
+    </form>
+  </section>
+</main>

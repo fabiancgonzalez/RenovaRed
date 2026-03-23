@@ -1,0 +1,99 @@
+<main class="materials-page">
+  <section class="materials-hero">
+    <div>
+      <p class="eyebrow">Catálogo abierto</p>
+      <h1>Explorar materiales</h1>
+      <p class="hero-copy">Revisá publicaciones activas, filtrá por categoría, precio o texto, y descubrí recursos disponibles.</p>
+    </div>
+
+    <div class="hero-actions">
+      <button *ngIf="isAuthenticated" class="btn-primary" type="button" (click)="goToManagement()">Ir a mi marketplace</button>
+      <button *ngIf="!isAuthenticated" class="btn-primary" type="button" (click)="goToLogin()">Iniciar sesión</button>
+    </div>
+  </section>
+
+  <p *ngIf="loading" class="info">Cargando publicaciones...</p>
+  <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+
+  <section class="section-publications">
+    <div class="filter-bar">
+      <label class="filter-label filter-label-wide">
+        Buscar por texto
+        <input
+          type="text"
+          name="searchTerm"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="applyFilters()"
+          placeholder="Ej: cartón, pallets, botellas, zona sur">
+      </label>
+
+      <label class="filter-label">
+        Filtrar por categoría
+        <select name="selectedCategoryId" [(ngModel)]="selectedCategoryId" (ngModelChange)="onCategoryFilterChange()">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let category of categories" [value]="category.id">{{ getCategoryNameEs(category) }}</option>
+        </select>
+      </label>
+
+      <label class="filter-label">
+        Precio mínimo
+        <input type="number" name="minPrice" [(ngModel)]="minPrice" (change)="applyFilters()" min="0" placeholder="0">
+      </label>
+
+      <label class="filter-label">
+        Precio máximo
+        <input type="number" name="maxPrice" [(ngModel)]="maxPrice" (change)="applyFilters()" min="0" placeholder="50000">
+      </label>
+
+      <div class="filter-actions">
+        <button type="button" class="filter-apply" [disabled]="loading" (click)="applyFilters()">Aplicar filtros</button>
+        <button type="button" class="filter-clear" [disabled]="!hasActiveFilters || loading" (click)="clearAllFilters()">Limpiar filtros</button>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && allPublications.length === 0" class="empty">
+      No hay publicaciones disponibles para {{ selectedCategoryName }}.
+    </div>
+
+    <div class="cards">
+      <article class="card" *ngFor="let publication of allPublications">
+        <img class="card-image" *ngIf="publication.imagenes?.length" [src]="publication.imagenes?.[0]" alt="Imagen del producto publicado">
+        <h3>{{ publication.titulo }}</h3>
+        <p class="description">{{ publication.descripcion || 'Sin descripción' }}</p>
+        <p class="meta">Publicado por: {{ publication.usuario?.nombre || 'Usuario' }}</p>
+        <div class="category-badge" [style.border-color]="publication.categoria?.color || 'rgba(255,255,255,0.25)'">
+          <span class="category-dot" [style.background-color]="publication.categoria?.color || 'rgba(255,255,255,0.45)'"></span>
+          <span class="category-name">{{ getCategoryNameEs(publication.categoria) }}</span>
+        </div>
+        <p class="meta">Estado: {{ publication.estado || 'N/D' }}</p>
+        <p class="meta" *ngIf="publication.precio">Precio: ${{ publication.precio }}</p>
+
+        <div class="card-actions">
+          <button type="button" (click)="togglePublicationDetail(publication.id)">
+            {{ isPublicationDetailVisible(publication.id) ? 'Ocultar' : 'Ver' }}
+          </button>
+
+          <button
+            type="button"
+            *ngIf="canContact(publication)"
+            [disabled]="contactingPublicationId === publication.id"
+            (click)="contactOwner(publication)">
+            {{ contactingPublicationId === publication.id ? 'Contactando...' : 'Contactar usuario' }}
+          </button>
+
+          <button
+            type="button"
+            *ngIf="shouldPromptLoginForContact(publication)"
+            (click)="goToLogin()">
+            Iniciar sesión para contactar
+          </button>
+        </div>
+
+        <div class="card-detail" *ngIf="isPublicationDetailVisible(publication.id)">
+          <p class="meta">Cantidad: {{ publication.cantidad || 'N/D' }}</p>
+          <p class="meta">Ubicación: {{ publication.ubicacion_texto || 'Sin detalle' }}</p>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>

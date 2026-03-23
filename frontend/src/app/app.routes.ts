@@ -7,14 +7,19 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { ChatComponent } from './pages/chat/chat.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { MapsComponent } from './pages/maps/maps.component';
+import { PublicationFormComponent } from './pages/publication-form/publication-form.component';
+import { MaterialsExploreComponent } from './pages/materials-explore/materials-explore.component';
+import { MyPublicationsComponent } from './pages/my-publications/my-publications.component';
 
 export const routes: Routes = [
     { path: '', component: HomeComponent},
     { path: 'dashboard', component: DashboardComponent},
     { path: 'login', component: LoginComponent},
     { path: 'register', component: RegisterComponent},
-    { path: 'materiales', component: MarketplaceComponent},
+    { path: 'materiales', component: MaterialsExploreComponent},
     { path: 'marketplace', component: MarketplaceComponent},
+    { path: 'marketplace/mis-publicaciones', component: MyPublicationsComponent},
+    { path: 'marketplace/publicar', component: PublicationFormComponent},
     { path: 'maps', component: MapsComponent},
     { path: 'profile', component: ProfileComponent},
     { path: 'chat', component: ChatComponent},

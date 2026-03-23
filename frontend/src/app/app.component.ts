@@ -26,34 +26,18 @@ export class AppComponent implements OnInit {
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.currentUrl = event.urlAfterRedirects;
-      this.checkAuthAndRedirect();
     });
   }
 
   ngOnInit() {
-    this.checkAuthAndRedirect();
   }
 
   /**
    * Verifica si la página actual es pública (sin header)
    */
   isPublicPage(): boolean {
-    return this.currentUrl === '/' || 
-           this.currentUrl === '' || 
-           this.currentUrl === '/login' || 
+    return this.currentUrl === '/login' || 
            this.currentUrl === '/register';
-  }
-
-  /**
-   * Redirige automáticamente a marketplace si el usuario está logueado y entra al home
-   */
-  private checkAuthAndRedirect(): void {
-    const isLoggedIn = !!localStorage.getItem('token');
-    const isHome = this.currentUrl === '/' || this.currentUrl === '';
-    
-    if (isLoggedIn && isHome) {
-      this.router.navigate(['/marketplace']);
-    }
   }
 
   /**

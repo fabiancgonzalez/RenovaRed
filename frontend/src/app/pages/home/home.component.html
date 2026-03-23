@@ -1,14 +1,4 @@
 <div class="home">
-  <div class="home-header" *ngIf="!isAuthenticated">
-    <div class="logo">
-      <img src="logoRenovared.png" alt="RenovaRed">
-    </div>
-    <div class="auth-buttons">
-      <a routerLink="/login" class="btn-login">Iniciar sesión</a>
-      <a routerLink="/register" class="btn-register">Registrarse</a>
-    </div>
-  </div>
-
   <!-- LOADING -->
   @if (loading) {
     <div class="loading-container">

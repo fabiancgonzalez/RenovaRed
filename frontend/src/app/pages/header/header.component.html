@@ -16,7 +16,7 @@
             <!-- Links para SI logueados -->
             <ng-container *ngIf="isAuthenticated">
 
-               <a routerLink="/" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Inicio</a>
+               <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link" (click)="onNavLinkClick()">Inicio</a>
 
                 <a routerLink="/marketplace" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Marketplace</a>
                 <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Dashboard</a>

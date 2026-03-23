@@ -65,7 +65,6 @@ interface PublicationForm {
 })
 export class MarketplaceComponent implements OnInit {
   @ViewChild('misPublicacionesSection') misPublicacionesSection?: ElementRef<HTMLElement>;
-  @ViewChild('nuevaPublicacionSection') nuevaPublicacionSection?: ElementRef<HTMLElement>;
  
   loading = false;
   savingPublication = false;
@@ -89,7 +88,6 @@ export class MarketplaceComponent implements OnInit {
   expandedPublicationId: string | null = null;
   isAuthenticated = false;
   isExploreRoute = false;
-  private openCreateFormOnLoad = false;
 
   publicationForm: PublicationForm = {
     titulo: '',
@@ -133,8 +131,6 @@ export class MarketplaceComponent implements OnInit {
   ngOnInit(): void {
     this.syncSessionState();
     this.isExploreRoute = this.route.snapshot.routeConfig?.path === 'materiales';
-    this.openCreateFormOnLoad = this.route.snapshot.queryParamMap.get('action') === 'new';
-
     void this.loadMarketplaceData();
   }
 
@@ -169,12 +165,6 @@ export class MarketplaceComponent implements OnInit {
 
       this.allPublications = await this.fetchAllPublications();
       await this.loadMyPublications();
-
-      if (this.openCreateFormOnLoad && this.canManagePublications) {
-        this.mostrarFormulario = true;
-        this.openCreateFormOnLoad = false;
-        setTimeout(() => this.focusSectionWithAnimation(this.nuevaPublicacionSection?.nativeElement), 100);
-      }
 
       this.loading = false;
     } catch (error: any) {
@@ -263,21 +253,7 @@ export class MarketplaceComponent implements OnInit {
 
   startEdit(publication: Publication): void {
     if (!this.canManagePublications) return;
-
-    this.editingPublicationId = publication.id;
-    this.mostrarFormulario = true;
-    this.publicationForm = {
-      titulo: publication.titulo || '',
-      descripcion: publication.descripcion || '',
-      categoria_id: publication.categoria?.id || publication.categoria_id || '',
-      ubicacion_texto: publication.ubicacion_texto || '',
-      precio: publication.precio ? String(publication.precio) : '',
-      cantidad: publication.cantidad ? String(publication.cantidad) : '',
-      estado: publication.estado || 'Disponible'
-    };
-    this.publicationImagePreview = publication.imagenes?.[0] || '';
-
-    setTimeout(() => this.focusSectionWithAnimation(this.nuevaPublicacionSection?.nativeElement), 100);
+    this.goToEditPublication(publication.id);
   }
 
   cancelEdit(): void {
@@ -319,11 +295,7 @@ export class MarketplaceComponent implements OnInit {
       return;
     }
 
-    this.mostrarFormulario = !this.mostrarFormulario;
-
-    if (!this.mostrarFormulario) return;
-
-    setTimeout(() => this.focusSectionWithAnimation(this.nuevaPublicacionSection?.nativeElement), 100);
+    this.goToCreatePublication();
   }
 
   toggleMisPublicaciones(): void {
@@ -492,6 +464,27 @@ export class MarketplaceComponent implements OnInit {
 
   goToManagement(): void {
     this.router.navigate(['/marketplace']);
+  }
+
+  goToCreatePublication(): void {
+    this.router.navigate(['/marketplace/publicar']);
+  }
+
+  goToEditPublication(publicationId: string): void {
+    this.router.navigate(['/marketplace/publicar'], { queryParams: { edit: publicationId } });
+  }
+
+  goToMyPublications(): void {
+    if (!this.canManagePublications) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.router.navigate(['/marketplace/mis-publicaciones']);
+  }
+
+  goToExploreMaterials(): void {
+    this.router.navigate(['/materiales']);
   }
 
   private getAuthHeaders(): HttpHeaders {
