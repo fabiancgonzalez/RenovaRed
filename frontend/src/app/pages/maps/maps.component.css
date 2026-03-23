@@ -167,8 +167,21 @@ h1 {
 	border: 2px solid #ef4444;
 }
 
+.legend-dot.current-user {
+	width: 18px;
+	height: 4px;
+	border-radius: 999px;
+	background: repeating-linear-gradient(
+		90deg,
+		#2563eb 0,
+		#2563eb 7px,
+		transparent 7px,
+		transparent 11px
+	);
+}
+
 .map-canvas {
-	min-height: 620px;
+	min-height: 720px;
 	border-radius: 22px;
 	overflow: hidden;
 }

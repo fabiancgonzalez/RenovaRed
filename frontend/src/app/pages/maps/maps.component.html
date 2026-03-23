@@ -59,6 +59,10 @@
 					<span class="legend-dot closest"></span>
 					Pareja más cercana
 				</span>
+				<span class="legend-item" *ngIf="loggedUserDistance">
+					<span class="legend-dot current-user"></span>
+					Tu usuario más cercano
+				</span>
 			</div>
 
 			<div #mapContainer class="map-canvas"></div>
@@ -131,7 +135,7 @@
 			</section>
 
 			<ng-template #noUsers>
-				<div class="state-card compact">No hay usuarios con coordenadas disponibles para mostrar en el mapa.</div>
+				<div class="state-card compact">{{ emptyUsersMessage }}</div>
 			</ng-template>
 		</aside>
 	</div>
