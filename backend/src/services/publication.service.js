@@ -2,13 +2,51 @@ const { Publication, User, Category } = require('../models');
 const { Op } = require('sequelize');
 
 class PublicationService {
-  async getAll({ page = 1, limit = 20, estado, tipo_usuario, categoria_id, search, user_id } = {}) {
+  async getAll({ page = 1, limit = 20, estado, tipo_usuario, categoria_id, search, user_id, precio_min, precio_max } = {}) {
     const where = {};
+    const andConditions = [];
+
     if (estado)       where.estado = estado;
     if (tipo_usuario) where.tipo_usuario = tipo_usuario;
     if (categoria_id) where.categoria_id = categoria_id;
     if (user_id)      where.user_id = user_id;
-    if (search)       where.titulo = { [Op.iLike]: `%${search}%` };
+
+    if (search) {
+      andConditions.push({
+        [Op.or]: [
+          { titulo: { [Op.iLike]: `%${search}%` } },
+          { descripcion: { [Op.iLike]: `%${search}%` } },
+          { ubicacion_texto: { [Op.iLike]: `%${search}%` } }
+        ]
+      });
+    }
+
+    const priceFilter = {};
+    let hasPriceFilter = false;
+
+    if (precio_min && precio_min !== '') {
+      const minPrice = Number(precio_min);
+      if (!Number.isNaN(minPrice)) {
+        priceFilter[Op.gte] = minPrice;
+        hasPriceFilter = true;
+      }
+    }
+
+    if (precio_max && precio_max !== '') {
+      const maxPrice = Number(precio_max);
+      if (!Number.isNaN(maxPrice)) {
+        priceFilter[Op.lte] = maxPrice;
+        hasPriceFilter = true;
+      }
+    }
+
+    if (hasPriceFilter) {
+      andConditions.push({ precio: priceFilter });
+    }
+
+    if (andConditions.length > 0) {
+      where[Op.and] = andConditions;
+    }
 
     const offset = (page - 1) * limit;
     const { count, rows } = await Publication.findAndCountAll({

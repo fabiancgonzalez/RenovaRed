@@ -1,14 +1,35 @@
 <main class="marketplace">
-	<h1>Marketplace</h1>
+	<section class="marketplace-hero">
+		<div>
+			<p class="eyebrow">{{ isExploreRoute ? 'Catálogo abierto' : 'Panel de publicaciones' }}</p>
+			<h1>{{ pageTitle }}</h1>
+			<p class="hero-copy">{{ pageDescription }}</p>
+		</div>
+
+		<div class="hero-actions">
+			<button *ngIf="canManagePublications" class="btn-nueva-publicacion" type="button" (click)="toggleFormularioPublicacion()">
+				{{ mostrarFormulario ? 'Ocultar nueva publicación' : 'Nueva publicación' }}
+			</button>
+
+			<button *ngIf="!canManagePublications" class="btn-nueva-publicacion" type="button" (click)="goToLogin()">
+				Iniciar sesión para publicar
+			</button>
+
+			<button *ngIf="canManagePublications" class="btn-mis-publicaciones" type="button" (click)="toggleMisPublicaciones()">
+				{{ mostrarMisPublicaciones ? 'Ocultar mis publicaciones' : 'Ver mis publicaciones' }}
+			</button>
+
+			<button *ngIf="isExploreRoute && isAuthenticated" class="btn-mis-publicaciones" type="button" (click)="goToManagement()">
+				Ir a mi marketplace
+			</button>
+		</div>
+	</section>
 
 	<p *ngIf="loading" class="info">Cargando publicaciones...</p>
 	<p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+	<p *ngIf="successMessage" class="success">{{ successMessage }}</p>
 
-	<button class="btn-nueva-publicacion" (click)="toggleFormularioPublicacion()">
-		{{ mostrarFormulario ? 'Ocultar Nueva Publicacion' : 'Nueva publicación' }}
-	</button>
-
-	<section class="section-nueva-publicacion" *ngIf="mostrarFormulario" #nuevaPublicacionSection tabindex="-1">
+	<section class="section-nueva-publicacion" *ngIf="mostrarFormulario && canManagePublications" #nuevaPublicacionSection tabindex="-1">
 		<h2>{{ editingPublicationId ? 'Editar publicación' : 'Nueva publicación' }}</h2>
 
 		<form class="publication-form" (ngSubmit)="savePublication()">
@@ -84,14 +105,20 @@
 		</form>
 	</section>
 
-	<button class="btn-mis-publicaciones" (click)="toggleMisPublicaciones()">
-		{{ mostrarMisPublicaciones ? 'Ocultar Mis Publicaciones' : 'Ver Todas Mis Publicaciones' }}
-	</button>
-
 	<section class="section-todas-publicaciones">
-		<h2>Todas las publicaciones</h2>
+		<h2>{{ isExploreRoute ? 'Materiales disponibles' : 'Todas las publicaciones' }}</h2>
 
 		<div class="filter-bar">
+			<label class="filter-label filter-label-wide">
+				Buscar por texto
+				<input
+					type="text"
+					name="searchTerm"
+					[(ngModel)]="searchTerm"
+					(keyup.enter)="applyFilters()"
+					placeholder="Ej: cartón, pallets, botellas, zona sur">
+			</label>
+
 			<label class="filter-label">
 				Filtrar por categoría
 				<select name="selectedCategoryId" [(ngModel)]="selectedCategoryId" (ngModelChange)="onCategoryFilterChange()">
@@ -100,9 +127,25 @@
 				</select>
 			</label>
 
-			<button type="button" class="filter-clear" [disabled]="!selectedCategoryId || loading" (click)="clearCategoryFilter()">
-				Limpiar filtro
-			</button>
+			<label class="filter-label">
+				Precio mínimo
+				<input type="number" name="minPrice" [(ngModel)]="minPrice" (change)="applyFilters()" min="0" placeholder="0">
+			</label>
+
+			<label class="filter-label">
+				Precio máximo
+				<input type="number" name="maxPrice" [(ngModel)]="maxPrice" (change)="applyFilters()" min="0" placeholder="50000">
+			</label>
+
+			<div class="filter-actions">
+				<button type="button" class="filter-apply" [disabled]="loading" (click)="applyFilters()">
+					Aplicar filtros
+				</button>
+
+				<button type="button" class="filter-clear" [disabled]="!hasActiveFilters || loading" (click)="clearAllFilters()">
+					Limpiar filtros
+				</button>
+			</div>
 		</div>
 
 		<div *ngIf="!loading && allPublications.length === 0" class="empty">
@@ -137,6 +180,13 @@
 						(click)="contactOwner(publication)">
 						{{ contactingPublicationId === publication.id ? 'Contactando...' : 'Contactar usuario' }}
 					</button>
+
+					<button
+						type="button"
+						*ngIf="shouldPromptLoginForContact(publication)"
+						(click)="goToLogin()">
+						Iniciar sesión para contactar
+					</button>
 				</div>
 
 				<div class="card-detail" *ngIf="isPublicationDetailVisible(publication.id)">
@@ -147,7 +197,7 @@
 		</div>
 	</section>
 
-	<section class="section-mis-publicaciones" *ngIf="mostrarMisPublicaciones" #misPublicacionesSection tabindex="-1">
+	<section class="section-mis-publicaciones" *ngIf="mostrarMisPublicaciones && canManagePublications" #misPublicacionesSection tabindex="-1">
 		<h2>Mis publicaciones</h2>
 
 		<div *ngIf="!loading && myPublications.length === 0" class="empty">

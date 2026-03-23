@@ -68,6 +68,7 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
   userTypes: string[] = [];
   selectedTypes: Record<string, boolean> = {};
   userDistances: UserDistanceSummary[] = [];
+  highlightedUserIds: string[] = [];
   closestPairGlobal: ClosestPair | null = null;
   loggedUserDistance: LoggedUserDistance | null = null;
   private loggedUserId = '';
@@ -85,63 +86,6 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.map?.remove();
-  }
-
-  get highlightedUserIds(): string[] {
-    const ids = new Set<string>();
-
-    const globalPair = this.getGlobalPairForMap();
-    const loggedPair = this.getLoggedPairForMap();
-
-    // Si ambos pares son el mismo, dibujar una sola línea combinada
-    if (this.isSamePair(globalPair, loggedPair) && globalPair && this.markersLayer) {
-      L.polyline([
-        [globalPair.first.coordinates.lat, globalPair.first.coordinates.lng],
-        [globalPair.second.coordinates.lat, globalPair.second.coordinates.lng]
-      ], {
-        color: '#a855f7',
-        weight: 4,
-        dashArray: '4 8',
-        opacity: 0.95
-      }).addTo(this.markersLayer);
-    } else {
-      // Par global (más cercano entre todos)
-      if (globalPair && this.markersLayer) {
-        L.polyline([
-          [globalPair.first.coordinates.lat, globalPair.first.coordinates.lng],
-          [globalPair.second.coordinates.lat, globalPair.second.coordinates.lng]
-        ], {
-          color: '#f97316',
-          weight: 3,
-          dashArray: '2 10',
-          opacity: 0.95
-        }).addTo(this.markersLayer);
-      }
-
-      // Par del usuario logueado
-      if (loggedPair && this.markersLayer) {
-        L.polyline([
-          [loggedPair.first.coordinates.lat, loggedPair.first.coordinates.lng],
-          [loggedPair.second.coordinates.lat, loggedPair.second.coordinates.lng]
-        ], {
-          color: '#2563eb',
-          weight: 4,
-          opacity: 0.95
-        }).addTo(this.markersLayer);
-      }
-    }
-
-    if (globalPair) {
-      ids.add(globalPair.first.id);
-      ids.add(globalPair.second.id);
-    }
-
-    if (loggedPair) {
-      ids.add(loggedPair.first.id);
-      ids.add(loggedPair.second.id);
-    }
-
-    return Array.from(ids);
   }
 
   private getGlobalPairForMap(): ClosestPair | null {
@@ -191,15 +135,48 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
     return this.users.length;
   }
 
+  get emptyUsersMessage(): string {
+    if (this.allUsers.length === 0) {
+      return 'No hay usuarios con coordenadas disponibles para mostrar en el mapa.';
+    }
+
+    return 'No hay usuarios visibles con los filtros seleccionados.';
+  }
+
   private getLoggedUserId(): string {
     try {
       const userRaw = localStorage.getItem('user');
-      if (!userRaw) {
+      if (userRaw) {
+        const user = JSON.parse(userRaw);
+        const normalizedId = this.normalizeUserId(user?.id);
+        if (normalizedId) {
+          return normalizedId;
+        }
+      }
+
+      return this.getLoggedUserIdFromToken();
+    } catch {
+      return this.getLoggedUserIdFromToken();
+    }
+  }
+
+  private getLoggedUserIdFromToken(): string {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
         return '';
       }
 
-      const user = JSON.parse(userRaw);
-      return user?.id || '';
+      const [, payload] = token.split('.');
+      if (!payload) {
+        return '';
+      }
+
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const normalizedBase64 = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+      const decodedPayload = JSON.parse(atob(normalizedBase64));
+
+      return this.normalizeUserId(decodedPayload?.id ?? decodedPayload?.sub);
     } catch {
       return '';
     }
@@ -239,8 +216,17 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
 
     return {
       ...user,
+      id: this.normalizeUserId(user.id),
       coordinates: normalized
     };
+  }
+
+  private normalizeUserId(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    return String(value);
   }
 
   private normalizeCoordinates(coordinates?: UserCoordinates): UserCoordinates | null {
@@ -433,10 +419,29 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
 
     this.users = this.allUsers.filter((user) => activeTypes.has(user.tipo));
     this.calculateDistances();
+    this.updateHighlightedUserIds();
 
     if (shouldRenderMap) {
       this.renderMap();
     }
+  }
+
+  private updateHighlightedUserIds(): void {
+    const ids = new Set<string>();
+    const globalPair = this.getGlobalPairForMap();
+    const loggedPair = this.getLoggedPairForMap();
+
+    if (globalPair) {
+      ids.add(globalPair.first.id);
+      ids.add(globalPair.second.id);
+    }
+
+    if (loggedPair) {
+      ids.add(loggedPair.first.id);
+      ids.add(loggedPair.second.id);
+    }
+
+    this.highlightedUserIds = Array.from(ids);
   }
 
   toggleType(type: string): void {
@@ -521,20 +526,7 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
       bounds.push(position);
     }
 
-    const pair = this.getGlobalPairForMap();
-    if (pair
-      && this.users.some((user) => user.id === pair.first.id)
-      && this.users.some((user) => user.id === pair.second.id)) {
-      L.polyline([
-        [pair.first.coordinates.lat, pair.first.coordinates.lng],
-        [pair.second.coordinates.lat, pair.second.coordinates.lng]
-      ], {
-        color: '#f97316',
-        weight: 3,
-        dashArray: '2 10', // línea punteada
-        opacity: 0.95
-      }).addTo(this.markersLayer);
-    }
+    this.renderHighlightedPairs();
 
     if (bounds.length === 1) {
       this.map.setView(bounds[0], 12);
@@ -543,6 +535,39 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
     }
 
     setTimeout(() => this.map?.invalidateSize(), 0);
+  }
+
+  private renderHighlightedPairs(): void {
+    if (!this.markersLayer) {
+      return;
+    }
+
+    const globalPair = this.getGlobalPairForMap();
+    const loggedPair = this.getLoggedPairForMap();
+
+    if (globalPair) {
+      L.polyline([
+        [globalPair.first.coordinates.lat, globalPair.first.coordinates.lng],
+        [globalPair.second.coordinates.lat, globalPair.second.coordinates.lng]
+      ], {
+        color: '#f97316',
+        weight: 3,
+        dashArray: '2 10',
+        opacity: 0.95
+      }).addTo(this.markersLayer);
+    }
+
+    if (loggedPair) {
+      L.polyline([
+        [loggedPair.first.coordinates.lat, loggedPair.first.coordinates.lng],
+        [loggedPair.second.coordinates.lat, loggedPair.second.coordinates.lng]
+      ], {
+        color: '#2563eb',
+        weight: 4,
+        dashArray: '10 8',
+        opacity: 0.95
+      }).addTo(this.markersLayer);
+    }
   }
 
   private buildPopup(user: MapUser, highlighted: boolean): string {

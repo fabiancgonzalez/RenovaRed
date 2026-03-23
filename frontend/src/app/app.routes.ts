@@ -31,3 +31,4 @@ export const routes: Routes = [
     // DASHBOARD - SOLO ADMIN
     { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard, AdminGuard] },
 ];
+

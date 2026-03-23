@@ -28,6 +28,7 @@ interface DashboardData {
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
   imports: [RouterLink, CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',

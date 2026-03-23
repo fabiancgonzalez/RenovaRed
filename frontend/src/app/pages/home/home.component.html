@@ -1,5 +1,5 @@
 <div class="home">
-  <div class="home-header">
+  <div class="home-header" *ngIf="!isAuthenticated">
     <div class="logo">
       <img src="logoRenovared.png" alt="RenovaRed">
     </div>
@@ -32,8 +32,8 @@
       <h1>Economía Circular Inteligente</h1>
       <p>Conectamos cooperativas, recicladoras y emprendedores <br> para fortalecer el impacto ambiental local.</p>
       <div class="home-buttons">
-        <button routerLink="/marketplace" class="btn-primary">Explorar Materiales</button>
-        <button routerLink="/publicar" class="btn-secondary">Publicar Recursos</button>
+        <button type="button" (click)="exploreMaterials()" class="btn-primary">Explorar Materiales</button>
+        <button type="button" (click)="publishResources()" class="btn-secondary">Publicar Recursos</button>
       </div>
     </div>
 
