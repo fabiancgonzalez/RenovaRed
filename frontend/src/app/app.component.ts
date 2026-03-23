@@ -21,7 +21,6 @@ export class AppComponent implements OnInit {
   constructor(public router: Router) {
     this.currentUrl = this.router.url || '';
 
-    // Escuchar cambios de ruta
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
@@ -32,17 +31,11 @@ export class AppComponent implements OnInit {
   ngOnInit() {
   }
 
-  /**
-   * Verifica si la página actual es pública (sin header)
-   */
   isPublicPage(): boolean {
-    return this.currentUrl === '/login' || 
+    return this.currentUrl === '/login' ||
            this.currentUrl === '/register';
   }
 
-  /**
-   * Verifica si el usuario está autenticado
-   */
   isAuthenticated(): boolean {
     return !!localStorage.getItem('token');
   }

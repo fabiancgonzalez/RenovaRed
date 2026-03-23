@@ -1,15 +1,34 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const cors = require('cors');
-require('dotenv').config(); 
+require('dotenv').config();
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./src/config/swagger');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:4200",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 
-// Middlewares 
-app.use(cors()); // Habilita CORS para todas las rutas
-app.use(express.json()); // Para parsear JSON
-app.use(express.urlencoded({ extended: true })); // Para formularios
+// ========== EXPORTAR IO ==========
+global.io = io;
+module.exports.io = io;
+
+// ========== WEBSOCKET ==========
+require('./src/websocket')(io);
+
+// ========== MIDDLEWARES ==========
+app.use(cors());
+
+// Configurar límites altos para payloads grandes (imágenes en base64)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // REDIRECCION DE RAIZ A HOME
 app.get('/', (req, res) => {
@@ -30,16 +49,15 @@ app.get('/api-docs.json', (req, res) => {
 });
 
 // ========== RUTAS ==========
-const homeRoutes = require('./src/routes/home.routes'); // Ruta para la pagina de inicio
+const homeRoutes = require('./src/routes/home.routes');
 app.use('/api/home', homeRoutes);
 
-const authRoutes = require('./src/routes/auth.routes'); // Ruta de autenticacion (registro/login)
+const authRoutes = require('./src/routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
-const profileRoutes = require('./src/routes/profile.routes'); // Ruta para perfil de usuario (ver/editar perfil)
+const profileRoutes = require('./src/routes/profile.routes');
 app.use('/api/profile', profileRoutes);
 
-// AGREGADO
 const userRoutes = require('./src/routes/user.routes');
 app.use('/api/users', userRoutes);
 
@@ -61,10 +79,9 @@ app.use('/api/favorites', favoriteRoutes);
 const dailyStatsRoutes = require('./src/routes/dailyStats.routes');
 app.use('/api/stats', dailyStatsRoutes);
 
-const categoryRouter = require('./src/routes/category.routes'); // Rutas para categorias (CRUD)
-app.use('/api/categories', categoryRouter);
+const messageRoutes = require('./src/routes/message.routes');
+app.use('/api/conversations/:conversationId/messages', messageRoutes);
 
-// Health check
 const healthRoutes = require('./src/routes/health.routes');
 app.use('/api/health', healthRoutes);
 
@@ -79,8 +96,12 @@ app.use((req, res) => {
 // Puerto
 const PORT = process.env.PORT || 3000;
 
+// Configuración adicional del servidor
+server.maxHeadersCount = 2000;
+server.timeout = 120000;
+
 // Iniciar servidor
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`==========RenovaRed==========`);
     console.log(` - RenovaRed activo en: http://localhost:${PORT}`);
     console.log(` - Health check: http://localhost:${PORT}/api/health`);

@@ -12,16 +12,18 @@ import { MaterialsExploreComponent } from './pages/materials-explore/materials-e
 import { MyPublicationsComponent } from './pages/my-publications/my-publications.component';
 
 export const routes: Routes = [
-    { path: '', component: HomeComponent},
-    { path: 'dashboard', component: DashboardComponent},
-    { path: 'login', component: LoginComponent},
-    { path: 'register', component: RegisterComponent},
-    { path: 'materiales', component: MaterialsExploreComponent},
-    { path: 'marketplace', component: MarketplaceComponent},
-    { path: 'marketplace/mis-publicaciones', component: MyPublicationsComponent},
-    { path: 'marketplace/publicar', component: PublicationFormComponent},
-    { path: 'maps', component: MapsComponent},
-    { path: 'profile', component: ProfileComponent},
-    { path: 'chat', component: ChatComponent},
-    { path: 'chat/:id', component: ChatComponent},
+    { path: '', component: HomeComponent },
+    { path: 'dashboard', component: DashboardComponent },
+    { path: 'login', component: LoginComponent },
+    { path: 'register', component: RegisterComponent },
+    { path: 'materiales', component: MaterialsExploreComponent },
+    { path: 'marketplace', component: MarketplaceComponent },
+    { path: 'marketplace/mis-publicaciones', component: MyPublicationsComponent },
+    { path: 'marketplace/publicar', component: PublicationFormComponent },
+    { path: 'maps', component: MapsComponent },
+    { path: 'profile', component: ProfileComponent },
+    { path: 'profile/:id', component: ProfileComponent },
+    { path: 'chat', component: ChatComponent },
+    { path: 'chat/:id', component: ChatComponent },
 ];
+

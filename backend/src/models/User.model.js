@@ -34,7 +34,15 @@ const User = sequelize.define('User', {
   place_id: { type: DataTypes.STRING(255) },
   google_places_data: { type: DataTypes.JSONB },
   last_login: { type: DataTypes.DATE },
-  is_active: { type: DataTypes.BOOLEAN, defaultValue: true }
+  is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
+  bio: { type: DataTypes.TEXT },
+  website: { type: DataTypes.STRING(255) },
+  instagram: { type: DataTypes.STRING(255) },
+  facebook: { type: DataTypes.STRING(255) },
+  linkedin: { type: DataTypes.STRING(255) },
+  x_handle: { type: DataTypes.STRING(255) },
+  puntos: { type: DataTypes.INTEGER, defaultValue: 0 },
+  reputacion: { type: DataTypes.DECIMAL(3,2), defaultValue: 0 }
 }, {
   tableName: 'users',
   timestamps: true,

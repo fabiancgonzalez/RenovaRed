@@ -7,11 +7,9 @@ class UserDTO {
         return { lat, lng };
       }
     }
-
     return null;
   }
 
-  // Perfil público (sin password_hash, sin campos sensibles)
   static publicProfile(user) {
     return {
       id: user.id,
@@ -25,11 +23,40 @@ class UserDTO {
       is_active: user.is_active,
       last_login: user.last_login,
       created_at: user.created_at,
-      updated_at: user.updated_at
+      updated_at: user.updated_at,
+      bio: user.bio,
+      website: user.website,
+      instagram: user.instagram,
+      facebook: user.facebook,
+      linkedin: user.linkedin,
+      x_handle: user.x_handle,
+      puntos: user.puntos,
+      reputacion: user.reputacion
     };
   }
 
-  // Para respuestas que incluyen token (login/register)
+  static publicView(user) {
+    return {
+      id: user.id,
+      nombre: user.nombre,
+      email: user.email,
+      tipo: user.tipo,
+      telefono: user.telefono,
+      avatar_url: user.avatar_url,
+      ubicacion_texto: user.ubicacion_texto,
+      coordinates: this._coordinates(user),
+      bio: user.bio,
+      reputacion: user.reputacion,
+      puntos: user.puntos,
+      created_at: user.created_at,
+      website: user.website,
+      instagram: user.instagram,
+      facebook: user.facebook,
+      linkedin: user.linkedin,
+      x_handle: user.x_handle
+    };
+  }
+
   static withToken(user, token) {
     return {
       user: this.publicProfile(user),
@@ -37,25 +64,27 @@ class UserDTO {
     };
   }
 
-  // Para listados (menos información)
   static list(user) {
     return {
       id: user.id,
       nombre: user.nombre,
+      email: user.email,
       tipo: user.tipo,
+      telefono: user.telefono,
       avatar_url: user.avatar_url,
-      ubicacion_texto: user.ubicacion_texto
+      ubicacion_texto: user.ubicacion_texto,
+      reputacion: user.reputacion
     };
   }
 
-  // Para el home (destacados)
   static forHome(user) {
     return {
       id: user.id,
       nombre: user.nombre,
       tipo: user.tipo,
       avatar_url: user.avatar_url,
-      ubicacion_texto: user.ubicacion_texto
+      ubicacion_texto: user.ubicacion_texto,
+      reputacion: user.reputacion
     };
   }
 
@@ -66,7 +95,8 @@ class UserDTO {
       tipo: user.tipo,
       avatar_url: user.avatar_url,
       ubicacion_texto: user.ubicacion_texto,
-      coordinates
+      coordinates,
+      reputacion: user.reputacion
     };
   }
 }
