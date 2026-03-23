@@ -18,17 +18,15 @@
   export class AppComponent implements OnInit {
     currentUrl: string = '';
 
-  constructor(public router: Router) {
-    this.currentUrl = this.router.url || '';
-
-    // Escuchar cambios de ruta
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe((event: NavigationEnd) => {
-      this.currentUrl = event.urlAfterRedirects;
-      this.checkAuthAndRedirect();
-    });
-  }
+    constructor(public router: Router) {
+      // Escuchar cambios de ruta
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe((event: NavigationEnd) => {
+        this.currentUrl = event.url;
+        this.checkAuthAndRedirect();
+      });
+    }
 
     ngOnInit() {
       this.checkAuthAndRedirect();
@@ -44,15 +42,17 @@
             this.currentUrl === '/register';
     }
 
-  /**
-   * Redirige automáticamente a marketplace si el usuario está logueado y entra al home
-   */
-  private checkAuthAndRedirect(): void {
-    const isLoggedIn = !!localStorage.getItem('token');
-    const isHome = this.currentUrl === '/' || this.currentUrl === '';
-    
-    if (isLoggedIn && isHome) {
-      this.router.navigate(['/marketplace']);
+    /**
+     * Redirige automáticamente a inicio si el usuario está logueado y entra al home
+     */
+    private checkAuthAndRedirect(): void {
+      const isLoggedIn = !!localStorage.getItem('token');
+      const isHome = this.currentUrl === '/' || this.currentUrl === '';
+      
+      if (isLoggedIn && isHome) {
+        console.log('Usuario logueado detectado en home, redirigiendo a inicio');
+        this.router.navigate(['/inicio']);
+      }
     }
 
     /**
