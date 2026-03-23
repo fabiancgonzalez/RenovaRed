@@ -1,171 +1,976 @@
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AfterViewChecked, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ChatService, Conversation, ConversationDetail, Message } from '../../services/chat.service';
+import { WebSocketService } from '../../services/websocket.service';
+import { Subscription } from 'rxjs';
+import * as L from 'leaflet';
 
-interface ConvUser {
-  id: string;
-  nombre: string;
-  avatar_url?: string;
-}
-
-interface ConvMessage {
-  id: string;
-  content: string;
-  sender_id: string;
-  created_at: string;
-  remitente?: ConvUser;
-}
-
-interface Conversation {
-  id: string;
-  estado?: string;
-  updated_at: string;
-  Publication?: { id: string; titulo: string; imagenes?: string[] };
-  Messages?: ConvMessage[];
-}
+const EMOJIS = [
+  '😀', '😂', '😍', '😊', '😢', '😡', '😮', '🤔', '🥰', '😎', '🥳', '😭', '😅', '🙂', '😉', '😘',
+  '👍', '👎', '👌', '✌️', '🤝', '👏', '🙌', '💪', '✋', '👋', '🤞', '👊',
+  '❤️', '🧡', '💛', '💚', '💙', '💜', '💖', '💕',
+  '♻️', '🌍', '🌱', '🌿', '🍃', '🌲', '🌳', '🌸', '🌻', '🌺', '🍂', '🍁',
+  '📦', '🗑️', '🥤', '🧴', '🧃', '🔋', '💡', '📰', '📄', '👕', '🥛', '🔩'
+];
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './chat.component.html',
-  styleUrl: './chat.component.css'
+  styleUrls: ['./chat.component.css']
 })
-export class ChatComponent implements OnInit, AfterViewChecked {
-  @ViewChild('messagesEnd') messagesEnd?: ElementRef;
+export class ChatComponent implements OnInit, OnDestroy {
+  @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
 
   conversations: Conversation[] = [];
-  activeConversation: Conversation | null = null;
+  currentConversation: ConversationDetail | null = null;
+  newMessage = '';
+  loading = false;
+  error = '';
+  successMessage = '';
+  selectedConversationId: string | null = null;
+  currentUserId: string = '';
+  onlineUsers: Set<string> = new Set();
 
-  loadingConversations = false;
-  loadingMessages = false;
-  sendingMessage = false;
-  messageText = '';
-  errorMessage = '';
-  currentUserId = '';
+  showDeleteModal = false;
+  conversationToDelete: Conversation | null = null;
+  activeDropdownId: string | null = null;
 
-  private shouldScroll = false;
+  showEmojiPicker = false;
+  emojis = EMOJIS;
+
+  conversationDeletedByOther = false;
+
+  showHeaderDropdown = false;
+  
+  showProfileModal = false;
+  selectedUserProfile: any = null;
+  isLoadingProfile = false;
+  private miniMap: L.Map | null = null;
+  private miniMapInitialized = false;
+
+  showExchangeModal = false;
+  exchangeStatus: any = null;
+  lastCompletedExchange: any = null;
+  exchangeData = {
+    kg: 0,
+    price: 0,
+    notes: ''
+  };
+  currentStock = 0;
+  isBuyer = false;
+  isSeller = false;
+
+  private subscriptions: Subscription[] = [];
+  private readTimeout: any = null;
 
   constructor(
-    private readonly http: HttpClient,
-    private readonly route: ActivatedRoute,
-    private readonly router: Router
-  ) {}
+    private chatService: ChatService,
+    private webSocketService: WebSocketService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {
+    const userRaw = localStorage.getItem('user');
+    if (userRaw) {
+      try {
+        const user = JSON.parse(userRaw);
+        this.currentUserId = user.id || '';
+      } catch (e) {
+        console.error('Error parsing user:', e);
+      }
+    }
+  }
 
   ngOnInit(): void {
-    const token = localStorage.getItem('token');
-    const userRaw = localStorage.getItem('user');
+    this.loadConversations();
+    this.setupWebSocket();
 
-    if (!token || !userRaw) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    try {
-      this.currentUserId = JSON.parse(userRaw).id;
-    } catch { /* ignore */ }
-
-    this.loadConversations(() => {
-      const idParam = this.route.snapshot.paramMap.get('id');
-      if (idParam) {
-        this.openConversation(idParam);
+    this.route.params.subscribe(params => {
+      const id = params['id'];
+      if (id) {
+        setTimeout(() => this.selectConversation(id), 300);
       }
     });
+
+    document.addEventListener('click', this.handleDocumentClick.bind(this));
   }
 
-  ngAfterViewChecked(): void {
-    if (this.shouldScroll) {
-      this.messagesEnd?.nativeElement?.scrollIntoView({ block: 'end' });
-      this.shouldScroll = false;
+  ngOnDestroy(): void {
+    if (this.readTimeout) {
+      clearTimeout(this.readTimeout);
+    }
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.webSocketService.disconnect();
+    
+    document.removeEventListener('click', this.handleDocumentClick.bind(this));
+    
+    if (this.miniMap) {
+      this.miniMap.remove();
+      this.miniMap = null;
     }
   }
 
-  loadConversations(callback?: () => void): void {
-    this.loadingConversations = true;
-    const headers = this.getAuthHeaders();
+  handleDocumentClick(): void {
+    if (this.showHeaderDropdown) {
+      this.showHeaderDropdown = false;
+      this.cdr.detectChanges();
+    }
+  }
 
-    this.http.get<any>(`${environment.apiUrl}/conversations`, { headers }).subscribe({
+  setupWebSocket(): void {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    this.webSocketService.connect(token);
+
+    this.subscriptions.push(
+      this.webSocketService.onNewMessage().subscribe(data => {
+        let exists = false;
+        if (this.currentConversation && this.currentConversation.mensajes) {
+          exists = this.currentConversation.mensajes.some(m => m.id === data.message.id);
+        }
+
+        if (!exists && data.conversationId === this.selectedConversationId && this.currentConversation) {
+          this.currentConversation.mensajes.push(data.message);
+          
+          if (data.message.remitenteId !== this.currentUserId) {
+            this.markMessagesAsRead(data.conversationId);
+          }
+          
+          setTimeout(() => this.scrollToBottom(), 100);
+        }
+
+        this.conversations = this.conversations.map(conv => {
+          if (conv.id === data.conversationId) {
+            const isMyMessage = data.message.remitenteId === this.currentUserId;
+            
+            if (isMyMessage || this.selectedConversationId === data.conversationId) {
+              return {
+                ...conv,
+                ultimo_mensaje: data.message.content,
+                ultimo_mensaje_at: data.message.created_at,
+                no_leidos: 0
+              };
+            }
+            
+            const newUnread = (conv.no_leidos || 0) + 1;
+            return {
+              ...conv,
+              ultimo_mensaje: data.message.content,
+              ultimo_mensaje_at: data.message.created_at,
+              no_leidos: newUnread
+            };
+          }
+          return conv;
+        });
+
+        const conversationExists = this.conversations.some(conv => conv.id === data.conversationId);
+        if (!conversationExists) {
+          this.loadConversations();
+        }
+        
+        this.cdr.detectChanges();
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onUserOnline().subscribe(({ userId, online }) => {
+        if (online) this.onlineUsers.add(userId);
+        else this.onlineUsers.delete(userId);
+        this.onlineUsers = new Set(this.onlineUsers);
+        this.cdr.detectChanges();
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onOnlineUsers().subscribe(({ userIds }) => {
+        this.onlineUsers = new Set(userIds);
+        this.cdr.detectChanges();
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onMessagesRead().subscribe(data => {
+        if (data.conversationId === this.selectedConversationId && this.currentConversation) {
+          this.currentConversation.mensajes = this.currentConversation.mensajes.map(msg => {
+            if (data.messageIds?.includes(msg.id)) {
+              return { ...msg, read: true };
+            }
+            return msg;
+          });
+          this.cdr.detectChanges();
+        }
+        
+        this.conversations = this.conversations.map(conv => {
+          if (conv.id === data.conversationId) {
+            const currentUnread = conv.no_leidos || 0;
+            const newlyRead = data.messageIds?.length || 0;
+            const newUnread = Math.max(0, currentUnread - newlyRead);
+            return {
+              ...conv,
+              no_leidos: newUnread
+            };
+          }
+          return conv;
+        });
+        
+        this.cdr.detectChanges();
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onConversationDeleted().subscribe(data => {
+        this.conversations = this.conversations.map(conv => {
+          if (conv.id === data.conversationId) {
+            return { ...conv, estado: 'eliminada_por_otro' };
+          }
+          return conv;
+        });
+        
+        if (data.conversationId === this.selectedConversationId) {
+          this.conversationDeletedByOther = true;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onConversationReactivated().subscribe(data => {
+        this.conversations = this.conversations.map(conv => {
+          if (conv.id === data.conversationId) {
+            return { ...conv, estado: 'activa', no_leidos: 0 };
+          }
+          return conv;
+        });
+        
+        if (data.conversationId === this.selectedConversationId) {
+          this.conversationDeletedByOther = false;
+          this.loadConversation(data.conversationId);
+          this.successMessage = '✓ El otro usuario ha reactivado la conversación. Ya puedes enviar mensajes.';
+          setTimeout(() => this.successMessage = '', 5000);
+          this.cdr.detectChanges();
+        }
+      })
+    );
+    
+    this.subscriptions.push(
+      this.webSocketService.onExchangeRequest().subscribe(data => {
+        if (data.conversationId === this.selectedConversationId) {
+          this.checkExchangeStatus();
+          this.loadConversation(this.selectedConversationId!);
+          this.successMessage = '¡Nueva solicitud de intercambio! Revisa la tarjeta arriba.';
+          setTimeout(() => this.successMessage = '', 5000);
+          this.cdr.detectChanges();
+        }
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onExchangeAccepted().subscribe(data => {
+        if (data.conversationId === this.selectedConversationId) {
+          this.checkExchangeStatus();
+          this.loadConversation(this.selectedConversationId!);
+          this.successMessage = `¡Intercambio aceptado! Se intercambiaron ${data.kg} kg. 🌱`;
+          setTimeout(() => this.successMessage = '', 5000);
+          this.cdr.detectChanges();
+        }
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onExchangeRejected().subscribe(data => {
+        if (data.conversationId === this.selectedConversationId) {
+          this.exchangeStatus = null;
+          this.cdr.detectChanges();
+          this.error = 'El vendedor rechazó la solicitud de intercambio. Puedes enviar una nueva.';
+          setTimeout(() => this.error = '', 5000);
+        }
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onExchangeStatusUpdate().subscribe(data => {
+        if (data.conversationId === this.selectedConversationId) {
+          if (data.hasRequest) {
+            this.exchangeStatus = data.exchange;
+          } else {
+            this.exchangeStatus = null;
+          }
+          this.cdr.detectChanges();
+        }
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onError().subscribe(error => {
+        console.error('Error del WebSocket:', error);
+        
+        if (error.type === 'CONVERSATION_DELETED_BY_OTHER') {
+          this.conversationDeletedByOther = true;
+          this.cdr.detectChanges();
+        } else {
+          this.error = error.message || 'Error en la conexión';
+          setTimeout(() => this.error = '', 5000);
+        }
+      })
+    );
+  }
+
+  loadConversations(): void {
+    this.loading = true;
+
+    this.chatService.getMyConversations().subscribe({
       next: (response) => {
-        this.conversations = response?.data ?? [];
-        this.loadingConversations = false;
-        if (callback) callback();
+        if (response?.success && response.data) {
+          this.conversations = response.data.sort((a: Conversation, b: Conversation) =>
+            new Date(b.ultimo_mensaje_at).getTime() - new Date(a.ultimo_mensaje_at).getTime()
+          );
+
+          const ids = this.conversations.map(c => c.id);
+          if (ids.length > 0) {
+            this.webSocketService.joinConversations(ids);
+          }
+        }
+        this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
-        this.loadingConversations = false;
-        if (callback) callback();
+        this.error = 'No se pudieron cargar las conversaciones';
+        this.loading = false;
       }
     });
   }
 
-  openConversation(id: string): void {
-    this.errorMessage = '';
-    this.loadingMessages = true;
-    const headers = this.getAuthHeaders();
+  selectConversation(conversationId: string): void {
+    if (this.selectedConversationId === conversationId) return;
 
-    this.http.get<any>(`${environment.apiUrl}/conversations/${id}`, { headers }).subscribe({
+    this.conversationDeletedByOther = false;
+    this.error = '';
+    this.exchangeStatus = null;
+    this.lastCompletedExchange = null;
+    this.isBuyer = false;
+    this.isSeller = false;
+
+    this.conversations = this.conversations.map(conv => {
+      if (conv.id === conversationId) {
+        return { ...conv, no_leidos: 0 };
+      }
+      return conv;
+    });
+
+    this.selectedConversationId = conversationId;
+    this.loadConversation(conversationId);
+  }
+
+  loadConversation(conversationId: string): void {
+    this.chatService.getConversation(conversationId).subscribe({
       next: (response) => {
-        this.activeConversation = response?.data ?? null;
-        this.loadingMessages = false;
-        this.shouldScroll = true;
-        this.router.navigate(['/chat', id], { replaceUrl: true });
+        if (response?.success && response.data) {
+          this.currentConversation = response.data;
+          this.conversationDeletedByOther = response.data.deleted_by_other || false;
+          
+          this.checkUserRole();
+          this.checkExchangeStatus();
+          
+          this.markMessagesAsRead(conversationId);
+          this.cdr.detectChanges();
+          setTimeout(() => this.scrollToBottom(), 100);
+        }
       },
       error: (err) => {
-        this.loadingMessages = false;
-        this.errorMessage = err?.error?.message || 'No se pudo abrir la conversación';
+        console.error('Error cargando conversación:', err);
+        this.error = 'No se pudo cargar la conversación';
       }
     });
+  }
+
+  checkUserRole(): void {
+    if (!this.currentConversation) return;
+    this.isBuyer = this.currentConversation.comprador?.id === this.currentUserId;
+    this.isSeller = this.currentConversation.vendedor?.id === this.currentUserId;
+    
+    if (this.currentConversation?.publication?.cantidad) {
+      const cantidadValor = this.currentConversation.publication.cantidad;
+      const cantidadStr = typeof cantidadValor === 'string' ? cantidadValor : String(cantidadValor);
+      this.currentStock = parseFloat(cantidadStr) || 0;
+    } else {
+      this.currentStock = 0;
+    }
+  }
+
+  checkExchangeStatus(): void {
+    if (!this.selectedConversationId) return;
+    
+    this.chatService.getExchangeStatus(this.selectedConversationId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.exchangeStatus = res.hasRequest ? res.exchange : null;
+          this.lastCompletedExchange = res.lastCompleted || null;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => console.error('Error checking exchange status:', err)
+    });
+  }
+
+  openExchangeModal(): void {
+    if (!this.isBuyer) {
+      this.error = 'Solo el comprador puede iniciar una solicitud de intercambio';
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+    
+    if (this.exchangeStatus) {
+      this.error = 'Ya hay una solicitud de intercambio en curso';
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+    
+    this.showExchangeModal = true;
+  }
+
+  closeExchangeModal(): void {
+    this.showExchangeModal = false;
+    this.exchangeData = { kg: 0, price: 0, notes: '' };
+  }
+
+  calculateImpact(): number {
+    const kg = this.exchangeData.kg || 0;
+    return kg * 2.5;
+  }
+
+  requestExchange(): void {
+    if (!this.selectedConversationId || !this.currentConversation) return;
+    
+    if (this.exchangeData.kg <= 0) {
+      this.error = 'Por favor, ingresá la cantidad en kg';
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+    
+    if (this.exchangeData.kg > this.currentStock) {
+      this.error = `Stock insuficiente. Solo hay ${this.currentStock}kg disponibles`;
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+    
+    const data = {
+      conversationId: this.selectedConversationId,
+      publicationId: this.currentConversation.publication_id,
+      sellerId: this.currentConversation.vendedor?.id,
+      kg: this.exchangeData.kg,
+      price: this.exchangeData.price,
+      notes: this.exchangeData.notes
+    };
+    
+    this.chatService.requestExchange(data).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.closeExchangeModal();
+          this.successMessage = res.message;
+          setTimeout(() => this.successMessage = '', 5000);
+          this.checkExchangeStatus();
+          this.loadConversation(this.selectedConversationId!);
+        }
+      },
+      error: (err) => {
+        console.error('Error requesting exchange:', err);
+        this.error = err.error?.message || 'Error al enviar la solicitud';
+        setTimeout(() => this.error = '', 5000);
+      }
+    });
+  }
+
+  respondToExchange(exchangeId: string, action: 'aceptar' | 'rechazar'): void {
+    this.chatService.respondToExchange(exchangeId, action).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.successMessage = res.message;
+          setTimeout(() => this.successMessage = '', 5000);
+          this.checkExchangeStatus();
+          this.loadConversation(this.selectedConversationId!);
+          
+          this.chatService.getConversation(this.selectedConversationId!).subscribe({
+            next: (convRes) => {
+              if (convRes.success && convRes.data) {
+                this.currentConversation = convRes.data;
+                if (this.currentConversation?.publication?.cantidad) {
+                  const cantidadValor = this.currentConversation.publication.cantidad;
+                  const cantidadStr = typeof cantidadValor === 'string' ? cantidadValor : String(cantidadValor);
+                  this.currentStock = parseFloat(cantidadStr) || 0;
+                } else {
+                  this.currentStock = 0;
+                }
+                this.cdr.detectChanges();
+              }
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error responding to exchange:', err);
+        this.error = err.error?.message || 'Error al procesar la solicitud';
+        setTimeout(() => this.error = '', 5000);
+      }
+    });
+  }
+
+  markMessagesAsRead(conversationId: string): void {
+    if (!this.currentConversation || !this.currentConversation.mensajes) {
+      return;
+    }
+    
+    const unreadMessages = this.currentConversation.mensajes
+      .filter(m => !m.read && m.remitenteId !== this.currentUserId)
+      .map(m => m.id);
+    
+    if (unreadMessages.length > 0) {
+      this.webSocketService.markAsRead(conversationId, unreadMessages);
+      
+      this.currentConversation.mensajes = this.currentConversation.mensajes.map(msg => {
+        if (unreadMessages.includes(msg.id)) {
+          return { ...msg, read: true };
+        }
+        return msg;
+      });
+      
+      this.conversations = this.conversations.map(conv => {
+        if (conv.id === conversationId) {
+          return { ...conv, no_leidos: 0 };
+        }
+        return conv;
+      });
+      
+      this.cdr.detectChanges();
+    }
   }
 
   sendMessage(): void {
-    const content = this.messageText.trim();
-    if (!content || !this.activeConversation || this.sendingMessage) return;
+    if (this.conversationDeletedByOther) {
+      return;
+    }
+    
+    if (!this.newMessage.trim() || !this.selectedConversationId) return;
 
-    const headers = this.getAuthHeaders();
-    this.sendingMessage = true;
+    const content = this.newMessage;
+    this.newMessage = '';
 
-    this.http.post<any>(
-      `${environment.apiUrl}/conversations/${this.activeConversation.id}/messages`,
-      { content },
-      { headers }
-    ).subscribe({
+    this.webSocketService.sendMessage(this.selectedConversationId, content);
+  }
+
+  scrollToBottom(): void {
+    try {
+      this.messagesContainer.nativeElement.scrollTop =
+        this.messagesContainer.nativeElement.scrollHeight;
+    } catch {}
+  }
+
+  goBack(): void {
+    this.selectedConversationId = null;
+    this.currentConversation = null;
+    this.conversationDeletedByOther = false;
+    this.error = '';
+  }
+
+  toggleActionsDropdown(conversationId: string, event: Event): void {
+    event.stopPropagation();
+    this.activeDropdownId = this.activeDropdownId === conversationId ? null : conversationId;
+  }
+
+  closeDropdown(): void {
+    this.activeDropdownId = null;
+  }
+
+  confirmDeleteConversation(conversation: Conversation, event: Event): void {
+    event.stopPropagation();
+    this.conversationToDelete = conversation;
+    this.showDeleteModal = true;
+    this.activeDropdownId = null;
+  }
+
+  deleteConversationForMe(): void {
+    if (!this.conversationToDelete) return;
+
+    const id = this.conversationToDelete.id;
+
+    this.chatService.deleteConversationForMe(id).subscribe(() => {
+      this.conversations = this.conversations.filter(c => c.id !== id);
+
+      if (this.selectedConversationId === id) {
+        this.selectedConversationId = null;
+        this.currentConversation = null;
+        this.conversationDeletedByOther = false;
+      }
+
+      this.cancelDelete();
+      this.cdr.detectChanges();
+    });
+  }
+
+  cancelDelete(): void {
+    this.showDeleteModal = false;
+    this.conversationToDelete = null;
+  }
+
+  toggleEmojiPicker(): void {
+    this.showEmojiPicker = !this.showEmojiPicker;
+  }
+
+  closeEmojiPicker(): void {
+    this.showEmojiPicker = false;
+  }
+
+  addEmoji(emoji: string): void {
+    this.newMessage += emoji;
+    this.showEmojiPicker = false;
+    setTimeout(() => {
+      const input = document.querySelector('.message-input') as HTMLInputElement;
+      if (input) input.focus();
+    }, 50);
+  }
+
+  getUserType(): string {
+    if (!this.currentConversation) return '';
+    
+    if (this.currentConversation.comprador?.id === this.currentUserId) {
+      return this.currentConversation.vendedor?.tipo || '';
+    } else {
+      return this.currentConversation.comprador?.tipo || '';
+    }
+  }
+
+  getUserLocationText(): string {
+    if (!this.currentConversation) return '';
+    
+    if (this.currentConversation.comprador?.id === this.currentUserId) {
+      return this.currentConversation.vendedor?.ubicacion_texto || '';
+    } else {
+      return this.currentConversation.comprador?.ubicacion_texto || '';
+    }
+  }
+
+  getContactMessage(): string {
+    if (!this.currentConversation) return '';
+    
+    if (this.currentConversation.comprador?.id === this.currentUserId) {
+      return 'Te estás contactando por:';
+    } else {
+      return 'Se están contactando contigo por:';
+    }
+  }
+
+  getWarningMessage(): { title: string; message: string; suggestion: string } {
+    if (!this.currentConversation) {
+      return {
+        title: 'Conversación cerrada',
+        message: 'No puedes enviar más mensajes.',
+        suggestion: 'Para volver a contactar, visita la publicación y haz clic en "Contactar usuario".'
+      };
+    }
+
+    const soyComprador = this.currentConversation.comprador?.id === this.currentUserId;
+    const soyVendedor = this.currentConversation.vendedor?.id === this.currentUserId;
+    
+    if (soyComprador) {
+      return {
+        title: 'El vendedor cerró la conversación',
+        message: 'El vendedor eliminó esta conversación de su lista. No puedes enviar más mensajes.',
+        suggestion: 'Si aún estás interesado, puedes volver a contactarlo desde su publicación.'
+      };
+    } else if (soyVendedor) {
+      return {
+        title: 'El comprador cerró la conversación',
+        message: 'El comprador eliminó esta conversación de su lista. No puedes enviar más mensajes.',
+        suggestion: 'Puedes esperar a que el comprador te contacte nuevamente desde tu publicación.'
+      };
+    }
+    
+    return {
+      title: 'Conversación cerrada',
+      message: 'El otro usuario eliminó esta conversación. No puedes enviar más mensajes.',
+      suggestion: 'Para volver a contactar, visita la publicación y haz clic en "Contactar usuario".'
+    };
+  }
+
+  toggleHeaderDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showHeaderDropdown = !this.showHeaderDropdown;
+    this.cdr.detectChanges();
+  }
+
+  closeHeaderDropdown(): void {
+    this.showHeaderDropdown = false;
+  }
+
+  viewProfile(): void {
+    const otherUser = this.getOtherUser();
+    if (!otherUser.id) return;
+    
+    this.isLoadingProfile = true;
+    this.showHeaderDropdown = false;
+    this.miniMapInitialized = false;
+    
+    if (this.miniMap) {
+      this.miniMap.remove();
+      this.miniMap = null;
+    }
+    
+    this.selectedUserProfile = {
+      id: otherUser.id,
+      nombre: otherUser.nombre,
+      email: (otherUser as any).email || 'Cargando...',
+      telefono: (otherUser as any).telefono || 'Cargando...',
+      tipo: this.getUserType() || 'Cargando...',
+      avatar_url: otherUser.avatar,
+      ubicacion_texto: this.getUserLocationText() || 'Cargando...',
+      coordinates: null,
+      is_active: true
+    };
+    
+    this.showProfileModal = true;
+    
+    this.chatService.getUserLocations().subscribe({
       next: (response) => {
-        if (!this.activeConversation!.Messages) {
-          this.activeConversation!.Messages = [];
+        if (response?.success && response.data) {
+          const userLocation = response.data.find((u: any) => u.id === otherUser.id);
+          
+          if (userLocation && userLocation.coordinates) {
+            this.selectedUserProfile = {
+              ...this.selectedUserProfile,
+              coordinates: userLocation.coordinates,
+              ubicacion_texto: userLocation.ubicacion_texto || this.selectedUserProfile.ubicacion_texto
+            };
+            setTimeout(() => this.initializeMiniMap(), 200);
+          }
         }
-        this.activeConversation!.Messages.push({
-          ...response.data,
-          sender_id: this.currentUserId,
-          remitente: { id: this.currentUserId, nombre: 'Tú' }
+        
+        this.chatService.getUserProfile(otherUser.id).subscribe({
+          next: (profileResponse) => {
+            if (profileResponse?.success && profileResponse.data) {
+              const profile = profileResponse.data;
+              this.selectedUserProfile = {
+                ...this.selectedUserProfile,
+                email: profile.email || 'No disponible',
+                telefono: profile.telefono || 'No disponible',
+                tipo: profile.tipo || this.selectedUserProfile.tipo,
+                is_active: profile.is_active !== false
+              };
+            }
+            this.isLoadingProfile = false;
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            this.isLoadingProfile = false;
+            this.cdr.detectChanges();
+          }
         });
-        this.messageText = '';
-        this.sendingMessage = false;
-        this.shouldScroll = true;
       },
-      error: (err) => {
-        this.sendingMessage = false;
-        this.errorMessage = err?.error?.message || 'No se pudo enviar el mensaje';
+      error: () => {
+        this.chatService.getUserProfile(otherUser.id).subscribe({
+          next: (profileResponse) => {
+            if (profileResponse?.success && profileResponse.data) {
+              const profile = profileResponse.data;
+              this.selectedUserProfile = {
+                ...this.selectedUserProfile,
+                email: profile.email || 'No disponible',
+                telefono: profile.telefono || 'No disponible',
+                tipo: profile.tipo || this.selectedUserProfile.tipo,
+                is_active: profile.is_active !== false
+              };
+            }
+            this.isLoadingProfile = false;
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            this.isLoadingProfile = false;
+            this.cdr.detectChanges();
+          }
+        });
       }
     });
   }
 
-  conversationLabel(conv: Conversation): string {
-    return conv.Publication?.titulo ?? `Conversación #${conv.id}`;
+  closeProfileModal(): void {
+    this.showProfileModal = false;
+    this.selectedUserProfile = null;
+    if (this.miniMap) {
+      this.miniMap.remove();
+      this.miniMap = null;
+    }
+    this.miniMapInitialized = false;
   }
 
-  get activeTitle(): string {
-    if (!this.activeConversation) return '';
-    return this.activeConversation.Publication?.titulo ?? `Conversación #${this.activeConversation.id}`;
+  initializeMiniMap(): void {
+    if (!this.selectedUserProfile?.coordinates?.lat || !this.selectedUserProfile?.coordinates?.lng) {
+      return;
+    }
+    
+    if (this.miniMapInitialized) return;
+    
+    setTimeout(() => {
+      const mapContainer = document.getElementById('profileMiniMap');
+      if (mapContainer && !this.miniMapInitialized) {
+        const { lat, lng } = this.selectedUserProfile.coordinates;
+        
+        this.miniMap = L.map(mapContainer).setView([lat, lng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(this.miniMap);
+        L.marker([lat, lng]).addTo(this.miniMap);
+        
+        this.miniMapInitialized = true;
+        setTimeout(() => this.miniMap?.invalidateSize(), 100);
+      }
+    }, 200);
   }
 
-  isOwn(msg: ConvMessage): boolean {
-    return msg.sender_id === this.currentUserId || msg.remitente?.id === this.currentUserId;
+  deleteConversationFromHeader(): void {
+    this.showHeaderDropdown = false;
+    if (this.selectedConversationId) {
+      const conversation = this.conversations.find(c => c.id === this.selectedConversationId);
+      if (conversation) {
+        this.confirmDeleteConversation(conversation, new Event('click'));
+      }
+    }
   }
 
-  private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token') || '';
-    return new HttpHeaders({ Authorization: `Bearer ${token}` });
+  goToFullProfile(): void {
+    const userId = this.selectedUserProfile?.id;
+
+    if (userId) {
+      this.closeProfileModal();
+      setTimeout(() => {
+        this.router.navigate(['/profile', userId]);
+      }, 100);
+    } else {
+      console.error('Probando: No hay ID de usuario para redirigir');
+    }
+  }
+
+  getAvatarSrc(avatarUrl: string | null | undefined): string {
+    if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== '') {
+      return avatarUrl;
+    }
+    return '/assets/default-avatar.png';
+  }
+
+  handleConversationImageError(event: Event, conversation: any): void {
+    const img = event.target as HTMLImageElement;
+    img.src = '/assets/default-avatar.png';
+    if (conversation?.otro_usuario) {
+      conversation.otro_usuario.avatar = '/assets/default-avatar.png';
+    }
+  }
+
+  handleMessageImageError(event: Event, message: any): void {
+    const img = event.target as HTMLImageElement;
+    img.src = '/assets/default-avatar.png';
+    if (message) {
+      message.avatar = '/assets/default-avatar.png';
+    }
+  }
+
+  handleHeaderImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = '/assets/default-avatar.png';
+  }
+
+  isUserOnline(userId: string | undefined): boolean {
+    if (!userId) return false;
+    return this.onlineUsers.has(userId);
+  }
+
+  getOtherUser(): {
+    nombre: string;
+    email?: string;
+    telefono?: string;
+    avatar: string | null;
+    id: string;
+    last_login: string | null;
+    tipo?: string;
+    ubicacion_texto?: string;
+  } {
+    if (!this.currentConversation) {
+      return { nombre: '', avatar: null, id: '', last_login: null };
+    }
+
+    if (this.currentConversation.comprador?.id === this.currentUserId) {
+      return {
+        nombre: this.currentConversation.vendedor?.nombre || 'Usuario',
+        email: (this.currentConversation.vendedor as any)?.email,
+        telefono: (this.currentConversation.vendedor as any)?.telefono,
+        avatar: this.currentConversation.vendedor?.avatar || null,
+        id: this.currentConversation.vendedor?.id || '',
+        last_login: this.currentConversation.vendedor?.last_login || null,
+        tipo: this.currentConversation.vendedor?.tipo,
+        ubicacion_texto: this.currentConversation.vendedor?.ubicacion_texto
+      };
+    } else {
+      return {
+        nombre: this.currentConversation.comprador?.nombre || 'Usuario',
+        email: (this.currentConversation.comprador as any)?.email,
+        telefono: (this.currentConversation.comprador as any)?.telefono,
+        avatar: this.currentConversation.comprador?.avatar || null,
+        id: this.currentConversation.comprador?.id || '',
+        last_login: this.currentConversation.comprador?.last_login || null,
+        tipo: this.currentConversation.comprador?.tipo,
+        ubicacion_texto: this.currentConversation.comprador?.ubicacion_texto
+      };
+    }
+  }
+
+  getUserStatus(userId: string | undefined, lastLogin: string | null | undefined): string {
+    if (this.isUserOnline(userId)) return 'En línea';
+    return this.getLastSeen(lastLogin);
+  }
+
+  getLastSeen(lastLogin: string | null | undefined): string {
+    if (!lastLogin) return 'Desconectado';
+
+    const last = new Date(lastLogin).getTime();
+    const now = Date.now();
+    const diff = Math.floor((now - last) / 60000);
+
+    if (diff < 1) return 'Desconectado recientemente';
+    if (diff < 60) return `Últ. vez hace ${diff} min`;
+    if (diff < 1440) return `Últ. vez hace ${Math.floor(diff / 60)} h`;
+
+    const days = Math.floor(diff / 1440);
+    return `Últ. vez hace ${days} día${days > 1 ? 's' : ''}`;
+  }
+
+  formatTime(dateString: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    date.setHours(date.getHours() - 3);
+    return date.toLocaleTimeString('es-AR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const argentinaDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (argentinaDate.toDateString() === today.toDateString()) return 'Hoy';
+    if (argentinaDate.toDateString() === yesterday.toDateString()) return 'Ayer';
+    return argentinaDate.toLocaleDateString('es-AR');
+  }
+
+  formatProfileDate(dateValue?: string): string {
+    if (!dateValue) return 'N/A';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleString('es-AR');
   }
 }

@@ -1,23 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const conversationController = require('../controllers/conversation.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
+const { authMiddleware, authorize } = require('../middlewares/auth.middleware');
 
-// Todas las rutas requieren autenticación
-router.use(authenticate);
+router.use(authMiddleware);
 
-// GET  /api/conversations           → Mis conversaciones (buyer o seller)
-router.get('/', conversationController.getMyConversations);
-
-// GET  /api/conversations/:id       → Detalle + mensajes (marca como leído)
-router.get('/:id', conversationController.getById);
-
-// POST /api/conversations           → Iniciar conversación
-// Body: { publication_id, seller_id }
+// Rutas para usuarios normales
 router.post('/', conversationController.create);
+router.get('/mis-conversaciones', conversationController.getMyConversations);
+router.get('/:id', conversationController.getById);
+router.put('/:id/estado', conversationController.updateStatus);
+router.delete('/:id/for-me', conversationController.deleteForMe);
 
-// POST /api/conversations/:id/messages → Enviar mensaje
-// Body: { content, attachments? }
-router.post('/:id/messages', conversationController.sendMessage);
+// Obtener todas las conversaciones (solo admin)
+router.get('/admin/all', authorize('Admin'), conversationController.getAllConversationsForAdmin);
+
+// Eliminar conversación permanentemente (solo admin)
+router.delete('/admin/:id', authorize('Admin'), conversationController.deleteConversationPermanently);
 
 module.exports = router;

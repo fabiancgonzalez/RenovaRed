@@ -50,3 +50,34 @@ exports.getMyExchanges = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Error al obtener mis intercambios', error: error.message });
   }
 };
+
+exports.requestExchange = async (req, res) => {
+  try {
+    const result = await exchangeService.requestExchange(req.user.id, req.body);
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('ExchangeController.requestExchange:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.respondToExchange = async (req, res) => {
+  try {
+    const { exchangeId, action } = req.params;
+    const result = await exchangeService.respondToExchange(req.user.id, exchangeId, action);
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('ExchangeController.respondToExchange:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getExchangeStatus = async (req, res) => {
+  try {
+    const result = await exchangeService.getExchangeStatus(req.params.conversationId);
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('ExchangeController.getExchangeStatus:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};

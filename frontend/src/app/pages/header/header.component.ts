@@ -12,18 +12,16 @@ import { filter } from 'rxjs/operators';
 })
 export class HeaderComponent implements OnInit {
   isAuthenticated = false;
+  isAdmin = false;
   userName = '';
   userAvatar: string | null = '';
   dropdownOpen = false;
   mobileMenuOpen = false;
-  isMobile = false;
-  private mobileBreakpoint = 768;
 
   constructor(private readonly router: Router) {}
 
   ngOnInit(): void {
     this.syncAuthState();
-    this.detectDeviceType();
 
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
@@ -32,15 +30,6 @@ export class HeaderComponent implements OnInit {
         this.dropdownOpen = false;
         this.mobileMenuOpen = false;
       });
-  }
-
-  @HostListener('window:resize', ['$event'])
-  onWindowResize(event?: Event): void {
-    this.detectDeviceType();
-  }
-
-  private detectDeviceType(): void {
-    this.isMobile = window.innerWidth < this.mobileBreakpoint;
   }
 
   @HostListener('document:click', ['$event'])
@@ -58,15 +47,20 @@ export class HeaderComponent implements OnInit {
 
     this.isAuthenticated = !!token;
 
-    if (!userRaw) return;
+    if (!userRaw) {
+      this.isAdmin = false;
+      return;
+    }
 
     try {
       const user = JSON.parse(userRaw);
       this.userName = user?.nombre || user?.name || user?.email || '';
       this.userAvatar = user?.avatar_url || null;
+      this.isAdmin = user?.tipo === 'Admin';
     } catch {
       this.userName = '';
-      this.userAvatar = null;  
+      this.userAvatar = null;
+      this.isAdmin = false;
     }
   }
 
@@ -99,21 +93,20 @@ export class HeaderComponent implements OnInit {
     this.dropdownOpen = false;
   }
 
-  onNavLinkClick(event?: Event): void {
-    if (this.isMobile) {
-      this.closeMenu();
+  goHome(): void {
+    if (this.isAuthenticated) {
+      this.router.navigate(['/inicio']);
+    } else {
+      this.router.navigate(['/']);
     }
-  }
-
-  closeMenuAndDropdown(event?: Event): void {
     this.closeMenu();
-    this.closeDropdown();
   }
 
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     this.isAuthenticated = false;
+    this.isAdmin = false;
     this.userName = '';
     this.userAvatar = null;
     this.dropdownOpen = false;

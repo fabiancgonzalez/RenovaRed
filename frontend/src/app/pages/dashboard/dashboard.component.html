@@ -12,7 +12,7 @@
             <a>
                 <i class="fa-solid fa-cube"></i> Materiales
             </a>
-            <a>
+            <a [class.active]= "view === 'messages'" (click)="setView('messages')">
                 <i class="fa-solid fa-message"></i> Mensajes
             </a>
         </nav>
@@ -20,11 +20,12 @@
 
     <!--    CONTENIDO   -->
     <main class="content">
-        <!-- NAVBAR -->
-        <header class="topbar">
+        <!-- NAVBAR - Se muestra solo en dashboard y usuarios -->
+        <header class="topbar" *ngIf="view === 'dashboard' || view === 'users'">
             <input class="search" placeholder="Buscar..." 
             [(ngModel)]="searchTerm" (input)="filterUsers()">
         </header>
+        
     <div *ngIf="view === 'dashboard'">
         <h1>Dashboard</h1>
         <p class="subtitle">Resumen de la plataforma.</p>
@@ -60,17 +61,23 @@
             </div>
         </div>    
     </section>
+    
     <!-- GRAFICOS -->
     <section class="charts">
         <div class="chart-card">
             <h3>Crecimiento de usuarios</h3>
-            <canvas id="usersChart"></canvas>
+            <div class="chart-container">
+                <canvas id="usersChart"></canvas>
+            </div>
         </div>
         <div class="chart-card">
             <h3>Materiales por categoría</h3>
-            <canvas id="materialsChart"></canvas>
+            <div class="chart-container">
+                <canvas id="materialsChart"></canvas>
+            </div>
         </div>
     </section>
+    
     <!-- ACTIVIDAD -->
      <div class="bottom-section">
         <div class="activity">
@@ -101,6 +108,7 @@
     </div>
      </div>
     </div>
+    
     <div *ngIf="view === 'users'" class="user-section">
         <h1>Usuarios</h1>
         <p class="subtitle">Gestión de usuarios registrados</p>
@@ -138,6 +146,144 @@
             <span>Página {{ currentPage }} de {{ totalPages }}</span>
             <button (click)="goToPage(currentPage + 1)">→</button>
         </div>
+    </div>
+
+    <!-- SECCIÓN DE MENSAJES -->
+    <div *ngIf="view === 'messages'" class="messages-section">
+        <h1>Mensajes</h1>
+        <p class="subtitle">Gestión de conversaciones de la plataforma</p>
+
+        <!-- Estadísticas -->
+        <div class="messages-stats">
+            <div class="stat-card">
+                <i class="fa-solid fa-envelope"></i>
+                <div>
+                    <span>Total mensajes</span>
+                    <h2>{{ conversationsStats.totalMessages }}</h2>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-comments"></i>
+                <div>
+                    <span>Conversaciones</span>
+                    <h2>{{ conversationsStats.totalConversations }}</h2>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-message"></i>
+                <div>
+                    <span>Activas</span>
+                    <h2>{{ conversationsStats.activeConversations }}</h2>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-clock"></i>
+                <div>
+                    <span>Sin respuesta</span>
+                    <h2>{{ conversationsStats.noResponseConversations }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros y búsqueda -->
+        <div class="messages-filters">
+            <div class="filter-buttons">
+                <button class="filter-btn" [class.active]="conversationsFilter === 'all'" (click)="filterConversations('all')">Todos</button>
+                <button class="filter-btn" [class.active]="conversationsFilter === 'activas'" (click)="filterConversations('activas')">Activas</button>
+                <button class="filter-btn" [class.active]="conversationsFilter === 'completadas'" (click)="filterConversations('completadas')">Completadas</button>
+                <button class="filter-btn" [class.active]="conversationsFilter === 'eliminadas'" (click)="filterConversations('eliminadas')">Eliminadas</button>
+            </div>
+            <div class="search-box">
+                <i class="fa-solid fa-search"></i>
+                <input 
+                    type="text" 
+                    placeholder="Buscar por usuario o publicación..." 
+                    [(ngModel)]="conversationsSearch"
+                    (keyup.enter)="searchConversations()">
+                <button class="search-btn" (click)="searchConversations()">Buscar</button>
+            </div>
+        </div>
+
+        <!-- Lista de conversaciones -->
+        @if (conversationsLoading) {
+            <div class="loading-state">Cargando conversaciones...</div>
+        } @else if (conversations.length === 0) {
+            <div class="empty-state">
+                <i class="fa-regular fa-comment-dots"></i>
+                <p>No hay conversaciones para mostrar</p>
+            </div>
+        } @else {
+            <div class="conversations-table">
+                <div class="conversation-row header">
+                    <span>Comprador</span>
+                    <span>Vendedor</span>
+                    <span>Publicación</span>
+                    <span>Estado</span>
+                    <span>Mensajes</span>
+                    <span>Última actividad</span>
+                    <span>Acciones</span>
+                </div>
+                
+                <div class="conversation-row" *ngFor="let conv of conversations">
+                    <div class="user-info">
+                        <div class="user-avatar-small">
+                            <img [src]="getAvatarSrc(conv.comprador?.avatar_url)" alt="avatar">
+                        </div>
+                        <div>
+                            <strong>{{ conv.comprador?.nombre || 'Usuario' }}</strong>
+                            <span class="user-email">{{ conv.comprador?.email || '' }}</span>
+                            <span class="user-type">{{ conv.comprador?.tipo || '' }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="user-info">
+                        <div class="user-avatar-small">
+                            <img [src]="getAvatarSrc(conv.vendedor?.avatar_url)" alt="avatar">
+                        </div>
+                        <div>
+                            <strong>{{ conv.vendedor?.nombre || 'Usuario' }}</strong>
+                            <span class="user-email">{{ conv.vendedor?.email || '' }}</span>
+                            <span class="user-type">{{ conv.vendedor?.tipo || '' }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="publication-info">
+                        <i class="fa-solid fa-cube"></i>
+                        <span>{{ conv.publication?.titulo || 'Sin título' }}</span>
+                    </div>
+                    
+                    <div class="status-badge" [class.active]="conv.estado === 'pendiente'" [class.completed]="conv.estado === 'completado'" [class.deleted]="conv.deleted_by_buyer || conv.deleted_by_seller">
+                        {{ conv.estado === 'pendiente' ? 'Activa' : (conv.estado === 'completado' ? 'Completada' : 'Eliminada') }}
+                    </div>
+                    
+                    <div class="message-count">
+                        <i class="fa-regular fa-message"></i>
+                        {{ conv.messageCount }}
+                    </div>
+                    
+                    <div class="last-activity">
+                        {{ formatDate(conv.lastMessageAt) }}
+                    </div>
+                    
+                    <div class="actions">
+                        <button class="delete-btn" (click)="deleteConversation(conv.id)" title="Eliminar conversación">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Paginación -->
+            <div class="pagination" *ngIf="conversationsPagination.pages > 1">
+                <button (click)="goToConversationsPage(conversationsPagination.page - 1)" [disabled]="conversationsPagination.page === 1">
+                    <i class="fa-solid fa-chevron-left"></i> Anterior
+                </button>
+                <span>Página {{ conversationsPagination.page }} de {{ conversationsPagination.pages }}</span>
+                <button (click)="goToConversationsPage(conversationsPagination.page + 1)" [disabled]="conversationsPagination.page === conversationsPagination.pages">
+                    Siguiente <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        }
     </div>
 </main>
 </div>
