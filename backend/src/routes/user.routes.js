@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
-const { authMiddleware, authorize } = require('../middlewares/auth.middleware');
-
+const { authenticate, authMiddleware, authorize } = require('../middlewares/auth.middleware');
+ 
 // AGREGADO
-// GET  /api/users/stats   
+// GET  /api/users/stats
 router.get('/stats', userController.getUserStats);
 
 // GET  /api/users/map/locations  → Ubicaciones públicas para el mapa

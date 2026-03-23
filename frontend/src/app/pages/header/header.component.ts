@@ -16,11 +16,14 @@ export class HeaderComponent implements OnInit {
   userAvatar: string | null = '';
   dropdownOpen = false;
   mobileMenuOpen = false;
+  isMobile = false;
+  private mobileBreakpoint = 768;
 
   constructor(private readonly router: Router) {}
 
   ngOnInit(): void {
     this.syncAuthState();
+    this.detectDeviceType();
 
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
@@ -29,6 +32,15 @@ export class HeaderComponent implements OnInit {
         this.dropdownOpen = false;
         this.mobileMenuOpen = false;
       });
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(event?: Event): void {
+    this.detectDeviceType();
+  }
+
+  private detectDeviceType(): void {
+    this.isMobile = window.innerWidth < this.mobileBreakpoint;
   }
 
   @HostListener('document:click', ['$event'])
@@ -85,6 +97,17 @@ export class HeaderComponent implements OnInit {
   closeMenu(): void {
     this.mobileMenuOpen = false;
     this.dropdownOpen = false;
+  }
+
+  onNavLinkClick(event?: Event): void {
+    if (this.isMobile) {
+      this.closeMenu();
+    }
+  }
+
+  closeMenuAndDropdown(event?: Event): void {
+    this.closeMenu();
+    this.closeDropdown();
   }
 
   logout(): void {

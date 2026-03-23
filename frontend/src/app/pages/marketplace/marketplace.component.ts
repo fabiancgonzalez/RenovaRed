@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { firstValueFrom } from 'rxjs';
 
@@ -10,6 +10,7 @@ import { firstValueFrom } from 'rxjs';
 interface MarketplaceUser {
   id: string;
   nombre: string;
+  tipo?: string;
 }
 
 interface Publication {
@@ -81,8 +82,14 @@ export class MarketplaceComponent implements OnInit {
   categories: MaterialCategory[] = [];
   currentUser: MarketplaceUser | null = null;
   selectedCategoryId = '';
+  searchTerm = '';
+  minPrice: number | null = null;
+  maxPrice: number | null = null;
   publicationImagePreview = '';
   expandedPublicationId: string | null = null;
+  isAuthenticated = false;
+  isExploreRoute = false;
+  private openCreateFormOnLoad = false;
 
   publicationForm: PublicationForm = {
     titulo: '',
@@ -119,25 +126,36 @@ export class MarketplaceComponent implements OnInit {
 
   constructor(
     private readonly http: HttpClient,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    const token = localStorage.getItem('token');
-    const userRaw = localStorage.getItem('user');
+    this.syncSessionState();
+    this.isExploreRoute = this.route.snapshot.routeConfig?.path === 'materiales';
+    this.openCreateFormOnLoad = this.route.snapshot.queryParamMap.get('action') === 'new';
 
-    if (!token || !userRaw) {
-      this.router.navigate(['/login']);
-      return;
+    void this.loadMarketplaceData();
+  }
+
+  get canManagePublications(): boolean {
+    return this.isAuthenticated && !this.isExploreRoute;
+  }
+
+  get pageTitle(): string {
+    return this.isExploreRoute ? 'Explorar materiales' : 'Marketplace';
+  }
+
+  get pageDescription(): string {
+    if (this.isExploreRoute) {
+      return 'Revisá publicaciones activas, filtrá por categoría, precio o texto, y descubrí recursos disponibles sin necesidad de entrar al panel de gestión.';
     }
 
-    try {
-      this.currentUser = JSON.parse(userRaw);
-    } catch {
-      this.currentUser = null;
-    }
+    return 'Administrá tus publicaciones, explorá materiales publicados por otros actores y abrí conversaciones desde un solo lugar.';
+  }
 
-    this.loadMarketplaceData();
+  get hasActiveFilters(): boolean {
+    return !!this.selectedCategoryId || !!this.searchTerm.trim() || this.minPrice != null || this.maxPrice != null;
   }
 
   async loadMarketplaceData(): Promise<void> {
@@ -151,6 +169,13 @@ export class MarketplaceComponent implements OnInit {
 
       this.allPublications = await this.fetchAllPublications();
       await this.loadMyPublications();
+
+      if (this.openCreateFormOnLoad && this.canManagePublications) {
+        this.mostrarFormulario = true;
+        this.openCreateFormOnLoad = false;
+        setTimeout(() => this.focusSectionWithAnimation(this.nuevaPublicacionSection?.nativeElement), 100);
+      }
+
       this.loading = false;
     } catch (error: any) {
       this.loading = false;
@@ -164,6 +189,12 @@ export class MarketplaceComponent implements OnInit {
   }
 
   async loadMyPublications(): Promise<void> {
+    if (!this.canManagePublications || !this.currentUser) {
+      this.myPublications = [];
+      this.mostrarMisPublicaciones = false;
+      return;
+    }
+
     const headers = this.getAuthHeaders();
     const query = new URLSearchParams({ limit: '1000' });
 
@@ -182,6 +213,11 @@ export class MarketplaceComponent implements OnInit {
   }
 
   async savePublication(): Promise<void> {
+    if (!this.canManagePublications) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
     if (!this.publicationForm.titulo.trim() || !this.publicationForm.ubicacion_texto.trim()) {
       this.errorMessage = 'Título y ubicación son obligatorios';
       
@@ -226,6 +262,8 @@ export class MarketplaceComponent implements OnInit {
   }
 
   startEdit(publication: Publication): void {
+    if (!this.canManagePublications) return;
+
     this.editingPublicationId = publication.id;
     this.mostrarFormulario = true;
     this.publicationForm = {
@@ -276,6 +314,11 @@ export class MarketplaceComponent implements OnInit {
   }
 
   toggleFormularioPublicacion(): void {
+    if (!this.canManagePublications) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.mostrarFormulario = !this.mostrarFormulario;
 
     if (!this.mostrarFormulario) return;
@@ -284,6 +327,8 @@ export class MarketplaceComponent implements OnInit {
   }
 
   toggleMisPublicaciones(): void {
+    if (!this.canManagePublications) return;
+
     this.mostrarMisPublicaciones = !this.mostrarMisPublicaciones;
 
     if (!this.mostrarMisPublicaciones) return;
@@ -295,10 +340,24 @@ export class MarketplaceComponent implements OnInit {
     await this.loadMarketplaceData();
   }
 
+  async applyFilters(): Promise<void> {
+    await this.loadMarketplaceData();
+  }
+
   clearCategoryFilter(): void {
     if (!this.selectedCategoryId) return;
 
     this.selectedCategoryId = '';
+    void this.loadMarketplaceData();
+  }
+
+  clearAllFilters(): void {
+    if (!this.hasActiveFilters) return;
+
+    this.selectedCategoryId = '';
+    this.searchTerm = '';
+    this.minPrice = null;
+    this.maxPrice = null;
     void this.loadMarketplaceData();
   }
 
@@ -362,6 +421,8 @@ export class MarketplaceComponent implements OnInit {
   }
 
   deletePublication(publicationId: string): void {
+    if (!this.canManagePublications) return;
+
     const headers = this.getAuthHeaders();
     this.deletingPublicationId = publicationId;
     this.errorMessage = '';
@@ -385,6 +446,10 @@ export class MarketplaceComponent implements OnInit {
     return publication.usuario.id !== this.currentUser.id;
   }
 
+  shouldPromptLoginForContact(publication: Publication): boolean {
+    return !this.isAuthenticated && !!publication?.usuario?.id;
+  }
+
   togglePublicationDetail(publicationId: string): void {
     this.expandedPublicationId = this.expandedPublicationId === publicationId ? null : publicationId;
   }
@@ -394,6 +459,11 @@ export class MarketplaceComponent implements OnInit {
   }
 
   contactOwner(publication: Publication): void {
+    if (!this.isAuthenticated) {
+      this.goToLogin();
+      return;
+    }
+
     if (!this.canContact(publication)) return;
 
     const headers = this.getAuthHeaders();
@@ -416,9 +486,36 @@ export class MarketplaceComponent implements OnInit {
     });
   }
 
+  goToLogin(): void {
+    this.router.navigate(['/login']);
+  }
+
+  goToManagement(): void {
+    this.router.navigate(['/marketplace']);
+  }
+
   private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('token') || '';
     return new HttpHeaders({ Authorization: `Bearer ${token}` });
+  }
+
+  private syncSessionState(): void {
+    const token = localStorage.getItem('token');
+    const userRaw = localStorage.getItem('user');
+
+    this.isAuthenticated = !!token && !!userRaw;
+
+    if (!this.isAuthenticated) {
+      this.currentUser = null;
+      return;
+    }
+
+    try {
+      this.currentUser = JSON.parse(userRaw || 'null');
+    } catch {
+      this.currentUser = null;
+      this.isAuthenticated = false;
+    }
   }
 
   private async fetchAllPublications(): Promise<Publication[]> {
@@ -434,6 +531,18 @@ export class MarketplaceComponent implements OnInit {
 
       if (this.selectedCategoryId) {
         query.set('categoria_id', this.selectedCategoryId);
+      }
+
+      if (this.searchTerm.trim()) {
+        query.set('search', this.searchTerm.trim());
+      }
+
+      if (this.minPrice != null && !Number.isNaN(this.minPrice)) {
+        query.set('precio_min', String(this.minPrice));
+      }
+
+      if (this.maxPrice != null && !Number.isNaN(this.maxPrice)) {
+        query.set('precio_max', String(this.maxPrice));
       }
 
       const response = await firstValueFrom(

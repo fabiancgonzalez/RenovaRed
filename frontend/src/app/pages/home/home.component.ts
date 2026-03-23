@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../environments/environment';
@@ -32,13 +33,16 @@ export class HomeComponent implements OnInit {
   error = false;
   imagesLoaded = 0;
   totalImages = 3;
+  isAuthenticated = false;
 
   constructor(
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit() {
+    this.isAuthenticated = !!localStorage.getItem('token');
     this.loadHomeData();
   }
 
@@ -99,5 +103,20 @@ export class HomeComponent implements OnInit {
       { name: 'Recicladoras', image: 'recicladoras.png', count: this.data.actors.recicladoras },
       { name: 'Emprendedores', image: 'emprendedores.png', count: this.data.actors.emprendedores }
     ];
+  }
+
+  exploreMaterials(): void {
+    this.router.navigate(['/materiales']);
+  }
+
+  publishResources(): void {
+    const isLoggedIn = !!localStorage.getItem('token');
+
+    if (isLoggedIn) {
+      this.router.navigate(['/marketplace'], { queryParams: { action: 'new' } });
+      return;
+    }
+
+    this.router.navigate(['/login']);
   }
 }

@@ -4,24 +4,24 @@
             <img src="logoRenovared.png" alt="RenovaRed">
         </div>
 
-        <!-- Menu hamburguesa -->
-        <button class="hamburger" (click)="toggleMenu()" [class.active]="mobileMenuOpen">
+        <!-- Menu hamburguesa (solo en mobile) -->
+        <button *ngIf="isMobile" class="hamburger" (click)="toggleMenu()" [class.active]="mobileMenuOpen">
             <span></span>
             <span></span>
             <span></span>
         </button>
 
         <!-- Menú principal -->
-        <div class="nav-links" [class.mobile-open]="mobileMenuOpen">
+        <div class="nav-links" [class.mobile-open]="mobileMenuOpen" [class.mobile-hidden]="isMobile && !mobileMenuOpen">
             <!-- Links para SI logueados -->
             <ng-container *ngIf="isAuthenticated">
 
-               <a routerLink="/" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Inicio</a>
+               <a routerLink="/" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Inicio</a>
 
-                <a routerLink="/marketplace" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Marketplace</a>
-                <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Dashboard</a>
-                <a routerLink="/chat" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Chat</a>
-                <a routerLink="/maps" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Maps</a>
+                <a routerLink="/marketplace" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Marketplace</a>
+                <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Dashboard</a>
+                <a routerLink="/chat" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Chat</a>
+                <a routerLink="/maps" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Maps</a>
                 
                 <!-- Menú desplegable -->
                 <div class="dropdown">
@@ -36,7 +36,7 @@
                     </button>
                     
                     <div class="dropdown-menu" *ngIf="dropdownOpen">
-                        <a routerLink="/profile" class="dropdown-item" (click)="closeMenu(); closeDropdown()">
+                        <a routerLink="/profile" class="dropdown-item" (click)="closeMenuAndDropdown()">
                             <i class="fa-regular fa-user"></i>
                             Mi perfil
                         </a>
@@ -51,8 +51,9 @@
 
             <!-- Links para NO logueados -->
             <ng-container *ngIf="!isAuthenticated">
-                <a routerLink="/login" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Inicia sesión</a>
-                <a routerLink="/register" routerLinkActive="active" class="nav-link nav-link-primary" (click)="closeMenu()">Registrarse</a>
+                <a routerLink="/materiales" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Materiales</a>
+                <a routerLink="/login" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Inicia sesión</a>
+                <a routerLink="/register" routerLinkActive="active" class="nav-link nav-link-primary" (click)="onNavLinkClick()">Registrarse</a>
             </ng-container>
         </div>
     </nav>

@@ -14,12 +14,49 @@
 	margin: 0 auto;
 }
 
+.marketplace-hero {
+	display: flex;
+	justify-content: space-between;
+	gap: 24px;
+	align-items: end;
+	margin-bottom: 24px;
+	padding: 28px 30px;
+	border-radius: 20px;
+	background: linear-gradient(135deg, rgba(15, 23, 42, 0.78), rgba(8, 145, 178, 0.38));
+	border: 1px solid rgba(255,255,255,0.14);
+	box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+}
+
+.eyebrow {
+	margin: 0 0 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.18em;
+	font-size: 12px;
+	font-weight: 700;
+	color: rgba(186, 230, 253, 0.9);
+}
+
+.hero-copy {
+	max-width: 760px;
+	margin: 0;
+	font-size: 17px;
+	line-height: 1.6;
+	color: rgba(255, 255, 255, 0.88);
+}
+
+.hero-actions {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
 h1 {
-	margin-bottom: 30px;
+	margin: 0 0 16px;
 	font-size: 48px;
 	font-weight: 700;
 	text-shadow: 0 4px 8px rgba(0,0,0,0.3);
-	text-align: center;
+	text-align: left;
 }
 
 h2 {
@@ -180,6 +217,7 @@ button:disabled {
 .publication-form input,
 .publication-form textarea,
 .publication-form select,
+.filter-label input,
 .filter-label select {
 	padding: 12px;
 	border: 1px solid rgba(255,255,255,0.2);
@@ -200,6 +238,7 @@ button:disabled {
 .publication-form input:focus,
 .publication-form textarea:focus,
 .publication-form select:focus,
+.filter-label input:focus,
 .filter-label select:focus {
 	outline: none;
 	background: rgba(255, 255, 255, 0.15);
@@ -257,12 +296,28 @@ button:disabled {
 	min-width: min(100%, 320px);
 }
 
+.filter-label-wide {
+	flex: 1 1 320px;
+}
+
 .filter-label select {
 	min-width: min(100%, 320px);
 }
 
+.filter-actions {
+	display: flex;
+	gap: 12px;
+	align-items: end;
+	flex-wrap: wrap;
+}
+
 .filter-clear {
 	white-space: nowrap;
+}
+
+.filter-apply,
+.filter-clear {
+	min-width: 154px;
 }
 
 /* ==================== CARDS ==================== */
@@ -406,4 +461,25 @@ button:disabled {
 .card button:disabled {
 	opacity: 0.65;
 	cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+	.marketplace {
+		padding: 24px 16px 40px;
+	}
+
+	.marketplace-hero {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	h1 {
+		font-size: 38px;
+	}
+
+	.section-nueva-publicacion,
+	.section-todas-publicaciones,
+	.section-mis-publicaciones {
+		padding: 22px 18px;
+	}
 }

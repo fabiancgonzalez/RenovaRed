@@ -47,10 +47,9 @@ export class AppComponent implements OnInit {
    */
   private checkAuthAndRedirect(): void {
     const isLoggedIn = !!localStorage.getItem('token');
-    const isHome = this.currentUrl === '/' || this.currentUrl === '';
+    const isHome = this.currentUrl === '/' || this.currentUrl === '' || this.currentUrl === '/dashboard';
     
     if (isLoggedIn && isHome) {
-      console.log('Usuario logueado detectado en home, redirigiendo a marketplace');
       this.router.navigate(['/marketplace']);
     }
   }
