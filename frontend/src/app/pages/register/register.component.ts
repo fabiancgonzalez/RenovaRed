@@ -129,7 +129,7 @@ export class RegisterComponent {
         if (response.success) {
           this.successMessage = '¡Registro exitoso! Redirigiendo...';
           setTimeout(() => {
-            this.router.navigate(['/inicio']);
+            this.router.navigate(['/dashboard']);
           }, 2000);
         } else {
           this.errorMessage = response.message || 'Error en el registro';

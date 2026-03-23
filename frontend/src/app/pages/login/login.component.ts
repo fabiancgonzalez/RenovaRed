@@ -52,7 +52,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     const token = localStorage.getItem('token');
     if (token) {
-      this.router.navigate(['/inicio'], { replaceUrl: true });
+      this.router.navigate(['/dashboard'], { replaceUrl: true });
       return;
     }
 
@@ -208,8 +208,9 @@ export class LoginComponent implements OnInit, AfterViewInit {
     this.loading = false;
 
     setTimeout(() => {
-      this.router.navigate(['/inicio'], { replaceUrl: true });
+      this.router.navigate(['/dashboard'], { replaceUrl: true });
     }, 1500);
+
   }
 
   isValidEmail(email: string): boolean {

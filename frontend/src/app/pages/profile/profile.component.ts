@@ -504,7 +504,7 @@ export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/inicio']);
+     this.router.navigate(['/dashboard']);
   }
 
   contactUser(): void {
