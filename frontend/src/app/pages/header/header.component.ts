@@ -12,6 +12,7 @@ import { filter } from 'rxjs/operators';
 })
 export class HeaderComponent implements OnInit {
   isAuthenticated = false;
+  isAdmin = false;
   userName = '';
   userAvatar: string | null = '';
   dropdownOpen = false;
@@ -46,15 +47,20 @@ export class HeaderComponent implements OnInit {
 
     this.isAuthenticated = !!token;
 
-    if (!userRaw) return;
+    if (!userRaw) {
+      this.isAdmin = false;
+      return;
+    }
 
     try {
       const user = JSON.parse(userRaw);
       this.userName = user?.nombre || user?.name || user?.email || '';
       this.userAvatar = user?.avatar_url || null;
+      this.isAdmin = user?.tipo === 'Admin';
     } catch {
       this.userName = '';
-      this.userAvatar = null;  
+      this.userAvatar = null;
+      this.isAdmin = false;
     }
   }
 
@@ -87,10 +93,20 @@ export class HeaderComponent implements OnInit {
     this.dropdownOpen = false;
   }
 
+  goHome(): void {
+    if (this.isAuthenticated) {
+      this.router.navigate(['/inicio']);
+    } else {
+      this.router.navigate(['/']);
+    }
+    this.closeMenu();
+  }
+
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     this.isAuthenticated = false;
+    this.isAdmin = false;
     this.userName = '';
     this.userAvatar = null;
     this.dropdownOpen = false;

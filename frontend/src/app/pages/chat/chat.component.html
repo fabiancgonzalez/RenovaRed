@@ -1,3 +1,7 @@
+<div class="chat-bg-blob-1"></div>
+<div class="chat-bg-blob-2"></div>
+<div class="chat-bg-blob-3"></div>
+
 <div class="chat-container">
   <!-- Sidebar de conversaciones -->
   <aside class="conversations-sidebar" [class.hidden]="selectedConversationId">
@@ -90,7 +94,7 @@
           <i class="fa-solid fa-arrow-left"></i>
         </button>
         
-        <div class="chat-user-info" (click)="viewProfile()" style="cursor: pointer;">
+        <div class="chat-user-info" (click)="viewProfile()">
           <div class="avatar-container">
             <img [src]="getAvatarSrc(getOtherUser().avatar)" 
                  class="chat-avatar" 
@@ -116,8 +120,24 @@
           </div>
         </div>
 
-        <div class="chat-actions" style="position: relative;">
-          <button class="action-btn" (click)="toggleHeaderDropdown($event)">
+        <div class="chat-actions">
+          <!-- Botón de intercambio (solo para comprador si NO hay solicitud pendiente Y hay stock) -->
+          @if (isBuyer && !exchangeStatus && currentStock > 0) {
+            <button class="exchange-btn" (click)="openExchangeModal()" title="Solicitar intercambio">
+              <i class="fa-solid fa-handshake"></i>
+            </button>
+          }
+          
+          <!-- Indicador de solicitud pendiente -->
+          @if (exchangeStatus && exchangeStatus.estado === 'Pendiente') {
+            <div class="exchange-pending-badge">
+              <i class="fa-solid fa-clock"></i>
+              <span>Solicitud pendiente</span>
+            </div>
+          }
+          
+          <!-- Botón de 3 puntitos -->
+          <button class="menu-btn" (click)="toggleHeaderDropdown($event)" title="Más opciones">
             <i class="fa-solid fa-ellipsis-vertical"></i>
           </button>
           
@@ -145,6 +165,55 @@
             <strong>{{ getWarningMessage().title }}</strong>
             <p>{{ getWarningMessage().message }}</p>
             <p class="warning-suggestion">{{ getWarningMessage().suggestion }}</p>
+          </div>
+        </div>
+      }
+
+      <!-- Mensaje de intercambio completado (historial) - SOLO si no hay solicitud pendiente -->
+      @if (lastCompletedExchange && !exchangeStatus && currentStock > 0) {
+        <div class="exchange-completed-card success">
+          <i class="fa-solid fa-check-circle"></i>
+          <div>
+            <strong>¡Intercambio completado!</strong>
+            <p>Se intercambiaron {{ lastCompletedExchange.cantidad }} kg. ¡Gracias por contribuir! 🌱</p>
+            <p class="exchange-info">🌍 CO₂ ahorrado: {{ lastCompletedExchange.co2Ahorrado }} kg</p>
+            <p class="stock-info">📦 Stock restante: {{ currentStock }} kg</p>
+            <p class="exchange-hint">Podés iniciar un nuevo intercambio para el stock restante.</p>
+          </div>
+        </div>
+      }
+
+      <!-- Mensaje de stock agotado -->
+      @if (currentStock === 0 && !exchangeStatus) {
+        <div class="exchange-completed-card warning">
+          <i class="fa-solid fa-box-open"></i>
+          <div>
+            <strong>Stock agotado</strong>
+            <p>Este material ya no está disponible. ¡Gracias por tu interés!</p>
+            <a routerLink="/marketplace" class="btn-small">Explorar otros materiales →</a>
+          </div>
+        </div>
+      }
+
+      <!-- Tarjeta de solicitud pendiente (para vendedor) -->
+      @if (exchangeStatus && exchangeStatus.estado === 'Pendiente' && isSeller) {
+        <div class="exchange-request-card">
+          <div class="request-header">
+            <i class="fa-solid fa-handshake"></i>
+            <strong>Solicitud de intercambio</strong>
+          </div>
+          <div class="request-details">
+            <p><strong>Cantidad:</strong> {{ exchangeStatus.cantidad }} kg</p>
+            <p><strong>Precio:</strong> {{ exchangeStatus.precio ? '$' + exchangeStatus.precio : 'A convenir' }}</p>
+            <p *ngIf="exchangeStatus.notas"><strong>Notas:</strong> {{ exchangeStatus.notas }}</p>
+          </div>
+          <div class="request-actions">
+            <button class="accept-btn" (click)="respondToExchange(exchangeStatus.id, 'aceptar')">
+              <i class="fa-solid fa-check"></i> Aceptar
+            </button>
+            <button class="reject-btn" (click)="respondToExchange(exchangeStatus.id, 'rechazar')">
+              <i class="fa-solid fa-times"></i> Rechazar
+            </button>
           </div>
         </div>
       }
@@ -331,6 +400,84 @@
   </div>
 }
 
+<!-- Modal para solicitar intercambio (comprador) -->
+@if (showExchangeModal) {
+  <div class="modal-overlay" (click)="closeExchangeModal()">
+    <div class="modal-content exchange-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Solicitar intercambio</h3>
+        <button class="close-btn" (click)="closeExchangeModal()">✕</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="exchange-info-card">
+          <div class="publication-detail">
+            <strong>Material:</strong> {{ currentConversation?.publication?.titulo }}
+          </div>
+          <div class="publication-detail">
+            <strong>Vendedor:</strong> {{ getOtherUser().nombre }}
+          </div>
+          <div class="publication-detail stock-info" *ngIf="currentStock > 0">
+            <strong>Stock disponible:</strong> {{ currentStock }} kg
+          </div>
+        </div>
+        
+        <div class="exchange-details">
+          <div class="form-group">
+            <label>Cantidad a intercambiar (kg) *</label>
+            <input 
+              type="number" 
+              [(ngModel)]="exchangeData.kg" 
+              [max]="currentStock"
+              [min]="0.1"
+              step="0.1"
+              placeholder="Ej: 20"
+              class="form-input"
+              (input)="calculateImpact()">
+            <small *ngIf="exchangeData.kg > currentStock" class="error-text">
+              La cantidad no puede superar el stock disponible ({{ currentStock }} kg)
+            </small>
+            <small class="hint-text">Podés intercambiar una parte del material</small>
+          </div>
+          
+          <div class="form-group">
+            <label>Precio acordado ($)</label>
+            <input 
+              type="number" 
+              [(ngModel)]="exchangeData.price" 
+              [min]="0"
+              step="100"
+              placeholder="Ej: 5000"
+              class="form-input">
+            <small class="hint-text">Opcional - deja en 0 si es a convenir</small>
+          </div>
+          
+          <div class="form-group">
+            <label>Notas / Observaciones</label>
+            <textarea 
+              [(ngModel)]="exchangeData.notes" 
+              placeholder="Detalles del intercambio..."
+              class="form-textarea"
+              rows="3"></textarea>
+          </div>
+        </div>
+        
+        <div class="exchange-impact">
+          <i class="fa-solid fa-leaf"></i>
+          <span>Impacto estimado: <strong>{{ calculateImpact() }} kg CO₂ ahorrado</strong></span>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeExchangeModal()">Cancelar</button>
+        <button class="complete-btn" (click)="requestExchange()" [disabled]="exchangeData.kg <= 0 || exchangeData.kg > currentStock">
+          <i class="fa-solid fa-paper-plane"></i> Enviar solicitud
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- Modal de perfil del usuario -->
 @if (showProfileModal && selectedUserProfile) {
   <div class="modal-overlay" (click)="closeProfileModal()">
@@ -382,6 +529,13 @@
               </p>
             </div>
           }
+          
+          <!-- Botón para ver perfil completo -->
+          <div class="view-full-profile-btn-container">
+            <button class="view-full-profile-btn" (click)="goToFullProfile()">
+              <i class="fa-solid fa-user"></i> Ver perfil completo
+            </button>
+          </div>
         </div>
       </div>
       

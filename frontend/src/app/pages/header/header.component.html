@@ -1,6 +1,6 @@
 <header class="app-header">
     <nav class="navbar">
-        <div class="logo" routerLink="/">
+        <div class="logo" (click)="goHome()" style="cursor: pointer;">
             <img src="logoRenovared.png" alt="RenovaRed">
         </div>
 
@@ -15,13 +15,11 @@
         <div class="nav-links" [class.mobile-open]="mobileMenuOpen">
             <!-- Links para SI logueados -->
             <ng-container *ngIf="isAuthenticated">
-
-               <a routerLink="/" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Inicio</a>
-
+                <a routerLink="/inicio" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Inicio</a>
                 <a routerLink="/marketplace" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Marketplace</a>
-                <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Dashboard</a>
+                <a *ngIf="isAdmin" routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Dashboard</a>
                 <a routerLink="/chat" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Chat</a>
-                <a routerLink="/maps" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Maps</a>
+                <a routerLink="/maps" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Mapa</a>
                 
                 <!-- Menú desplegable -->
                 <div class="dropdown">
@@ -47,12 +45,6 @@
                         </button>
                     </div>
                 </div>
-            </ng-container>
-
-            <!-- Links para NO logueados -->
-            <ng-container *ngIf="!isAuthenticated">
-                <a routerLink="/login" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Inicia sesión</a>
-                <a routerLink="/register" routerLinkActive="active" class="nav-link nav-link-primary" (click)="closeMenu()">Registrarse</a>
             </ng-container>
         </div>
     </nav>

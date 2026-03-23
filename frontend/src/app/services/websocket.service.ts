@@ -16,6 +16,11 @@ export class WebSocketService {
   private conversationDeletedSubject = new Subject<any>();
   private conversationReactivatedSubject = new Subject<any>();
   private errorSubject = new Subject<any>();
+  
+  private exchangeRequestSubject = new Subject<any>();
+  private exchangeAcceptedSubject = new Subject<any>();
+  private exchangeRejectedSubject = new Subject<any>();
+  private exchangeStatusUpdateSubject = new Subject<any>();
 
   private joinedConversations: string[] = [];
 
@@ -37,8 +42,6 @@ export class WebSocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('🔌 WebSocket conectado');
-      // rejoin automático
       if (this.joinedConversations.length > 0) {
         this.joinConversations(this.joinedConversations);
       }
@@ -69,20 +72,31 @@ export class WebSocketService {
     });
 
     this.socket.on('messages-read', (data) => {
-      console.log('📥 messages-read recibido en service:', data);
       this.messagesReadSubject.next(data);
     });
 
-    // Escuchar cuando el otro usuario elimina la conversación
     this.socket.on('conversation-deleted', (data) => {
-      console.log('🗑️ conversation-deleted recibido en service:', data);
       this.conversationDeletedSubject.next(data);
     });
 
-    // 🔥 NUEVO: Escuchar cuando el otro usuario reactiva la conversación
     this.socket.on('conversation-reactivated', (data) => {
-      console.log('🔄 conversation-reactivated recibido en service:', data);
       this.conversationReactivatedSubject.next(data);
+    });
+    
+    this.socket.on('exchange-request', (data) => {
+      this.exchangeRequestSubject.next(data);
+    });
+
+    this.socket.on('exchange-accepted', (data) => {
+      this.exchangeAcceptedSubject.next(data);
+    });
+
+    this.socket.on('exchange-rejected', (data) => {
+      this.exchangeRejectedSubject.next(data);
+    });
+
+    this.socket.on('exchange-status-update', (data) => {
+      this.exchangeStatusUpdateSubject.next(data);
     });
   }
 
@@ -93,12 +107,10 @@ export class WebSocketService {
 
   joinConversations(conversationIds: string[]): void {
     if (!this.socket?.connected) {
-      // Guardar para cuando se conecte
       this.joinedConversations = [...new Set([...this.joinedConversations, ...conversationIds])];
       return;
     }
 
-    // Filtrar nuevas conversaciones para no unirse dos veces
     const newIds = conversationIds.filter(id => !this.joinedConversations.includes(id));
     if (newIds.length === 0) return;
 
@@ -118,11 +130,9 @@ export class WebSocketService {
   markAsRead(conversationId: string, messageIds: string[]): void {
     if (!this.socket?.connected) return;
 
-    console.log('👁️ Enviando mark-as-read:', { conversationId, messageIds });
     this.socket.emit('mark-read', { conversationId, messageIds });
   }
 
-  // ================= OBSERVABLES =================
   onNewMessage(): Observable<any> {
     return this.messageSubject.asObservable();
   }
@@ -150,8 +160,23 @@ export class WebSocketService {
   onError(): Observable<any> {
     return this.errorSubject.asObservable();
   }
+  
+  onExchangeRequest(): Observable<any> {
+    return this.exchangeRequestSubject.asObservable();
+  }
 
-  // ================= UTILS =================
+  onExchangeAccepted(): Observable<any> {
+    return this.exchangeAcceptedSubject.asObservable();
+  }
+
+  onExchangeRejected(): Observable<any> {
+    return this.exchangeRejectedSubject.asObservable();
+  }
+
+  onExchangeStatusUpdate(): Observable<any> {
+    return this.exchangeStatusUpdateSubject.asObservable();
+  }
+
   isConnected(): boolean {
     return this.socket?.connected || false;
   }

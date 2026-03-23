@@ -1,167 +1,339 @@
+<div class="profile-container">
+    <!-- Banner -->
+    <div class="profile-banner">
+        <img src="/assets/default-banner-black.png" alt="Banner" class="banner-image">
+    </div>
 
-<section class="profile-page">
+    <!-- Perfil Header con Avatar -->
+    <div class="profile-header-wrapper">
+        <div class="profile-avatar-container">
+            <img [src]="getAvatarSrc(profile?.avatar_url)" alt="Avatar" class="profile-avatar">
+            @if (isOwnProfile && activeTab !== 'edit') {
+                <button class="edit-avatar-btn" (click)="switchTab('edit')">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+            }
+        </div>
+        <div class="profile-name-section">
+            <h1>{{ profile?.nombre || 'Usuario' }}</h1>
+            <div class="user-type-badge" [style.background]="getTipoColor(profile?.tipo || '') + '20'" [style.color]="getTipoColor(profile?.tipo || '')">
+                <i [class]="'fa-solid ' + getTipoIcon(profile?.tipo || '')"></i>
+                {{ profile?.tipo || 'Usuario' }}
+            </div>
+            @if (profile?.bio) {
+                <p class="profile-bio">{{ profile?.bio }}</p>
+            }
+        </div>
+    </div>
 
-	<h1>Mi Perfil</h1>
+    <!-- Stats Cards -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa-solid fa-calendar-alt"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value">{{ formatDate(profile?.created_at).split(',')[0] }}</span>
+                <span class="stat-label">Miembro desde</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value">{{ profile?.puntos || 0 }}</span>
+                <span class="stat-label">Puntos RenovaRed</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fa-solid fa-star"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stars">
+                    @for (star of getReputacionStars(profile?.reputacion); track $index) {
+                        @if (star === 1) {
+                            <i class="fa-solid fa-star"></i>
+                        } @else if (star === 0.5) {
+                            <i class="fa-solid fa-star-half-alt"></i>
+                        } @else {
+                            <i class="fa-regular fa-star"></i>
+                        }
+                    }
+                </div>
+                <span class="stat-label">Reputación</span>
+            </div>
+        </div>
+        @if (isOwnProfile && profile?.last_login) {
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ formatDate(profile?.last_login).split(',')[0] }}</span>
+                    <span class="stat-label">Último acceso</span>
+                </div>
+            </div>
+        }
+    </div>
 
-	@if (errorMessage) {
-	<div class="alert error">{{ errorMessage }}</div>
-	}
+    <!-- Tabs Navigation -->
+    @if (isOwnProfile) {
+        <div class="profile-tabs">
+            <button class="tab-btn" [class.active]="activeTab === 'profile'" (click)="switchTab('profile')">
+                <i class="fa-solid fa-user"></i> Mi Perfil
+            </button>
+            <button class="tab-btn" [class.active]="activeTab === 'edit'" (click)="switchTab('edit')">
+                <i class="fa-solid fa-pen"></i> Editar Perfil
+            </button>
+            <button class="tab-btn" [class.active]="activeTab === 'password'" (click)="switchTab('password')">
+                <i class="fa-solid fa-key"></i> Cambiar Contraseña
+            </button>
+        </div>
+    }
 
-	@if (successMessage) {
-	<div class="alert success">{{ successMessage }}</div>
-	}
+    <!-- Tab Content: Mi Perfil -->
+    @if (activeTab === 'profile') {
+        <div class="tab-content">
+            <div class="info-grid">
+                <!-- Información de Contacto -->
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-address-card"></i> Información de Contacto</h3>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <i class="fa-solid fa-envelope"></i>
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">{{ profile?.email }}</span>
+                            @if (isOwnProfile) {
+                                <button class="copy-btn" (click)="copyToClipboard(profile?.email || '')" title="Copiar email">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            }
+                        </div>
+                        @if (profile?.telefono) {
+                            <div class="info-item">
+                                <i class="fa-solid fa-phone"></i>
+                                <span class="info-label">Teléfono:</span>
+                                <span class="info-value">{{ profile?.telefono }}</span>
+                                @if (isOwnProfile) {
+                                    <a [href]="'tel:' + profile?.telefono" class="call-btn" title="Llamar">
+                                        <i class="fa-solid fa-phone"></i>
+                                    </a>
+                                }
+                            </div>
+                        }
+                        @if (profile?.ubicacion_texto) {
+                            <div class="info-item">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span class="info-label">Ubicación:</span>
+                                <span class="info-value">{{ profile?.ubicacion_texto }}</span>
+                            </div>
+                        }
+                        @if (profile?.coordinates) {
+                            <div class="info-item">
+                                <i class="fa-solid fa-map-pin"></i>
+                                <span class="info-label">Coordenadas:</span>
+                                <span class="info-value">{{ profile?.coordinates?.lat }}, {{ profile?.coordinates?.lng }}</span>
+                            </div>
+                        }
+                    </div>
+                </div>
 
-	@if (isLoading) {
-	<div class="state">Cargando perfil...</div>
-	}
+                <!-- Redes Sociales -->
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-share-alt"></i> Redes Sociales</h3>
+                    <div class="social-grid">
+                        @if (profile?.website) {
+                            <a [href]="profile?.website" target="_blank" class="social-link website">
+                                <i class="fa-solid fa-globe"></i> Sitio Web
+                            </a>
+                        }
+                        @if (profile?.instagram) {
+                            <a [href]="'https://instagram.com/' + (profile?.instagram || '').replace('@', '')" target="_blank" class="social-link instagram">
+                                <i class="fa-brands fa-instagram"></i> Instagram
+                            </a>
+                        }
+                        @if (profile?.facebook) {
+                            <a [href]="profile?.facebook" target="_blank" class="social-link facebook">
+                                <i class="fa-brands fa-facebook"></i> Facebook
+                            </a>
+                        }
+                        @if (profile?.linkedin) {
+                            <a [href]="profile?.linkedin" target="_blank" class="social-link linkedin">
+                                <i class="fa-brands fa-linkedin"></i> LinkedIn
+                            </a>
+                        }
+                        @if (profile?.x_handle) {
+                            <a [href]="'https://x.com/' + (profile?.x_handle || '').replace('@', '')" target="_blank" class="social-link x">
+                                <i class="fa-brands fa-x-twitter"></i> X (Twitter)
+                            </a>
+                        }
+                        @if (!profile?.website && !profile?.instagram && !profile?.facebook && !profile?.linkedin && !profile?.x_handle) {
+                            <p class="no-social">No hay redes sociales agregadas</p>
+                        }
+                    </div>
+                </div>
 
-	@if (!isLoading && profile) {
-	<article class="card profile-card">
-		<h2>Datos del perfil</h2>
+                <!-- Mapa -->
+                @if (profile?.coordinates) {
+                    <div class="info-card full-width">
+                        <h3><i class="fa-solid fa-map"></i> Ubicación en el mapa</h3>
+                        <div #profileMapView class="profile-map-view"></div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 
-		<div class="avatar-wrap">
-			<img [src]="profile.avatar_url || 'https://via.placeholder.com/140?text=Avatar'" alt="Avatar" />
-		</div>
+    <!-- Tab Content: Editar Perfil -->
+    @if (activeTab === 'edit') {
+        <div class="tab-content">
+            <div class="edit-card">
+                <h3><i class="fa-solid fa-pen"></i> Editar Perfil</h3>
+                <form class="edit-form" (ngSubmit)="saveProfile()">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre *</label>
+                            <input type="text" [(ngModel)]="editForm.nombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" [(ngModel)]="editForm.telefono" name="telefono">
+                        </div>
+                    </div>
 
-		<div class="profile-data">
-			<p><strong>Nombre:</strong> {{ profile.nombre }}</p>
-			<p><strong>Email:</strong> {{ profile.email }}</p>
-			<p><strong>Tipo:</strong> {{ profile.tipo }}</p>
-			<p><strong>Teléfono:</strong> {{ profile.telefono || 'N/A' }}</p>
-			<p><strong>Ubicación:</strong> {{ profile.ubicacion_texto || 'N/A' }}</p>
-			<p><strong>Latitud:</strong> {{ profile.coordinates?.lat ?? 'N/A' }}</p>
-			<p><strong>Longitud:</strong> {{ profile.coordinates?.lng ?? 'N/A' }}</p>
-			<p><strong>Activo:</strong> {{ profile.is_active ? 'Sí' : 'No' }}</p>
-			<p><strong>Último login:</strong> {{ formatDate(profile.last_login) }}</p>
-			<p><strong>Creado:</strong> {{ formatDate(profile.created_at) }}</p>
-			<p><strong>Actualizado:</strong> {{ formatDate(profile.updated_at) }}</p>
-		</div>
+                    <div class="form-group">
+                        <label>Avatar</label>
+                        <div class="avatar-upload">
+                            <img [src]="getAvatarSrc(editForm.avatar_url)" class="avatar-preview">
+                            <button type="button" class="upload-btn" (click)="fileInput.click()">
+                                <i class="fa-solid fa-upload"></i> Seleccionar imagen
+                            </button>
+                            <input #fileInput type="file" accept="image/*" style="display:none" (change)="onImageSelected($event)">
+                        </div>
+                    </div>
 
-		<div class="actions">
-			<button type="button" class="btn-edit" (click)="startEdit()">Editar perfil</button>
-			<button type="button" class="btn-password" (click)="togglePasswordForm()">Cambiar contraseña</button>
-		</div>
-	</article>
+                    <div class="form-group">
+                        <label>Biografía / Presentación</label>
+                        <textarea [(ngModel)]="editForm.bio" name="bio" rows="3" placeholder="Cuéntanos sobre ti o tu organización..."></textarea>
+                    </div>
 
+                    <div class="form-group">
+                        <label>Ubicación (texto)</label>
+                        <input type="text" [(ngModel)]="editForm.ubicacion_texto" name="ubicacion_texto" placeholder="Ej: Buenos Aires, Argentina">
+                    </div>
 
-	@if (isEditing) {
-	<article class="editar-perfil-card">
-		<h2>Editar perfil</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Latitud</label>
+                            <input type="number" step="0.000001" [(ngModel)]="editForm.latitud" name="latitud" (change)="onCoordinatesInputChange()">
+                        </div>
+                        <div class="form-group">
+                            <label>Longitud</label>
+                            <input type="number" step="0.000001" [(ngModel)]="editForm.longitud" name="longitud" (change)="onCoordinatesInputChange()">
+                        </div>
+                    </div>
 
-		<form class="form" (ngSubmit)="saveProfile()">
-				<label>
-					Nombre
-					<input type="text" name="nombre" [(ngModel)]="editForm.nombre" required />
-				</label>
+                    <div class="location-helper">Seleccioná un punto en el mapa o cargá latitud/longitud manualmente.</div>
+                    <div #profileMapEdit class="profile-map-edit"></div>
 
-				<label>
-					Teléfono
-					<input type="text" name="telefono" [(ngModel)]="editForm.telefono" />
-				</label>
+                    <div class="form-group">
+                        <label>Sitio Web</label>
+                        <input type="url" [(ngModel)]="editForm.website" name="website" placeholder="https://...">
+                    </div>
 
-				<label>
-					Avatar URL
-					<div style="display:flex; gap:8px; align-items:center;">
-						<input  hidden type="url" name="avatar_url" [(ngModel)]="editForm.avatar_url" placeholder="https://..."
-							style="flex:1;" />
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Instagram</label>
+                            <input type="text" [(ngModel)]="editForm.instagram" name="instagram" placeholder="@usuario">
+                        </div>
+                        <div class="form-group">
+                            <label>Facebook</label>
+                            <input type="url" [(ngModel)]="editForm.facebook" name="facebook" placeholder="URL del perfil">
+                        </div>
+                    </div>
 
-						<button type="button" (click)="fileInput.click()">
-							Seleccionar imagen
-						</button>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>LinkedIn</label>
+                            <input type="url" [(ngModel)]="editForm.linkedin" name="linkedin" placeholder="URL del perfil">
+                        </div>
+                        <div class="form-group">
+                            <label>X (Twitter)</label>
+                            <input type="text" [(ngModel)]="editForm.x_handle" name="x_handle" placeholder="@usuario">
+                        </div>
+                    </div>
 
-						<input #fileInput type="file" accept="image/*" style="display:none;"
-							(change)="onImageSelected($event)" />
-					</div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-save" [disabled]="isSavingProfile">
+                            <i class="fa-solid fa-save"></i> {{ isSavingProfile ? 'Guardando...' : 'Guardar cambios' }}
+                        </button>
+                        <button type="button" class="btn-cancel" (click)="switchTab('profile')">
+                            <i class="fa-solid fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
 
-					@if (editForm.avatar_url) {
-				<img [src]="editForm.avatar_url"
-					style="width:64px; height:64px; border-radius:50%; object-fit:cover;" />
-				}
+    <!-- Tab Content: Cambiar Contraseña -->
+    @if (activeTab === 'password') {
+        <div class="tab-content">
+            <div class="edit-card">
+                <h3><i class="fa-solid fa-key"></i> Cambiar Contraseña</h3>
+                
+                @if (passwordError) {
+                    <div class="alert error">{{ passwordError }}</div>
+                }
+                @if (passwordMessage) {
+                    <div class="alert success">{{ passwordMessage }}</div>
+                }
 
+                <form class="edit-form" (ngSubmit)="changePassword()">
+                    <div class="form-group">
+                        <label>Contraseña actual</label>
+                        <input type="password" [(ngModel)]="passwordForm.currentPassword" name="currentPassword" required>
+                    </div>
 
+                    <div class="form-group">
+                        <label>Nueva contraseña</label>
+                        <input type="password" [(ngModel)]="passwordForm.newPassword" name="newPassword" required>
+                    </div>
 
-				</label>
+                    <div class="form-group">
+                        <label>Confirmar nueva contraseña</label>
+                        <input type="password" [(ngModel)]="passwordForm.confirmPassword" name="confirmPassword" required>
+                    </div>
 
-				<label>
-					Ubicación
-					<input type="text" name="ubicacion_texto" [(ngModel)]="editForm.ubicacion_texto" />
-				</label>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-save" [disabled]="isChangingPassword">
+                            <i class="fa-solid fa-key"></i> {{ isChangingPassword ? 'Actualizando...' : 'Actualizar contraseña' }}
+                        </button>
+                        <button type="button" class="btn-cancel" (click)="switchTab('profile')">
+                            <i class="fa-solid fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
 
-				<div class="coords-grid">
-					<label>
-						Latitud
-						<input
-							type="number"
-							step="0.000001"
-							name="latitud"
-							[(ngModel)]="editForm.latitud"
-							(change)="onCoordinatesInputChange()"
-						/>
-					</label>
+    <!-- Botón de cerrar sesión para perfil propio -->
+    @if (isOwnProfile && activeTab === 'profile') {
+        <div class="logout-section">
+            <button class="logout-btn" (click)="clearSession()">
+                <i class="fa-solid fa-sign-out-alt"></i> Cerrar Sesión
+            </button>
+        </div>
+    }
 
-					<label>
-						Longitud
-						<input
-							type="number"
-							step="0.000001"
-							name="longitud"
-							[(ngModel)]="editForm.longitud"
-							(change)="onCoordinatesInputChange()"
-						/>
-					</label>
-				</div>
-
-				<div class="location-helper">Seleccioná un punto en el mapa o cargá latitud/longitud manualmente.</div>
-				<div #profileMapContainer class="profile-map"></div>
-
-				<div class="actions">
-					<button type="submit" [disabled]="isSavingProfile">
-						{{ isSavingProfile ? 'Guardando...' : 'Guardar cambios' }}
-					</button>
-				<button type="button" class="secondary" (click)="cancelEdit()" [disabled]="isSavingProfile">
-					Cancelar
-				</button>
-			</div>
-		</form>
-	</article>
-	}
-
-	@if (showPasswordForm) {
-	<article class="card profile-card">
-		<h2>Cambiar contraseña</h2>
-
-		@if (passwordError) {
-		<div class="alert error">{{ passwordError }}</div>
-		}
-
-		@if (passwordMessage) {
-		<div class="alert success">{{ passwordMessage }}</div>
-		}
-
-			<form class="form" (ngSubmit)="changePassword()">
-				<label>
-					Contraseña actual
-					<input type="password" name="currentPassword" [(ngModel)]="passwordForm.currentPassword" required />
-				</label>
-
-				<label>
-					Nueva contraseña
-					<input type="password" name="newPassword" [(ngModel)]="passwordForm.newPassword" required />
-				</label>
-
-				<label>
-					Confirmar nueva contraseña
-					<input type="password" name="confirmPassword" [(ngModel)]="passwordForm.confirmPassword" required />
-				</label>
-
-				<button type="submit" [disabled]="isChangingPassword">
-					{{ isChangingPassword ? 'Actualizando...' : 'Actualizar contraseña' }}
-				</button>
-               <button type="button" class="secondary" (click)="togglePasswordForm()" [disabled]="isChangingPassword">
-					Cancelar
-				</button>
-			</form>
-	</article>
-	}
-	}
-</section>
+    <!-- Mensajes de error/success -->
+    @if (errorMessage && activeTab !== 'edit') {
+        <div class="alert error">{{ errorMessage }}</div>
+    }
+    @if (successMessage) {
+        <div class="alert success">{{ successMessage }}</div>
+    }
+</div>

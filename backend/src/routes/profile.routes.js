@@ -81,4 +81,6 @@ router.put('/', profileController.updateProfile);
  */
 router.post('/change-password', profileController.changePassword);
 
+router.get('/:userId', profileController.getUserProfile);
+
 module.exports = router;

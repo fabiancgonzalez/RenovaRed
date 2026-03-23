@@ -1,39 +1,42 @@
 <section class="maps-page">
 	<div class="maps-hero">
 		<div>
-			<p class="eyebrow">Mapa colaborativo</p>
-			<h1>Usuarios ubicados en la red</h1>
+			<p class="eyebrow">Red de economía circular</p>
+			<h1>Mapa de actores</h1>
 			<p class="hero-copy">
-				Visualizá dónde está cada usuario, compará proximidad entre ellos y detectá de inmediato la pareja con menor distancia.
+				Visualizá la ubicación de cooperativas, recicladoras y emprendedores en la red. 
+				Conectate con los actores más cercanos para colaborar y fortalecer la economía circular.
 			</p>
 		</div>
 
 		<div class="hero-metrics">
 			<article class="metric-card">
-				<span class="metric-label">Usuarios ubicados</span>
+				<span class="metric-label">Actores en el mapa</span>
 				<strong>{{ centeredUserCount }}</strong>
 			</article>
 
 			<article class="metric-card highlight" *ngIf="closestPairGlobal; else noClosestPairMetric">
-				<span class="metric-label">Distancia mínima</span>
+				<span class="metric-label">Distancia más corta</span>
 				<strong>{{ formatDistance(closestPairGlobal.distanceKm) }}</strong>
+				<span class="metric-sub">entre actores</span>
 			</article>
 
 			<article class="metric-card" *ngIf="loggedUserDistance">
-				<span class="metric-label">Tu vecino más cercano</span>
+				<span class="metric-label">Tu ubicación</span>
 				<strong>{{ formatDistance(loggedUserDistance.distanceKm) }}</strong>
+				<span class="metric-sub">al actor más cercano</span>
 			</article>
 
 			<ng-template #noClosestPairMetric>
 				<article class="metric-card muted">
-					<span class="metric-label">Distancia mínima</span>
+					<span class="metric-label">Distancia más corta</span>
 					<strong>Sin datos</strong>
 				</article>
 			</ng-template>
 		</div>
 	</div>
 
-	<div class="state-card" *ngIf="loading">Cargando ubicaciones de usuarios...</div>
+	<div class="state-card" *ngIf="loading">Cargando ubicaciones de actores...</div>
 	<div class="state-card error" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
 
 	<div class="maps-layout" *ngIf="!loading && !errorMessage">
@@ -53,11 +56,11 @@
 			<div class="map-toolbar">
 				<span class="legend-item">
 					<span class="legend-dot regular"></span>
-					Usuarios
+					Actores de la red
 				</span>
 				<span class="legend-item">
 					<span class="legend-dot closest"></span>
-					Pareja más cercana
+					Conexión más cercana
 				</span>
 			</div>
 
@@ -66,72 +69,99 @@
 
 		<aside class="insights-panel">
 			<article class="closest-card" *ngIf="closestPairGlobal; else insufficientUsers">
-				<p class="section-label">Pareja global más cercana</p>
-				<h2>{{ closestPairGlobal.first.nombre }} y {{ closestPairGlobal.second.nombre }}</h2>
+				<p class="section-label">CONEXIÓN MÁS CERCANA</p>
+				<h2>{{ closestPairGlobal.first.nombre }} — {{ closestPairGlobal.second.nombre }}</h2>
 				<p class="closest-distance">{{ formatDistance(closestPairGlobal.distanceKm) }}</p>
 				<p class="closest-copy">
-					Son los dos usuarios con menor separación geográfica dentro de la red actual.
+					Estos dos actores tienen la menor distancia geográfica en la red, 
+					lo que facilita el intercambio de materiales y la colaboración logística.
 				</p>
 				<div class="closest-users">
-	     			<a [routerLink]="['/chat', closestPairGlobal.first.id]" class="user-name"   >{{ closestPairGlobal.first.nombre }}</a>
-	     			<span>{{ closestPairGlobal.first.tipo }} · {{ closestPairGlobal.first.ubicacion_texto || 'Sin detalle' }}</span>
-					
-					<a [routerLink]="['/chat', closestPairGlobal.second.id]" class="user-name">{{ closestPairGlobal.second.nombre }}</a>
-					<span>{{ closestPairGlobal.second.tipo }} · {{ closestPairGlobal.second.ubicacion_texto || 'Sin detalle' }}</span>
+					<div class="user-badge">
+						<span class="user-name">{{ closestPairGlobal.first.nombre }}</span>
+						<span class="user-type">{{ closestPairGlobal.first.tipo }}</span>
+						<span class="user-location">{{ closestPairGlobal.first.ubicacion_texto || 'Sin detalle' }}</span>
+					</div>
+					<div class="connection-line">
+						<i class="fa-solid fa-arrow-right-arrow-left"></i>
+						<span>{{ formatDistance(closestPairGlobal.distanceKm) }}</span>
+					</div>
+					<div class="user-badge">
+						<span class="user-name">{{ closestPairGlobal.second.nombre }}</span>
+						<span class="user-type">{{ closestPairGlobal.second.tipo }}</span>
+						<span class="user-location">{{ closestPairGlobal.second.ubicacion_texto || 'Sin detalle' }}</span>
+					</div>
+				</div>
+				<div class="action-buttons">
+					<a [routerLink]="['/chat', closestPairGlobal.first.id]" class="btn-contact">
+						<i class="fa-regular fa-message"></i> Contactar
+					</a>
+					<a [routerLink]="['/chat', closestPairGlobal.second.id]" class="btn-contact">
+						<i class="fa-regular fa-message"></i> Contactar
+					</a>
 				</div>
 			</article>
 
 			<article class="closest-card" *ngIf="loggedUserDistance">
-				<p class="section-label">Distancia desde tu cuenta</p>
-				<h2>{{ loggedUserDistance.currentUser.nombre }} → {{ loggedUserDistance.nearestUser.nombre }}</h2>
+				<p class="section-label">TU UBICACIÓN EN LA RED</p>
+				<h2>{{ loggedUserDistance.currentUser.nombre }}</h2>
 				<p class="closest-distance">{{ formatDistance(loggedUserDistance.distanceKm) }}</p>
-				<p class="closest-copy">Este es el usuario más cercano respecto a tu ubicación guardada.</p>
+				<p class="closest-copy">
+					El actor más cercano a tu ubicación es <strong>{{ loggedUserDistance.nearestUser.nombre }}</strong> 
+					({{ loggedUserDistance.nearestUser.tipo }}). Ideal para alianzas locales.
+				</p>
+				<a [routerLink]="['/chat', loggedUserDistance.nearestUser.id]" class="btn-contact outline">
+					<i class="fa-regular fa-message"></i> Contactar
+				</a>
 			</article>
 
 			<ng-template #insufficientUsers>
 				<article class="closest-card empty">
-					<p class="section-label">Pareja global más cercana</p>
-					<h2>Faltan ubicaciones suficientes</h2>
+					<p class="section-label">CONEXIÓN MÁS CERCANA</p>
+					<h2>Faltan ubicaciones</h2>
 					<p class="closest-copy">
-						Se necesitan al menos dos usuarios con coordenadas válidas para calcular la distancia más cercana.
+						Se necesitan al menos dos actores con coordenadas válidas para calcular la distancia más cercana.
+						Animate a agregar tu ubicación para conectar con otros.
 					</p>
 				</article>
 			</ng-template>
 
 			<section class="distance-list" *ngIf="userDistances.length; else noUsers">
 				<div class="distance-header">
-					<h3>Referencia por usuario</h3>
-					<span>Vecinos más cercanos</span>
+					<h3>Actores en la red</h3>
+					<span>Vecino más cercano</span>
 				</div>
 
 				<article
 					class="distance-item"
 					*ngFor="let item of userDistances"
 					[class.highlighted]="highlightedUserIds.includes(item.user.id)"
-					
 				>
-					<div>
-						<a [routerLink]="['/chat', item.user.id]" class="user-name">{{ item.user.nombre }}</a>
-						<!--<p class="user-name">{{ item.user.nombre }}</p> -->
-						<p class="user-meta">{{ item.user.tipo }} · {{ item.user.ubicacion_texto || 'Ubicación sin detalle' }}</p>
+					<div class="user-info">
+						<span class="user-name">{{ item.user.nombre }}</span>
+						<span class="user-type-badge">{{ item.user.tipo }}</span>
+						<p class="user-location-small">{{ item.user.ubicacion_texto || 'Ubicación sin detalle' }}</p>
 					</div>
 
 					<div class="distance-meta" *ngIf="item.nearestUser; else withoutReference">
 						<strong>{{ formatDistance(item.distanceKm) }}</strong>
 						<span>{{ item.nearestUser.nombre }}</span>
+						<a [routerLink]="['/chat', item.nearestUser.id]" class="contact-icon">
+							<i class="fa-regular fa-message"></i>
+						</a>
 					</div>
 
 					<ng-template #withoutReference>
 						<div class="distance-meta muted">
-							<strong>Sin dato</strong>
-							<span>Sin vecino</span>
+							<strong>Sin vecino</strong>
+							<span>No hay actores cerca</span>
 						</div>
 					</ng-template>
 				</article>
 			</section>
 
 			<ng-template #noUsers>
-				<div class="state-card compact">No hay usuarios con coordenadas disponibles para mostrar en el mapa.</div>
+				<div class="state-card compact">No hay actores con coordenadas disponibles para mostrar en el mapa.</div>
 			</ng-template>
 		</aside>
 	</div>

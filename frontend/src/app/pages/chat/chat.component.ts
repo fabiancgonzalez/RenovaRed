@@ -7,21 +7,11 @@ import { WebSocketService } from '../../services/websocket.service';
 import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
 
-// Lista de emojis
 const EMOJIS = [
-  // Caritas
   '😀', '😂', '😍', '😊', '😢', '😡', '😮', '🤔', '🥰', '😎', '🥳', '😭', '😅', '🙂', '😉', '😘',
-  
-  // Gestos y manos
   '👍', '👎', '👌', '✌️', '🤝', '👏', '🙌', '💪', '✋', '👋', '🤞', '👊',
-  
-  // Corazones
   '❤️', '🧡', '💛', '💚', '💙', '💜', '💖', '💕',
-  
-  // Reciclaje y medio ambiente
   '♻️', '🌍', '🌱', '🌿', '🍃', '🌲', '🌳', '🌸', '🌻', '🌺', '🍂', '🍁',
-  
-  // Materiales reciclables
   '📦', '🗑️', '🥤', '🧴', '🧃', '🔋', '💡', '📰', '📄', '👕', '🥛', '🔩'
 ];
 
@@ -49,22 +39,30 @@ export class ChatComponent implements OnInit, OnDestroy {
   conversationToDelete: Conversation | null = null;
   activeDropdownId: string | null = null;
 
-  // Emoji picker
   showEmojiPicker = false;
   emojis = EMOJIS;
 
-  // Estado de conversación eliminada por otro usuario
   conversationDeletedByOther = false;
 
-  // Dropdown del header
   showHeaderDropdown = false;
   
-  // Modal de perfil
   showProfileModal = false;
   selectedUserProfile: any = null;
   isLoadingProfile = false;
   private miniMap: L.Map | null = null;
   private miniMapInitialized = false;
+
+  showExchangeModal = false;
+  exchangeStatus: any = null;
+  lastCompletedExchange: any = null;
+  exchangeData = {
+    kg: 0,
+    price: 0,
+    notes: ''
+  };
+  currentStock = 0;
+  isBuyer = false;
+  isSeller = false;
 
   private subscriptions: Subscription[] = [];
   private readTimeout: any = null;
@@ -81,7 +79,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       try {
         const user = JSON.parse(userRaw);
         this.currentUserId = user.id || '';
-        console.log('✅ Usuario actual:', this.currentUserId);
       } catch (e) {
         console.error('Error parsing user:', e);
       }
@@ -99,7 +96,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     });
 
-    // 🔥 Cerrar dropdown al hacer clic fuera
     document.addEventListener('click', this.handleDocumentClick.bind(this));
   }
 
@@ -110,10 +106,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.webSocketService.disconnect();
     
-    // Limpiar event listener
     document.removeEventListener('click', this.handleDocumentClick.bind(this));
     
-    // Limpiar mapa
     if (this.miniMap) {
       this.miniMap.remove();
       this.miniMap = null;
@@ -135,9 +129,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     this.subscriptions.push(
       this.webSocketService.onNewMessage().subscribe(data => {
-        console.log('📨 Nuevo mensaje recibido:', data);
-        
-        // Verificar si el mensaje ya existe
         let exists = false;
         if (this.currentConversation && this.currentConversation.mensajes) {
           exists = this.currentConversation.mensajes.some(m => m.id === data.message.id);
@@ -146,21 +137,17 @@ export class ChatComponent implements OnInit, OnDestroy {
         if (!exists && data.conversationId === this.selectedConversationId && this.currentConversation) {
           this.currentConversation.mensajes.push(data.message);
           
-          // 🔥 Si es el chat actual y el mensaje es de otro usuario, marcar como leído inmediatamente
           if (data.message.remitenteId !== this.currentUserId) {
-            console.log('👁️ Nuevo mensaje de otro usuario en chat abierto, marcando como leído...');
             this.markMessagesAsRead(data.conversationId);
           }
           
           setTimeout(() => this.scrollToBottom(), 100);
         }
 
-        // Actualizar sidebar
         this.conversations = this.conversations.map(conv => {
           if (conv.id === data.conversationId) {
             const isMyMessage = data.message.remitenteId === this.currentUserId;
             
-            // Si es mi mensaje o el chat está abierto, resetear contador de no leídos
             if (isMyMessage || this.selectedConversationId === data.conversationId) {
               return {
                 ...conv,
@@ -181,10 +168,8 @@ export class ChatComponent implements OnInit, OnDestroy {
           return conv;
         });
 
-        // Si la conversación no está en la lista, recargar todas
         const conversationExists = this.conversations.some(conv => conv.id === data.conversationId);
         if (!conversationExists) {
-          console.log('🔄 Conversación nueva detectada, recargando lista...');
           this.loadConversations();
         }
         
@@ -208,31 +193,23 @@ export class ChatComponent implements OnInit, OnDestroy {
       })
     );
 
-    // 🔥 Escuchar mensajes leídos
     this.subscriptions.push(
       this.webSocketService.onMessagesRead().subscribe(data => {
-        console.log('📥 Mensajes marcados como leídos recibido:', data);
-        
-        // Actualizar conversación actual
         if (data.conversationId === this.selectedConversationId && this.currentConversation) {
           this.currentConversation.mensajes = this.currentConversation.mensajes.map(msg => {
             if (data.messageIds?.includes(msg.id)) {
-              console.log(`✅ Marcando mensaje ${msg.id} como leído (evento del otro usuario)`);
               return { ...msg, read: true };
             }
             return msg;
           });
-          console.log('✅ Mensajes actualizados en conversación actual');
           this.cdr.detectChanges();
         }
         
-        // Actualizar sidebar (quitar badge de no leídos)
         this.conversations = this.conversations.map(conv => {
           if (conv.id === data.conversationId) {
             const currentUnread = conv.no_leidos || 0;
             const newlyRead = data.messageIds?.length || 0;
             const newUnread = Math.max(0, currentUnread - newlyRead);
-            console.log(`📊 Actualizando badge: de ${currentUnread} a ${newUnread}`);
             return {
               ...conv,
               no_leidos: newUnread
@@ -245,104 +222,89 @@ export class ChatComponent implements OnInit, OnDestroy {
       })
     );
 
-    // 🔥 Escuchar cuando el otro usuario elimina la conversación
     this.subscriptions.push(
       this.webSocketService.onConversationDeleted().subscribe(data => {
-        console.log('═══════════════════════════════════════════════');
-        console.log('🗑️ [FRONTEND] EVENTO conversation-deleted RECIBIDO');
-        console.log('📦 Datos:', data);
-        console.log('🆔 Conversación ID:', data.conversationId);
-        console.log('🆔 Conversación actual abierta (selectedConversationId):', this.selectedConversationId);
-        console.log('🔒 Estado actual de conversationDeletedByOther:', this.conversationDeletedByOther);
-        console.log('═══════════════════════════════════════════════');
-        
-        // Actualizar la conversación en la lista del sidebar
         this.conversations = this.conversations.map(conv => {
           if (conv.id === data.conversationId) {
-            console.log('📝 Marcando como eliminada en sidebar');
-            return {
-              ...conv,
-              estado: 'eliminada_por_otro'
-            };
+            return { ...conv, estado: 'eliminada_por_otro' };
           }
           return conv;
         });
         
-        // Si es la conversación que está abierta actualmente
         if (data.conversationId === this.selectedConversationId) {
-          console.log('⚠️ La conversación ACTUAL fue eliminada por el otro usuario');
           this.conversationDeletedByOther = true;
           this.cdr.detectChanges();
-          console.log('🔒 conversationDeletedByOther cambiado a:', this.conversationDeletedByOther);
         }
-        
-        console.log('═══════════════════════════════════════════════');
       })
     );
 
-    // 🔥 Escuchar cuando el otro usuario reactiva la conversación
     this.subscriptions.push(
       this.webSocketService.onConversationReactivated().subscribe(data => {
-        console.log('═══════════════════════════════════════════════');
-        console.log('🔄 [FRONTEND] EVENTO conversation-reactivated RECIBIDO');
-        console.log('📦 Datos completos:', data);
-        console.log('🆔 Conversación ID del evento:', data.conversationId);
-        console.log('🆔 Conversación actual abierta (selectedConversationId):', this.selectedConversationId);
-        console.log('🔓 Estado actual de conversationDeletedByOther ANTES:', this.conversationDeletedByOther);
-        console.log('═══════════════════════════════════════════════');
-        
-        // Actualizar la conversación en la lista del sidebar
         this.conversations = this.conversations.map(conv => {
           if (conv.id === data.conversationId) {
-            console.log('📝 Actualizando conversación en sidebar:', conv.id);
-            return {
-              ...conv,
-              estado: 'activa',
-              no_leidos: 0
-            };
+            return { ...conv, estado: 'activa', no_leidos: 0 };
           }
           return conv;
         });
         
-        // 🔥 CRÍTICO: Verificar si es la conversación actualmente abierta
-        const isCurrentConversation = data.conversationId === this.selectedConversationId;
-        console.log('🎯 ¿Es la conversación actual?', isCurrentConversation);
-        
-        if (isCurrentConversation) {
-          console.log('✅ ¡ES LA CONVERSACIÓN ACTUAL! Reactivando...');
-          
-          // CAMBIAR EL ESTADO DE BLOQUEO
+        if (data.conversationId === this.selectedConversationId) {
           this.conversationDeletedByOther = false;
-          console.log('🔓 conversationDeletedByOther cambiado a:', this.conversationDeletedByOther);
-          
-          // Recargar la conversación para asegurar datos frescos
-          console.log('🔄 Recargando conversación para obtener datos actualizados...');
           this.loadConversation(data.conversationId);
-          
-          // Mostrar mensaje de éxito
           this.successMessage = '✓ El otro usuario ha reactivado la conversación. Ya puedes enviar mensajes.';
-          setTimeout(() => {
-            this.successMessage = '';
-          }, 5000);
-          
-          // Forzar detección de cambios
-          this.cdr.detectChanges();
-          
-          console.log('✅ Reactivación completada');
-        } else {
-          console.log('ℹ️ No es la conversación actual, solo actualizando sidebar');
-          this.successMessage = `La conversación ha sido reactivada.`;
-          setTimeout(() => {
-            this.successMessage = '';
-          }, 3000);
+          setTimeout(() => this.successMessage = '', 5000);
           this.cdr.detectChanges();
         }
-        
-        console.log('═══════════════════════════════════════════════');
+      })
+    );
+    
+    this.subscriptions.push(
+      this.webSocketService.onExchangeRequest().subscribe(data => {
+        if (data.conversationId === this.selectedConversationId) {
+          this.checkExchangeStatus();
+          this.loadConversation(this.selectedConversationId!);
+          this.successMessage = '¡Nueva solicitud de intercambio! Revisa la tarjeta arriba.';
+          setTimeout(() => this.successMessage = '', 5000);
+          this.cdr.detectChanges();
+        }
       })
     );
 
-    // 🔥 Manejar error de conversación eliminada al intentar enviar mensaje
+    this.subscriptions.push(
+      this.webSocketService.onExchangeAccepted().subscribe(data => {
+        if (data.conversationId === this.selectedConversationId) {
+          this.checkExchangeStatus();
+          this.loadConversation(this.selectedConversationId!);
+          this.successMessage = `¡Intercambio aceptado! Se intercambiaron ${data.kg} kg. 🌱`;
+          setTimeout(() => this.successMessage = '', 5000);
+          this.cdr.detectChanges();
+        }
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onExchangeRejected().subscribe(data => {
+        if (data.conversationId === this.selectedConversationId) {
+          this.exchangeStatus = null;
+          this.cdr.detectChanges();
+          this.error = 'El vendedor rechazó la solicitud de intercambio. Puedes enviar una nueva.';
+          setTimeout(() => this.error = '', 5000);
+        }
+      })
+    );
+
+    this.subscriptions.push(
+      this.webSocketService.onExchangeStatusUpdate().subscribe(data => {
+        if (data.conversationId === this.selectedConversationId) {
+          if (data.hasRequest) {
+            this.exchangeStatus = data.exchange;
+          } else {
+            this.exchangeStatus = null;
+          }
+          this.cdr.detectChanges();
+        }
+      })
+    );
+
     this.subscriptions.push(
       this.webSocketService.onError().subscribe(error => {
         console.error('Error del WebSocket:', error);
@@ -352,9 +314,7 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         } else {
           this.error = error.message || 'Error en la conexión';
-          setTimeout(() => {
-            this.error = '';
-          }, 5000);
+          setTimeout(() => this.error = '', 5000);
         }
       })
     );
@@ -388,9 +348,12 @@ export class ChatComponent implements OnInit, OnDestroy {
   selectConversation(conversationId: string): void {
     if (this.selectedConversationId === conversationId) return;
 
-    // Resetear estado al cambiar de conversación
     this.conversationDeletedByOther = false;
     this.error = '';
+    this.exchangeStatus = null;
+    this.lastCompletedExchange = null;
+    this.isBuyer = false;
+    this.isSeller = false;
 
     this.conversations = this.conversations.map(conv => {
       if (conv.id === conversationId) {
@@ -404,24 +367,16 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   loadConversation(conversationId: string): void {
-    console.log('📩 Cargando conversación:', conversationId);
-    
     this.chatService.getConversation(conversationId).subscribe({
       next: (response) => {
         if (response?.success && response.data) {
           this.currentConversation = response.data;
-          
-          // Verificar si el otro usuario eliminó esta conversación
           this.conversationDeletedByOther = response.data.deleted_by_other || false;
           
-          if (this.currentConversation) {
-            console.log('✅ Conversación cargada, mensajes:', this.currentConversation.mensajes?.length);
-          }
-          console.log('📊 deleted_by_other desde servidor:', this.conversationDeletedByOther);
+          this.checkUserRole();
+          this.checkExchangeStatus();
           
-          // Marcar como leídos INMEDIATAMENTE
           this.markMessagesAsRead(conversationId);
-          
           this.cdr.detectChanges();
           setTimeout(() => this.scrollToBottom(), 100);
         }
@@ -433,35 +388,156 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  markMessagesAsRead(conversationId: string): void {
-    if (!this.currentConversation || !this.currentConversation.mensajes) {
-      console.log('⚠️ No hay conversación o mensajes para marcar');
+  checkUserRole(): void {
+    if (!this.currentConversation) return;
+    this.isBuyer = this.currentConversation.comprador?.id === this.currentUserId;
+    this.isSeller = this.currentConversation.vendedor?.id === this.currentUserId;
+    
+    if (this.currentConversation?.publication?.cantidad) {
+      const cantidadValor = this.currentConversation.publication.cantidad;
+      const cantidadStr = typeof cantidadValor === 'string' ? cantidadValor : String(cantidadValor);
+      this.currentStock = parseFloat(cantidadStr) || 0;
+    } else {
+      this.currentStock = 0;
+    }
+  }
+
+  checkExchangeStatus(): void {
+    if (!this.selectedConversationId) return;
+    
+    this.chatService.getExchangeStatus(this.selectedConversationId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.exchangeStatus = res.hasRequest ? res.exchange : null;
+          this.lastCompletedExchange = res.lastCompleted || null;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => console.error('Error checking exchange status:', err)
+    });
+  }
+
+  openExchangeModal(): void {
+    if (!this.isBuyer) {
+      this.error = 'Solo el comprador puede iniciar una solicitud de intercambio';
+      setTimeout(() => this.error = '', 3000);
       return;
     }
     
-    // Solo marcar mensajes que NO son míos y NO están leídos
+    if (this.exchangeStatus) {
+      this.error = 'Ya hay una solicitud de intercambio en curso';
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+    
+    this.showExchangeModal = true;
+  }
+
+  closeExchangeModal(): void {
+    this.showExchangeModal = false;
+    this.exchangeData = { kg: 0, price: 0, notes: '' };
+  }
+
+  calculateImpact(): number {
+    const kg = this.exchangeData.kg || 0;
+    return kg * 2.5;
+  }
+
+  requestExchange(): void {
+    if (!this.selectedConversationId || !this.currentConversation) return;
+    
+    if (this.exchangeData.kg <= 0) {
+      this.error = 'Por favor, ingresá la cantidad en kg';
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+    
+    if (this.exchangeData.kg > this.currentStock) {
+      this.error = `Stock insuficiente. Solo hay ${this.currentStock}kg disponibles`;
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+    
+    const data = {
+      conversationId: this.selectedConversationId,
+      publicationId: this.currentConversation.publication_id,
+      sellerId: this.currentConversation.vendedor?.id,
+      kg: this.exchangeData.kg,
+      price: this.exchangeData.price,
+      notes: this.exchangeData.notes
+    };
+    
+    this.chatService.requestExchange(data).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.closeExchangeModal();
+          this.successMessage = res.message;
+          setTimeout(() => this.successMessage = '', 5000);
+          this.checkExchangeStatus();
+          this.loadConversation(this.selectedConversationId!);
+        }
+      },
+      error: (err) => {
+        console.error('Error requesting exchange:', err);
+        this.error = err.error?.message || 'Error al enviar la solicitud';
+        setTimeout(() => this.error = '', 5000);
+      }
+    });
+  }
+
+  respondToExchange(exchangeId: string, action: 'aceptar' | 'rechazar'): void {
+    this.chatService.respondToExchange(exchangeId, action).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.successMessage = res.message;
+          setTimeout(() => this.successMessage = '', 5000);
+          this.checkExchangeStatus();
+          this.loadConversation(this.selectedConversationId!);
+          
+          this.chatService.getConversation(this.selectedConversationId!).subscribe({
+            next: (convRes) => {
+              if (convRes.success && convRes.data) {
+                this.currentConversation = convRes.data;
+                if (this.currentConversation?.publication?.cantidad) {
+                  const cantidadValor = this.currentConversation.publication.cantidad;
+                  const cantidadStr = typeof cantidadValor === 'string' ? cantidadValor : String(cantidadValor);
+                  this.currentStock = parseFloat(cantidadStr) || 0;
+                } else {
+                  this.currentStock = 0;
+                }
+                this.cdr.detectChanges();
+              }
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error responding to exchange:', err);
+        this.error = err.error?.message || 'Error al procesar la solicitud';
+        setTimeout(() => this.error = '', 5000);
+      }
+    });
+  }
+
+  markMessagesAsRead(conversationId: string): void {
+    if (!this.currentConversation || !this.currentConversation.mensajes) {
+      return;
+    }
+    
     const unreadMessages = this.currentConversation.mensajes
       .filter(m => !m.read && m.remitenteId !== this.currentUserId)
       .map(m => m.id);
     
-    console.log('📊 Mensajes sin leer encontrados:', unreadMessages);
-    
     if (unreadMessages.length > 0) {
-      console.log('👁️ Enviando markAsRead al servidor:', unreadMessages);
-      
-      // Enviar al servidor a través de WebSocket
       this.webSocketService.markAsRead(conversationId, unreadMessages);
       
-      // Actualizar localmente inmediatamente para feedback visual
       this.currentConversation.mensajes = this.currentConversation.mensajes.map(msg => {
         if (unreadMessages.includes(msg.id)) {
-          console.log(`✅ Marcando mensaje ${msg.id} como leído localmente`);
           return { ...msg, read: true };
         }
         return msg;
       });
       
-      // Actualizar badge en el sidebar
       this.conversations = this.conversations.map(conv => {
         if (conv.id === conversationId) {
           return { ...conv, no_leidos: 0 };
@@ -469,17 +545,12 @@ export class ChatComponent implements OnInit, OnDestroy {
         return conv;
       });
       
-      // Forzar detección de cambios para actualizar la UI
       this.cdr.detectChanges();
-    } else {
-      console.log('📊 No hay mensajes sin leer para marcar');
     }
   }
 
   sendMessage(): void {
-    // Si la conversación fue eliminada por el otro, no enviar
     if (this.conversationDeletedByOther) {
-      console.log('🚫 No se puede enviar: conversación eliminada por el otro usuario');
       return;
     }
     
@@ -488,7 +559,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     const content = this.newMessage;
     this.newMessage = '';
 
-    console.log('📤 Enviando mensaje:', content);
     this.webSocketService.sendMessage(this.selectedConversationId, content);
   }
 
@@ -546,7 +616,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.conversationToDelete = null;
   }
 
-  // ================= EMOJI PICKER =================
   toggleEmojiPicker(): void {
     this.showEmojiPicker = !this.showEmojiPicker;
   }
@@ -564,7 +633,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     }, 50);
   }
 
-  // ================= HEADER CHAT META =================
   getUserType(): string {
     if (!this.currentConversation) return '';
     
@@ -585,7 +653,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ================= PUBLICACIÓN =================
   getContactMessage(): string {
     if (!this.currentConversation) return '';
     
@@ -596,7 +663,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ================= MENSAJES DE ADVERTENCIA =================
   getWarningMessage(): { title: string; message: string; suggestion: string } {
     if (!this.currentConversation) {
       return {
@@ -606,20 +672,16 @@ export class ChatComponent implements OnInit, OnDestroy {
       };
     }
 
-    // Determinar quién es el usuario actual
     const soyComprador = this.currentConversation.comprador?.id === this.currentUserId;
     const soyVendedor = this.currentConversation.vendedor?.id === this.currentUserId;
     
-    // Si el otro usuario eliminó (deleted_by_other = true)
     if (soyComprador) {
-      // Soy comprador, entonces el que eliminó es el VENDEDOR
       return {
         title: 'El vendedor cerró la conversación',
         message: 'El vendedor eliminó esta conversación de su lista. No puedes enviar más mensajes.',
         suggestion: 'Si aún estás interesado, puedes volver a contactarlo desde su publicación.'
       };
     } else if (soyVendedor) {
-      // Soy vendedor, entonces el que eliminó es el COMPRADOR
       return {
         title: 'El comprador cerró la conversación',
         message: 'El comprador eliminó esta conversación de su lista. No puedes enviar más mensajes.',
@@ -627,7 +689,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       };
     }
     
-    // Mensaje por defecto (fallback)
     return {
       title: 'Conversación cerrada',
       message: 'El otro usuario eliminó esta conversación. No puedes enviar más mensajes.',
@@ -635,11 +696,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     };
   }
 
-  // ================= DROPDOWN DEL HEADER =================
   toggleHeaderDropdown(event: Event): void {
     event.stopPropagation();
     this.showHeaderDropdown = !this.showHeaderDropdown;
-    console.log('Dropdown toggled:', this.showHeaderDropdown);
     this.cdr.detectChanges();
   }
 
@@ -647,7 +706,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.showHeaderDropdown = false;
   }
 
-  // ================= MODAL DE PERFIL =================
   viewProfile(): void {
     const otherUser = this.getOtherUser();
     if (!otherUser.id) return;
@@ -656,13 +714,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.showHeaderDropdown = false;
     this.miniMapInitialized = false;
     
-    // Limpiar mapa anterior si existe
     if (this.miniMap) {
       this.miniMap.remove();
       this.miniMap = null;
     }
     
-    // Datos básicos mientras se cargan los completos
     this.selectedUserProfile = {
       id: otherUser.id,
       nombre: otherUser.nombre,
@@ -677,29 +733,21 @@ export class ChatComponent implements OnInit, OnDestroy {
     
     this.showProfileModal = true;
     
-    // Obtener ubicación del usuario desde /users/map/locations
     this.chatService.getUserLocations().subscribe({
       next: (response) => {
         if (response?.success && response.data) {
-          // Buscar el usuario específico en la lista de ubicaciones
           const userLocation = response.data.find((u: any) => u.id === otherUser.id);
           
           if (userLocation && userLocation.coordinates) {
-            console.log('📍 Coordenadas encontradas:', userLocation.coordinates);
             this.selectedUserProfile = {
               ...this.selectedUserProfile,
               coordinates: userLocation.coordinates,
               ubicacion_texto: userLocation.ubicacion_texto || this.selectedUserProfile.ubicacion_texto
             };
-            
-            // Inicializar el mapa
             setTimeout(() => this.initializeMiniMap(), 200);
-          } else {
-            console.log('⚠️ Usuario sin coordenadas');
           }
         }
         
-        // Ahora obtener el resto de datos del perfil (email, teléfono, etc)
         this.chatService.getUserProfile(otherUser.id).subscribe({
           next: (profileResponse) => {
             if (profileResponse?.success && profileResponse.data) {
@@ -715,16 +763,13 @@ export class ChatComponent implements OnInit, OnDestroy {
             this.isLoadingProfile = false;
             this.cdr.detectChanges();
           },
-          error: (err) => {
-            console.error('Error cargando perfil:', err);
+          error: () => {
             this.isLoadingProfile = false;
             this.cdr.detectChanges();
           }
         });
       },
-      error: (err) => {
-        console.error('Error cargando ubicación:', err);
-        // Si falla la ubicación, igual intentamos obtener el perfil
+      error: () => {
         this.chatService.getUserProfile(otherUser.id).subscribe({
           next: (profileResponse) => {
             if (profileResponse?.success && profileResponse.data) {
@@ -761,7 +806,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   initializeMiniMap(): void {
     if (!this.selectedUserProfile?.coordinates?.lat || !this.selectedUserProfile?.coordinates?.lng) {
-      console.log('No hay coordenadas para mostrar el mapa');
       return;
     }
     
@@ -771,25 +815,19 @@ export class ChatComponent implements OnInit, OnDestroy {
       const mapContainer = document.getElementById('profileMiniMap');
       if (mapContainer && !this.miniMapInitialized) {
         const { lat, lng } = this.selectedUserProfile.coordinates;
-        console.log('Inicializando mapa en:', lat, lng);
         
         this.miniMap = L.map(mapContainer).setView([lat, lng], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; OpenStreetMap contributors'
         }).addTo(this.miniMap);
-        
-        // Agregar marcador
         L.marker([lat, lng]).addTo(this.miniMap);
         
         this.miniMapInitialized = true;
-        
-        // Forzar actualización del tamaño del mapa
         setTimeout(() => this.miniMap?.invalidateSize(), 100);
       }
     }, 200);
   }
 
-  // ================= ELIMINAR DESDE HEADER =================
   deleteConversationFromHeader(): void {
     this.showHeaderDropdown = false;
     if (this.selectedConversationId) {
@@ -800,7 +838,18 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ================= HELPERS =================
+  goToFullProfile(): void {
+    const userId = this.selectedUserProfile?.id;
+
+    if (userId) {
+      this.closeProfileModal();
+      setTimeout(() => {
+        this.router.navigate(['/profile', userId]);
+      }, 100);
+    } else {
+      console.error('Probando: No hay ID de usuario para redirigir');
+    }
+  }
 
   getAvatarSrc(avatarUrl: string | null | undefined): string {
     if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== '') {
@@ -812,7 +861,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   handleConversationImageError(event: Event, conversation: any): void {
     const img = event.target as HTMLImageElement;
     img.src = '/assets/default-avatar.png';
-
     if (conversation?.otro_usuario) {
       conversation.otro_usuario.avatar = '/assets/default-avatar.png';
     }
@@ -821,7 +869,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   handleMessageImageError(event: Event, message: any): void {
     const img = event.target as HTMLImageElement;
     img.src = '/assets/default-avatar.png';
-
     if (message) {
       message.avatar = '/assets/default-avatar.png';
     }
@@ -898,10 +945,8 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   formatTime(dateString: string): string {
     if (!dateString) return '';
-
     const date = new Date(dateString);
     date.setHours(date.getHours() - 3);
-
     return date.toLocaleTimeString('es-AR', {
       hour: '2-digit',
       minute: '2-digit',
@@ -911,17 +956,14 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   formatDate(dateString: string): string {
     if (!dateString) return '';
-
     const date = new Date(dateString);
     const argentinaDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
-
     const today = new Date();
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
 
     if (argentinaDate.toDateString() === today.toDateString()) return 'Hoy';
     if (argentinaDate.toDateString() === yesterday.toDateString()) return 'Ayer';
-
     return argentinaDate.toLocaleDateString('es-AR');
   }
 

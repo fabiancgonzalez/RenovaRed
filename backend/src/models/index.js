@@ -49,8 +49,12 @@ User.hasMany(Exchange, { foreignKey: 'buyer_id', as: 'intercambios_comprados' })
 User.hasMany(Exchange, { foreignKey: 'seller_id', as: 'intercambios_vendidos' });
 
 // Publication - Exchanges
-Publication.hasMany(Exchange, { foreignKey: 'publication_id' });
-Exchange.belongsTo(Publication, { foreignKey: 'publication_id' });
+Publication.hasMany(Exchange, { foreignKey: 'publication_id', as: 'exchanges' });
+Exchange.belongsTo(Publication, { foreignKey: 'publication_id', as: 'publication' });
+
+// Exchange - Conversation
+Exchange.belongsTo(Conversation, { foreignKey: 'conversation_id', as: 'conversation' });
+Conversation.hasOne(Exchange, { foreignKey: 'conversation_id', as: 'exchange' });
 
 module.exports = {
   sequelize,

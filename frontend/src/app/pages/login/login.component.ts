@@ -52,7 +52,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     const token = localStorage.getItem('token');
     if (token) {
-      this.router.navigate(['/marketplace'], { replaceUrl: true });
+      this.router.navigate(['/inicio'], { replaceUrl: true });
       return;
     }
 
@@ -208,7 +208,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     this.loading = false;
 
     setTimeout(() => {
-      this.router.navigate(['/marketplace'], { replaceUrl: true });
+      this.router.navigate(['/inicio'], { replaceUrl: true });
     }, 1500);
   }
 

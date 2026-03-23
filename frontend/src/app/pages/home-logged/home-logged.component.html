@@ -1,0 +1,244 @@
+<div class="home-logged">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <span class="badge-icon">♻️</span>
+          <span>Bienvenido de vuelta, {{ userName }}</span>
+        </div>
+        <h1 class="hero-title">
+          <span class="gradient-text">{{ userName }}</span>
+          <br>
+          <span class="hero-sub">Tu impacto en la economía circular</span>
+        </h1>
+        <p class="hero-description">
+          Cada material que compartís, cada intercambio que realizás, contribuye a un futuro más sostenible.
+          Seguí conectando con la red y transformando residuos en recursos.
+        </p>
+        <div class="hero-actions">
+          <a routerLink="/marketplace" class="btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            Publicar material
+          </a>
+          <a routerLink="/maps" class="btn-secondary">
+            <i class="fa-solid fa-map-location-dot"></i>
+            Explorar mapa
+          </a>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-card-large" *ngFor="let stat of heroStats">
+          <div class="stat-icon" [style.background]="stat.color + '20'">
+            <i class="fa-solid {{ stat.icon }}" [style.color]="stat.color"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">{{ stat.label }}</span>
+            <strong class="stat-value">{{ stat.value }}</strong>
+            <span class="stat-trend">
+              <i class="fa-solid fa-chart-line"></i>
+              esta semana
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-background">
+      <div class="blob-1"></div>
+      <div class="blob-2"></div>
+      <div class="blob-3"></div>
+    </div>
+  </section>
+
+  <!-- Stats Grid Prueba de mejora -->
+  <section class="stats-section">
+    <div class="section-header">
+      <h2>Tu actividad en números</h2>
+      <p>Métrica clave de tu participación en la red</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card" *ngFor="let stat of personalStats">
+        <div class="stat-icon-small" [style.background]="stat.color + '10'">
+          <i class="fa-solid {{ stat.icon }}" [style.color]="stat.color"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value-large">{{ stat.value }}</span>
+          <span class="stat-label-small">{{ stat.label }}</span>
+        </div>
+        <div class="stat-progress" *ngIf="stat.progress !== undefined">
+          <div class="progress-bar" [style.width]="stat.progress + '%'"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Noticias de Medio Ambiente -->
+  <section class="news-section">
+    <div class="section-header">
+      <h2>Noticias de Economía Circular</h2>
+      <p>Mantente informado sobre las últimas tendencias y novedades</p>
+    </div>
+    <div class="news-grid">
+      <div class="news-card" *ngFor="let news of environmentalNews; let i = index" [style.animation-delay]="(i * 0.1) + 's'">
+        <div class="news-image">
+          <img [src]="news.image" [alt]="news.title">
+          <div class="news-category">{{ news.category }}</div>
+        </div>
+        <div class="news-content">
+          <h3>{{ news.title }}</h3>
+          <p>{{ news.description }}</p>
+          <div class="news-meta">
+            <span class="news-date">
+              <i class="fa-regular fa-calendar"></i>
+              {{ news.date }}
+            </span>
+            <a [href]="news.link" target="_blank" class="news-link">
+              Leer más <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feed y Actividad -->
+  <div class="content-grid">
+    <!-- Feed de novedades de la red (actividad global) -->
+    <section class="feed-section">
+      <div class="section-header">
+        <h2>Actividad en la red</h2>
+        <a routerLink="/marketplace" class="view-all">Ver todas →</a>
+      </div>
+
+      @if (isLoadingGlobalActivity) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando actividad...</p>
+        </div>
+      } @else if (globalActivity.length === 0) {
+        <div class="empty-feed">
+          <i class="fa-regular fa-bell-slash"></i>
+          <p>Todavía no hay actividad</p>
+          <p class="empty-hint">Publicá tu primer material para comenzar</p>
+        </div>
+      } @else {
+        <div class="feed-list">
+          @for (act of globalActivity; track $index) {
+            <div class="feed-item" [style.animation-delay]="($index * 0.05) + 's'">
+              <div class="feed-icon" [ngClass]="getGlobalActivityClass(act.tipo)">
+                <i class="fa-solid {{ getGlobalActivityIcon(act.tipo) }}"></i>
+              </div>
+              <div class="feed-content">
+                <div class="feed-header">
+                  <strong>{{ act.tipo === 'usuario' ? 'Nuevo usuario' : 'Nueva publicación' }}</strong>
+                  <span class="feed-time">{{ act.fecha | date:'short' }}</span>
+                </div>
+                <p class="feed-description">{{ act.texto }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Acciones rápidas y tips -->
+    <aside class="sidebar-actions">
+      <div class="quick-actions-card">
+        <h3>Acciones rápidas</h3>
+        <div class="actions-list">
+          <a routerLink="/marketplace" class="action-item">
+            <i class="fa-solid fa-plus-circle"></i>
+            <div>
+              <strong>Publicar material</strong>
+              <p>Compartí lo que tenés para reciclar</p>
+            </div>
+          </a>
+          <a routerLink="/chat" class="action-item">
+            <i class="fa-regular fa-message"></i>
+            <div>
+              <strong>Mensajes</strong>
+              <p>{{ userStats.messagesUnread }} mensajes sin leer</p>
+            </div>
+          </a>
+          <a routerLink="/maps" class="action-item">
+            <i class="fa-solid fa-map"></i>
+            <div>
+              <strong>Mapa de actores</strong>
+              <p>Encontrá actores cerca de vos</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Tarjeta de tips -->
+      <div class="tip-card">
+        <div class="tip-icon" [@pulseIcon]="tipPulse">
+          <i class="fa-regular fa-lightbulb"></i>
+        </div>
+        <h4>¿Sabías que?</h4>
+        
+        <div class="tip-carousel">
+          <div class="tip-slide" [@tipAnimation]="currentTipIndex">
+            <p class="tip-text">{{ currentTip.text }}</p>
+            <span class="tip-source">🌱 {{ currentTip.source }}</span>
+          </div>
+        </div>
+        
+        <div class="tip-dots">
+          <div 
+            *ngFor="let tip of tipsList; let i = index" 
+            class="tip-dot" 
+            [class.active]="currentTipIndex === i"
+            (click)="goToTip(i)">
+          </div>
+        </div>
+        
+        <div class="tip-nav">
+          <button class="tip-nav-btn" (click)="prevTip()">
+            <i class="fa-solid fa-chevron-left"></i> Anterior
+          </button>
+          <button class="tip-nav-btn" (click)="nextTip()">
+            Siguiente <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Goal Card -->
+      <div class="goal-card">
+        <div class="goal-icon" [@pulseIcon]="goalPulse">
+          <i class="fa-solid fa-bullseye"></i>
+        </div>
+        <h4>Próximo objetivo</h4>
+        <div class="goal-progress">
+          <div class="goal-bar" [style.width]="goalProgress + '%'"></div>
+        </div>
+        <div class="goal-stats">
+          <span>{{ goalCurrent }} kg</span>
+          <span>{{ goalTarget }} kg</span>
+        </div>
+        <p class="goal-text">Llevás {{ goalProgress }}% de tu meta mensual</p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Cómo usar la web -->
+  <section class="guide-section">
+    <div class="section-header">
+      <h2>Cómo funciona RenovaRed</h2>
+      <p>Cuatro pasos para empezar a transformar residuos en recursos</p>
+    </div>
+    <div class="guide-steps">
+      <div class="guide-step" *ngFor="let step of guideSteps; let i = index" [style.animation-delay]="(i * 0.15) + 's'">
+        <div class="step-number">{{ i + 1 }}</div>
+        <div class="step-icon" [style.background]="step.color + '20'">
+          <i class="fa-solid {{ step.icon }}" [style.color]="step.color"></i>
+        </div>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.description }}</p>
+        <a [routerLink]="step.link" class="step-link">
+          {{ step.linkText }} <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>

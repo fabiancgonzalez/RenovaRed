@@ -1,10 +1,10 @@
 import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
-
-
+import { environment } from '../../../environments/environment';
 
 interface UserProfile {
   id: string;
@@ -22,6 +22,14 @@ interface UserProfile {
   last_login?: string;
   created_at?: string;
   updated_at?: string;
+  bio?: string;
+  website?: string;
+  instagram?: string;
+  facebook?: string;
+  linkedin?: string;
+  x_handle?: string;
+  puntos?: number;
+  reputacion?: number | string;
 }
 
 interface ApiResponse<T> {
@@ -32,18 +40,22 @@ interface ApiResponse<T> {
 
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
-export class ProfileComponent implements OnInit {
-  @ViewChild('profileMapContainer') profileMapContainer?: ElementRef<HTMLDivElement>;
+export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
+  @ViewChild('profileMapEdit') profileMapEdit?: ElementRef<HTMLDivElement>;
+  @ViewChild('profileMapView') profileMapView?: ElementRef<HTMLDivElement>;
 
-  private readonly profileUrl = 'http://localhost:3000/api/profile';
-  private profileMap?: L.Map;
-  private profileMarker?: L.Marker;
+  private readonly profileUrl = `${environment.apiUrl}/profile`;
+  private editMap?: L.Map;
+  private editMarker?: L.Marker;
+  private viewMap?: L.Map;
 
   profile: UserProfile | null = null;
+  isOwnProfile = true;
+  userId: string | null = null;
   isLoading = false;
   isSavingProfile = false;
   isChangingPassword = false;
@@ -53,11 +65,9 @@ export class ProfileComponent implements OnInit {
   passwordMessage = '';
   passwordError = '';
 
-  isEditing = false;
-  showPasswordForm = false;
+  activeTab: 'profile' | 'edit' | 'password' = 'profile';
 
   token = '';
-  tokenInput = '';
 
   editForm = {
     nombre: '',
@@ -65,7 +75,13 @@ export class ProfileComponent implements OnInit {
     avatar_url: '',
     ubicacion_texto: '',
     latitud: '',
-    longitud: ''
+    longitud: '',
+    bio: '',
+    website: '',
+    instagram: '',
+    facebook: '',
+    linkedin: '',
+    x_handle: ''
   };
 
   passwordForm = {
@@ -76,36 +92,44 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private readonly http: HttpClient,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly route: ActivatedRoute
   ) {}
-
-  ngAfterViewChecked(): void {
-    if (!this.isEditing || this.profileMap || !this.profileMapContainer) {
-      return;
-    }
-
-    this.initializeProfileMap();
-  }
-
-  ngOnDestroy(): void {
-    this.profileMap?.remove();
-  }
 
   ngOnInit(): void {
     this.token = this.getStoredToken();
-    this.tokenInput = this.token;
-    if (this.token) {
-      this.loadProfile();
+    this.userId = this.route.snapshot.params['id'];
+    
+    if (this.userId) {
+      this.isOwnProfile = false;
+      this.loadUserProfile(this.userId);
+    } else {
+      this.isOwnProfile = true;
+      if (this.token) {
+        this.loadProfile();
+      } else {
+        this.router.navigate(['/login']);
+      }
     }
   }
 
+  ngAfterViewChecked(): void {
+    if (this.activeTab === 'profile' && this.profile?.coordinates && !this.viewMap && this.profileMapView?.nativeElement) {
+      setTimeout(() => this.initializeViewMap(), 100);
+    }
+    
+    if (this.activeTab === 'edit' && !this.editMap && this.profileMapEdit?.nativeElement) {
+      setTimeout(() => this.initializeEditMap(), 100);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.editMap?.remove();
+    this.viewMap?.remove();
+  }
+
   private getStoredToken(): string {
-    return (
-      localStorage.getItem('token') ||
-      localStorage.getItem('accessToken') ||
-      localStorage.getItem('authToken') ||
-      ''
-    );
+    return localStorage.getItem('token') || '';
   }
 
   private authHeaders(): HttpHeaders {
@@ -114,24 +138,10 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  saveTokenAndLoad(): void {
-    const cleaned = this.tokenInput.trim();
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    if (!cleaned) {
-      this.errorMessage = 'Ingresá un token JWT para cargar el perfil';
-      return;
-    }
-
-    this.token = cleaned;
-    localStorage.setItem('token', cleaned);
-    this.loadProfile();
-  }
-
   loadProfile(): void {
     if (!this.token) {
-      this.errorMessage = 'No hay token para consultar el perfil';
+      this.errorMessage = 'No hay sesión iniciada';
+      this.router.navigate(['/login']);
       return;
     }
 
@@ -149,6 +159,32 @@ export class ProfileComponent implements OnInit {
         this.isLoading = false;
         this.profile = null;
         this.errorMessage = error?.error?.message || 'No se pudo cargar el perfil';
+        if (error?.status === 401) {
+          this.router.navigate(['/login']);
+        }
+      }
+    });
+  }
+
+  loadUserProfile(userId: string): void {
+    if (!this.token) {
+      this.errorMessage = 'No hay sesión iniciada';
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.http.get<ApiResponse<UserProfile>>(`${this.profileUrl}/${userId}`, { headers: this.authHeaders() }).subscribe({
+      next: (response) => {
+        this.profile = response.data || null;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.profile = null;
+        this.errorMessage = error?.error?.message || 'No se pudo cargar el perfil del usuario';
       }
     });
   }
@@ -160,28 +196,39 @@ export class ProfileComponent implements OnInit {
       avatar_url: this.profile?.avatar_url || '',
       ubicacion_texto: this.profile?.ubicacion_texto || '',
       latitud: this.profile?.coordinates?.lat?.toString() || '',
-      longitud: this.profile?.coordinates?.lng?.toString() || ''
+      longitud: this.profile?.coordinates?.lng?.toString() || '',
+      bio: this.profile?.bio || '',
+      website: this.profile?.website || '',
+      instagram: this.profile?.instagram || '',
+      facebook: this.profile?.facebook || '',
+      linkedin: this.profile?.linkedin || '',
+      x_handle: this.profile?.x_handle || ''
     };
   }
 
-  togglePasswordForm(): void {
-    this.showPasswordForm = !this.showPasswordForm;
-    this.passwordError = '';
-    this.passwordMessage = '';
+  copyToClipboard(text: string): void {
+    navigator.clipboard.writeText(text).then(() => {
+      this.successMessage = '¡Copiado al portapapeles!';
+      setTimeout(() => this.successMessage = '', 2000);
+    }).catch(() => {
+      this.errorMessage = 'No se pudo copiar';
+      setTimeout(() => this.errorMessage = '', 2000);
+    });
   }
 
-  startEdit(): void {
-    this.isEditing = true;
-    this.destroyProfileMap();
-    this.fillEditForm();
+  switchTab(tab: 'profile' | 'edit' | 'password'): void {
+    this.activeTab = tab;
     this.errorMessage = '';
     this.successMessage = '';
-  }
-
-  cancelEdit(): void {
-    this.isEditing = false;
-    this.destroyProfileMap();
-    this.fillEditForm();
+    this.passwordError = '';
+    this.passwordMessage = '';
+    
+    if (tab === 'edit') {
+      this.fillEditForm();
+      setTimeout(() => this.initializeEditMap(), 100);
+    } else if (tab === 'profile') {
+      setTimeout(() => this.initializeViewMap(), 100);
+    }
   }
 
   saveProfile(): void {
@@ -202,21 +249,25 @@ export class ProfileComponent implements OnInit {
     const payload = {
       nombre: this.editForm.nombre.trim(),
       telefono: this.editForm.telefono.trim(),
-      email: this.profile?.email || '',
       avatar_url: this.editForm.avatar_url.trim(),
       ubicacion_texto: this.editForm.ubicacion_texto.trim(),
       latitud: this.editForm.latitud.trim(),
-      longitud: this.editForm.longitud.trim()
+      longitud: this.editForm.longitud.trim(),
+      bio: this.editForm.bio.trim(),
+      website: this.editForm.website.trim(),
+      instagram: this.editForm.instagram.trim(),
+      facebook: this.editForm.facebook.trim(),
+      linkedin: this.editForm.linkedin.trim(),
+      x_handle: this.editForm.x_handle.trim()
     };
 
     this.http.put<ApiResponse<UserProfile>>(this.profileUrl, payload, { headers: this.authHeaders() }).subscribe({
       next: (response) => {
         this.isSavingProfile = false;
         this.profile = response.data || this.profile;
-        this.isEditing = false;
-        this.destroyProfileMap();
         this.successMessage = response.message || 'Perfil actualizado correctamente';
         this.fillEditForm();
+        this.switchTab('profile');
       },
       error: (error) => {
         this.isSavingProfile = false;
@@ -269,6 +320,9 @@ export class ProfileComponent implements OnInit {
             newPassword: '',
             confirmPassword: ''
           };
+          setTimeout(() => {
+            this.switchTab('profile');
+          }, 2000);
         },
         error: (error) => {
           this.isChangingPassword = false;
@@ -279,120 +333,183 @@ export class ProfileComponent implements OnInit {
 
   clearSession(): void {
     localStorage.removeItem('token');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('authToken');
     this.token = '';
     this.profile = null;
     this.passwordError = '';
     this.passwordMessage = '';
-    this.successMessage = 'Sesión local cerrada';
-    void this.router.navigate(['/login']);
+    this.successMessage = 'Sesión cerrada';
+    this.router.navigate(['/login']);
   }
 
   formatDate(dateValue?: string): string {
-    if (!dateValue) {
-      return 'N/A';
-    }
+    if (!dateValue) return 'N/A';
     const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) {
-      return 'N/A';
-    }
+    if (isNaN(date.getTime())) return 'N/A';
     return date.toLocaleString();
   }
 
+  getAvatarSrc(avatarUrl: string | null | undefined): string {
+    if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== '') {
+      return avatarUrl;
+    }
+    return '/assets/default-avatar.png';
+  }
+
+  getTipoIcon(tipo: string): string {
+    const icons: Record<string, string> = {
+      'Cooperativa': 'fa-handshake',
+      'Recicladora': 'fa-recycle',
+      'Emprendedor': 'fa-chart-line',
+      'Persona': 'fa-user',
+      'Admin': 'fa-crown'
+    };
+    return icons[tipo] || 'fa-user';
+  }
+
+  getTipoColor(tipo: string): string {
+    const colors: Record<string, string> = {
+      'Cooperativa': '#22C55E',
+      'Recicladora': '#3B82F6',
+      'Emprendedor': '#F59E0B',
+      'Persona': '#8B5CF6',
+      'Admin': '#EF4444'
+    };
+    return colors[tipo] || '#9CA3AF';
+  }
+
+  formatReputacion(reputacion?: number | string): string {
+    if (!reputacion) return 'Nueva';
+    const num = typeof reputacion === 'string' ? parseFloat(reputacion) : reputacion;
+    if (isNaN(num)) return 'Nueva';
+    return num.toFixed(1);
+  }
+
+  getReputacionStars(reputacion?: number | string): number[] {
+    const stars = [];
+    const num = typeof reputacion === 'string' ? parseFloat(reputacion) : (reputacion || 0);
+    const fullStars = Math.floor(num);
+    const hasHalf = num - fullStars >= 0.5;
+    
+    for (let i = 0; i < fullStars; i++) stars.push(1);
+    if (hasHalf) stars.push(0.5);
+    while (stars.length < 5) stars.push(0);
+    
+    return stars;
+  }
+
+  hasReputacion(): boolean {
+    if (!this.profile?.reputacion) return false;
+    const num = typeof this.profile.reputacion === 'string' 
+      ? parseFloat(this.profile.reputacion) 
+      : this.profile.reputacion;
+    return !isNaN(num) && num > 0;
+  }
 
   onImageSelected(event: Event): void {
-  const input = event.target as HTMLInputElement;
-  if (!input.files?.length) return;
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
 
-  const file = input.files[0];
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    this.editForm.avatar_url = reader.result as string;
-  };
-  reader.readAsDataURL(file);
-}
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.editForm.avatar_url = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
 
   onCoordinatesInputChange(): void {
     const lat = Number(this.editForm.latitud);
     const lng = Number(this.editForm.longitud);
 
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      return;
-    }
+    if (!isFinite(lat) || !isFinite(lng)) return;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
 
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      return;
-    }
-
-    this.updateMapMarker(lat, lng, true);
+    this.updateEditMarker(lat, lng, true);
   }
 
-  private initializeProfileMap(): void {
-    if (!this.profileMapContainer) {
-      return;
+  private initializeViewMap(): void {
+    if (!this.profileMapView?.nativeElement || !this.profile?.coordinates) return;
+    
+    if (this.viewMap) {
+      this.viewMap.remove();
+      this.viewMap = undefined;
     }
+    
+    const { lat, lng } = this.profile.coordinates;
+    this.viewMap = L.map(this.profileMapView.nativeElement).setView([lat, lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(this.viewMap);
+    L.marker([lat, lng]).addTo(this.viewMap);
+    setTimeout(() => this.viewMap?.invalidateSize(), 100);
+  }
 
+  private initializeEditMap(): void {
+    if (!this.profileMapEdit?.nativeElement) return;
+    
+    if (this.editMap) {
+      this.editMap.remove();
+      this.editMap = undefined;
+      this.editMarker = undefined;
+    }
+    
     const lat = Number(this.editForm.latitud);
     const lng = Number(this.editForm.longitud);
-    const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
+    const hasCoordinates = isFinite(lat) && isFinite(lng) && (lat !== 0 || lng !== 0);
     const initialCenter: L.LatLngTuple = hasCoordinates ? [lat, lng] : [-31.413865, -64.183882];
 
-    this.profileMap = L.map(this.profileMapContainer.nativeElement, {
+    this.editMap = L.map(this.profileMapEdit.nativeElement, {
       zoomControl: true,
       attributionControl: true
     }).setView(initialCenter, hasCoordinates ? 14 : 5);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(this.profileMap);
+    }).addTo(this.editMap);
 
-    this.profileMap.on('click', (event: L.LeafletMouseEvent) => {
-      this.updateMapMarker(event.latlng.lat, event.latlng.lng, false);
+    this.editMap.on('click', (event: L.LeafletMouseEvent) => {
+      this.updateEditMarker(event.latlng.lat, event.latlng.lng, false);
     });
 
     if (hasCoordinates) {
-      this.updateMapMarker(lat, lng, false);
+      this.updateEditMarker(lat, lng, false);
     }
 
-    setTimeout(() => this.profileMap?.invalidateSize(), 0);
+    setTimeout(() => this.editMap?.invalidateSize(), 0);
   }
 
-  private updateMapMarker(lat: number, lng: number, shouldCenter: boolean): void {
-    if (!this.profileMap) {
-      return;
-    }
+  private updateEditMarker(lat: number, lng: number, shouldCenter: boolean): void {
+    if (!this.editMap) return;
 
     const position: L.LatLngTuple = [lat, lng];
 
-    if (!this.profileMarker) {
-      this.profileMarker = L.marker(position, { draggable: true }).addTo(this.profileMap);
-      this.profileMarker.on('dragend', () => {
-        const markerPosition = this.profileMarker?.getLatLng();
-        if (!markerPosition) {
-          return;
-        }
-
+    if (!this.editMarker) {
+      this.editMarker = L.marker(position, { draggable: true }).addTo(this.editMap);
+      this.editMarker.on('dragend', () => {
+        const markerPosition = this.editMarker?.getLatLng();
+        if (!markerPosition) return;
         this.editForm.latitud = markerPosition.lat.toFixed(6);
         this.editForm.longitud = markerPosition.lng.toFixed(6);
       });
     } else {
-      this.profileMarker.setLatLng(position);
+      this.editMarker.setLatLng(position);
     }
 
     this.editForm.latitud = lat.toFixed(6);
     this.editForm.longitud = lng.toFixed(6);
 
     if (shouldCenter) {
-      this.profileMap.setView(position, Math.max(this.profileMap.getZoom(), 14));
+      this.editMap.setView(position, Math.max(this.editMap.getZoom(), 14));
     }
   }
 
-  private destroyProfileMap(): void {
-    this.profileMap?.remove();
-    this.profileMap = undefined;
-    this.profileMarker = undefined;
+  goBack(): void {
+    this.router.navigate(['/inicio']);
   }
 
+  contactUser(): void {
+    if (this.profile?.id) {
+      this.router.navigate(['/chat', this.profile.id]);
+    }
+  }
 }

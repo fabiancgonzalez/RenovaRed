@@ -125,15 +125,38 @@ export class ChatService {
     return this.http.delete(`${this.apiUrl}/conversations/${conversationId}/for-me`, { headers });
   }
 
-  // Método para obtener perfil de usuario
   getUserProfile(userId: string): Observable<any> {
     const headers = this.getAuthHeaders();
     return this.http.get(`${this.apiUrl}/users/${userId}`, { headers });
   }
 
-  // Método para obtener todas las ubicaciones de usuarios para el mapa
   getUserLocations(): Observable<any> {
     const headers = this.getAuthHeaders();
     return this.http.get(`${this.apiUrl}/users/map/locations`, { headers });
+  }
+
+  getExchangeStatus(conversationId: string): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get(`${this.apiUrl}/exchanges/conversation/${conversationId}/status`, { headers });
+  }
+
+  requestExchange(data: any): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post(`${this.apiUrl}/exchanges/request`, data, { headers });
+  }
+
+  respondToExchange(exchangeId: string, action: 'aceptar' | 'rechazar'): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post(`${this.apiUrl}/exchanges/${exchangeId}/respond/${action}`, {}, { headers });
+  }
+
+  getMyExchanges(): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get(`${this.apiUrl}/exchanges/me`, { headers });
+  }
+
+  getExchangeDetail(exchangeId: string): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get(`${this.apiUrl}/exchanges/${exchangeId}`, { headers });
   }
 }

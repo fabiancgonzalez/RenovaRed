@@ -105,3 +105,33 @@ exports.deleteForMe = async (req, res) => {
     });
   }
 };
+
+exports.getAllConversationsForAdmin = async (req, res) => {
+  try {
+    const { page = 1, limit = 3, filter = 'all', search = '' } = req.query;
+    const result = await conversationService.getAllConversationsForAdmin(page, limit, filter, search);
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('Error en getAllConversationsForAdmin:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error al obtener conversaciones',
+      error: error.message 
+    });
+  }
+};
+
+exports.deleteConversationPermanently = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await conversationService.deleteConversationPermanently(id);
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('Error en deleteConversationPermanently:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error al eliminar conversación',
+      error: error.message 
+    });
+  }
+};
