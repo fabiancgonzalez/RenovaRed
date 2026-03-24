@@ -9,7 +9,7 @@
             <a [class.active]= "view === 'users'" (click)="setView('users')">
                 <i class="fa-solid fa-users"></i> Usuarios
             </a>
-            <a>
+            <a [class.active]="view === 'materials'" (click)="setView('materials')">
                 <i class="fa-solid fa-cube"></i> Materiales
             </a>
             <a [class.active]= "view === 'messages'" (click)="setView('messages')">
@@ -285,5 +285,15 @@
             </div>
         }
     </div>
+
+    <div *ngIf="view === 'materials'" class="user-section">
+        <header class="topbar">
+            <h1>Mis Materiales</h1>
+            <p class="subtitle">Gestioná tus recursos y publicaciones</p>
+        </header>
+
+        <app-material-management></app-material-management>
+    </div>
+
 </main>
 </div>

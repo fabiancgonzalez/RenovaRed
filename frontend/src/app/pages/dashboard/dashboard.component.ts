@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MaterialManagementComponent } from '../material-management/material-management.component';
 
 interface DashboardData {
   metrics: {
@@ -29,7 +30,7 @@ interface DashboardData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
+  imports: [RouterLink, CommonModule, FormsModule, MaterialManagementComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
