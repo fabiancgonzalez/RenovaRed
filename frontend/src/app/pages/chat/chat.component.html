@@ -438,6 +438,15 @@
               La cantidad no puede superar el stock disponible ({{ currentStock }} kg)
             </small>
             <small class="hint-text">Podés intercambiar una parte del material</small>
+            <div class="quote-action-row">
+              <button class="quote-btn" (click)="calculateQuoteFromMaterial()" [disabled]="exchangeData.kg <= 0 || exchangeData.kg > currentStock || calculatingQuote">
+                @if (!calculatingQuote) {
+                  <span><i class="fa-solid fa-calculator"></i> Calcular precio con cotización</span>
+                } @else {
+                  <span><i class="fa-solid fa-spinner fa-spin"></i> Calculando...</span>
+                }
+              </button>
+            </div>
           </div>
           
           <div class="form-group">
@@ -461,6 +470,47 @@
               rows="3"></textarea>
           </div>
         </div>
+
+        @if (exchangeQuote) {
+          <div class="exchange-quote-card">
+            <div class="quote-line"><strong>Material cotizado:</strong> {{ exchangeQuote.material }}</div>
+            <div class="quote-line"><strong>Valor por kg:</strong> ${{ exchangeQuote.precioUnitarioArs }} ARS</div>
+            <div class="quote-line total-line"><strong>Total ({{ exchangeQuote.ks }} kg):</strong> ${{ exchangeQuote.precioTotalArs }} ARS</div>
+
+            @if (exchangeQuote.mpPayment?.initPoint) {
+              <div class="mp-payment-section">
+                <div class="quote-line"><strong>QR Mercado Pago:</strong></div>
+                <a [href]="exchangeQuote.mpPayment!.initPoint" target="_blank" rel="noopener" class="qr-link">
+                  <img class="exchange-qr" [src]="exchangeQuote.qrImageUrl" alt="QR dinámico Mercado Pago" />
+                </a>
+                <a class="mp-pay-btn" [href]="exchangeQuote.mpPayment!.initPoint" target="_blank" rel="noopener">
+                  <i class="fa-solid fa-credit-card"></i> Pagar con Mercado Pago
+                </a>
+                <button type="button" class="copy-transfer-btn" (click)="copyMercadoPagoLink()">
+                  Copiar link de pago
+                </button>
+                <small class="payment-status"
+                       [class.approved]="paymentStatusState === 'approved'"
+                       [class.error]="paymentStatusState === 'error'"
+                       [class.pending]="paymentStatusState === 'pending'"
+                       *ngIf="paymentStatusLabel">
+                  {{ paymentStatusLabel }}
+                </small>
+                <small class="hint-text">{{ exchangeQuote.qrMensaje }}</small>
+              </div>
+            } @else {
+              <div class="quote-line"><strong>QR de referencia:</strong></div>
+              <img class="exchange-qr" [src]="exchangeQuote.qrImageUrl" alt="QR de referencia del intercambio" />
+              <small class="error-text">{{ exchangeQuote.qrMensaje }}</small>
+            }
+
+            @if (exchangeQuote.paymentIntent) {
+              <div class="transfer-data">
+                <button type="button" class="copy-transfer-btn" (click)="copyTransferData()">Copiar datos de pago</button>
+              </div>
+            }
+          </div>
+        }
         
         <div class="exchange-impact">
           <i class="fa-solid fa-leaf"></i>

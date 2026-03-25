@@ -715,8 +715,22 @@
 
 /* ===== MODAL DE INTERCAMBIO ===== */
 .exchange-modal {
-  max-width: 500px;
-  width: 90%;
+  max-width: 440px;
+  width: 86%;
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.exchange-modal .modal-header,
+.exchange-modal .modal-footer {
+  flex-shrink: 0;
+}
+
+.exchange-modal .modal-body {
+  overflow-y: auto;
+  max-height: calc(82vh - 150px);
+  padding: 16px;
 }
 
 .exchange-info-card {
@@ -789,6 +803,178 @@
 .hint-text {
   color: #6B7280;
   font-size: 11px;
+}
+
+.quote-action-row {
+  margin-top: 8px;
+}
+
+.quote-btn {
+  width: 100%;
+  background: #2D3748;
+  color: #E5E7EB;
+  border: 1px solid #4B5563;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quote-btn:hover:not(:disabled) {
+  border-color: #22C55E;
+  color: #22C55E;
+}
+
+.quote-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.exchange-quote-card {
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quote-line {
+  color: #D1D5DB;
+  font-size: 13px;
+}
+
+.quote-line strong {
+  color: #F9FAFB;
+}
+
+.exchange-qr {
+  margin: 8px auto 4px;
+  width: 230px;
+  height: 230px;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid #2D3748;
+  background: white;
+  padding: 6px;
+}
+
+.qr-link {
+  display: inline-flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.wallet-buttons {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.wallet-btn {
+  background: #1E293B;
+  color: #E5E7EB;
+  border: 1px solid #4B5563;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wallet-btn:hover {
+  border-color: #22C55E;
+  color: #22C55E;
+}
+
+.mp-payment-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.mp-pay-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #009EE3;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.mp-pay-btn:hover {
+  background: #0082c0;
+}
+
+.payment-status {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.payment-status.pending {
+  color: #FCD34D;
+}
+
+.payment-status.approved {
+  color: #4ADE80;
+}
+
+.payment-status.error {
+  color: #F87171;
+}
+
+.total-line {
+  font-size: 14px !important;
+  font-weight: 700;
+  color: #22C55E !important;
+  border-top: 1px solid rgba(34, 197, 94, 0.25);
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+.total-line strong {
+  color: #4ADE80 !important;
+}
+
+.transfer-data {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(156, 163, 175, 0.35);
+}
+
+.copy-transfer-btn {
+  margin-top: 8px;
+  width: 100%;
+  background: rgba(34, 197, 94, 0.1);
+  color: #D1FAE5;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.copy-transfer-btn:hover {
+  background: rgba(34, 197, 94, 0.18);
 }
 
 .exchange-impact {
@@ -1855,7 +2041,18 @@
   }
   
   .exchange-modal {
-    width: 95%;
+    width: 92%;
+    max-height: 86vh;
+  }
+
+  .exchange-modal .modal-body {
+    max-height: calc(86vh - 145px);
+    padding: 14px;
+  }
+
+  .exchange-qr {
+    width: 130px;
+    height: 130px;
   }
   
   .header-dropdown {

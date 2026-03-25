@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ChatService, Conversation, ConversationDetail, Message } from '../../services/chat.service';
+import { ChatService, Conversation, ConversationDetail, ExchangeQuote, MercadoPagoPaymentStatus, Message } from '../../services/chat.service';
 import { WebSocketService } from '../../services/websocket.service';
 import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
@@ -60,12 +60,18 @@ export class ChatComponent implements OnInit, OnDestroy {
     price: 0,
     notes: ''
   };
+  exchangeQuote: ExchangeQuote | null = null;
+  calculatingQuote = false;
+  paymentStatusLabel = '';
+  paymentStatusState: 'pending' | 'approved' | 'error' | '' = '';
   currentStock = 0;
   isBuyer = false;
   isSeller = false;
 
   private subscriptions: Subscription[] = [];
   private readTimeout: any = null;
+  private paymentStatusInterval: any = null;
+  private paymentApprovedNotified = false;
 
   constructor(
     private chatService: ChatService,
@@ -112,6 +118,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.miniMap.remove();
       this.miniMap = null;
     }
+
+    this.stopPaymentStatusPolling();
   }
 
   handleDocumentClick(): void {
@@ -430,12 +438,19 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
     
+    this.exchangeQuote = null;
     this.showExchangeModal = true;
   }
 
   closeExchangeModal(): void {
     this.showExchangeModal = false;
     this.exchangeData = { kg: 0, price: 0, notes: '' };
+    this.exchangeQuote = null;
+    this.calculatingQuote = false;
+    this.paymentStatusLabel = '';
+    this.paymentStatusState = '';
+    this.paymentApprovedNotified = false;
+    this.stopPaymentStatusPolling();
   }
 
   calculateImpact(): number {
@@ -464,6 +479,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       sellerId: this.currentConversation.vendedor?.id,
       kg: this.exchangeData.kg,
       price: this.exchangeData.price,
+      materialName: this.currentConversation.publication?.titulo,
       notes: this.exchangeData.notes
     };
     
@@ -482,6 +498,223 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.error = err.error?.message || 'Error al enviar la solicitud';
         setTimeout(() => this.error = '', 5000);
       }
+    });
+  }
+
+  calculateQuoteFromMaterial(): void {
+    if (!this.currentConversation?.publication?.titulo) {
+      this.error = 'No se pudo identificar el material de la publicación';
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+
+    if (this.exchangeData.kg <= 0) {
+      this.error = 'Ingresá una cantidad en kg para calcular la cotización';
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+
+    if (this.exchangeData.kg > this.currentStock) {
+      this.error = `Stock insuficiente. Solo hay ${this.currentStock}kg disponibles`;
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+
+    this.calculatingQuote = true;
+
+    this.chatService.getExchangeQuote(this.currentConversation.publication.titulo, this.exchangeData.kg).subscribe({
+      next: (res) => {
+        this.calculatingQuote = false;
+        if (res?.success && res.data) {
+          this.exchangeQuote = res.data as ExchangeQuote;
+          this.exchangeData.price = Number(this.exchangeQuote.precioTotalArs) || 0;
+          this.paymentApprovedNotified = false;
+          this.startPaymentStatusPolling();
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.error = 'No se pudo calcular la cotización';
+        setTimeout(() => this.error = '', 3000);
+      },
+      error: (err) => {
+        this.calculatingQuote = false;
+        this.exchangeQuote = null;
+        this.stopPaymentStatusPolling();
+        this.paymentStatusLabel = '';
+        this.paymentStatusState = '';
+        this.error = err.error?.message || 'No se encontró cotización para este material';
+        setTimeout(() => this.error = '', 5000);
+      }
+    });
+  }
+
+  private startPaymentStatusPolling(): void {
+    this.stopPaymentStatusPolling();
+
+    if (!this.exchangeQuote?.mpPayment?.preferenceId && !this.exchangeQuote?.mpPayment?.externalReference) {
+      return;
+    }
+
+    this.paymentStatusLabel = 'Verificando estado de pago...';
+    this.paymentStatusState = 'pending';
+
+    this.checkMercadoPagoPaymentStatus();
+
+    this.paymentStatusInterval = setInterval(() => {
+      this.checkMercadoPagoPaymentStatus();
+    }, 6000);
+  }
+
+  private stopPaymentStatusPolling(): void {
+    if (this.paymentStatusInterval) {
+      clearInterval(this.paymentStatusInterval);
+      this.paymentStatusInterval = null;
+    }
+  }
+
+  private checkMercadoPagoPaymentStatus(): void {
+    const preferenceId = this.exchangeQuote?.mpPayment?.preferenceId;
+    const externalReference = this.exchangeQuote?.mpPayment?.externalReference;
+
+    if (!preferenceId && !externalReference) {
+      return;
+    }
+
+    this.chatService.getMercadoPagoPaymentStatus({ preferenceId, externalReference }).subscribe({
+      next: (res) => {
+        const payment = res?.data as MercadoPagoPaymentStatus | undefined;
+        if (!res?.success || !payment) {
+          this.paymentStatusLabel = 'No se pudo consultar el estado del pago';
+          this.paymentStatusState = 'error';
+          return;
+        }
+
+        if (payment.approved) {
+          this.paymentStatusLabel = '✅ Pago confirmado por Mercado Pago';
+          this.paymentStatusState = 'approved';
+
+          if (!this.paymentApprovedNotified) {
+            this.paymentApprovedNotified = true;
+            this.successMessage = '✅ Pago confirmado. Ya podés continuar con el intercambio.';
+            setTimeout(() => this.successMessage = '', 6000);
+          }
+
+          this.stopPaymentStatusPolling();
+          this.cdr.detectChanges();
+          return;
+        }
+
+        const normalizedStatus = (payment.status || 'pending').toLowerCase();
+        const statusMap: Record<string, string> = {
+          pending: 'Pendiente de pago',
+          in_process: 'Pago en proceso',
+          rejected: 'Pago rechazado',
+          cancelled: 'Pago cancelado',
+          refunded: 'Pago reembolsado',
+          charged_back: 'Pago desconocido',
+          authorized: 'Pago autorizado'
+        };
+
+        this.paymentStatusLabel = `Estado: ${statusMap[normalizedStatus] || normalizedStatus}`;
+        this.paymentStatusState = normalizedStatus === 'rejected' || normalizedStatus === 'cancelled' ? 'error' : 'pending';
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.paymentStatusLabel = 'No se pudo actualizar el estado del pago';
+        this.paymentStatusState = 'error';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  openWalletPayment(walletId: string): void {
+    if (!this.exchangeQuote?.paymentIntent) {
+      this.error = 'Primero calculá la cotización para generar datos de pago';
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+
+    const amount = this.exchangeQuote.paymentIntent.amountArs;
+    const description = this.exchangeQuote.paymentIntent.description;
+    const receiver = this.exchangeQuote.paymentIntent.receiver;
+
+    const deepLinks: Record<string, string> = {
+      uala: 'uala://',
+      naranjax: 'naranjax://',
+      mercadopago: 'mercadopago://',
+      modo: 'modo://'
+    };
+
+    const wallet = this.exchangeQuote.paymentIntent.wallets.find((item) => item.id === walletId);
+    const deepLink = deepLinks[walletId];
+    const fallbackUrl = wallet?.webUrl || '';
+
+    const paymentText = [
+      `Monto ARS: ${amount}`,
+      `Concepto: ${description}`,
+      `Titular: ${receiver.titular}`,
+      `Alias: ${receiver.alias}`,
+      receiver.cvu ? `CVU: ${receiver.cvu}` : '',
+      receiver.cbu ? `CBU: ${receiver.cbu}` : ''
+    ].filter(Boolean).join('\n');
+
+    this.copyToClipboard(paymentText, false);
+
+    if (deepLink) {
+      window.location.href = deepLink;
+    }
+
+    if (fallbackUrl) {
+      setTimeout(() => {
+        window.open(fallbackUrl, '_blank', 'noopener');
+      }, 600);
+    }
+  }
+
+  copyTransferData(): void {
+    if (!this.exchangeQuote?.paymentIntent) {
+      this.error = 'No hay datos de pago para copiar';
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+
+    const payment = this.exchangeQuote.paymentIntent;
+    const text = [
+      `Pago RenovaRed`,
+      `Monto: $${payment.amountArs} ${payment.currency}`,
+      `Concepto: ${payment.description}`,
+      `Titular: ${payment.receiver.titular}`,
+      `Alias: ${payment.receiver.alias}`,
+      payment.receiver.cvu ? `CVU: ${payment.receiver.cvu}` : '',
+      payment.receiver.cbu ? `CBU: ${payment.receiver.cbu}` : ''
+    ].filter(Boolean).join('\n');
+
+    this.copyToClipboard(text, true);
+  }
+
+  copyMercadoPagoLink(): void {
+    const url = this.exchangeQuote?.mpPayment?.initPoint;
+    if (!url) {
+      this.error = 'No hay link de Mercado Pago disponible';
+      setTimeout(() => this.error = '', 3000);
+      return;
+    }
+
+    this.copyToClipboard(url, true);
+  }
+
+  private copyToClipboard(text: string, showSuccess: boolean): void {
+    if (!text) return;
+
+    navigator.clipboard.writeText(text).then(() => {
+      if (showSuccess) {
+        this.successMessage = 'Datos de pago copiados';
+        setTimeout(() => this.successMessage = '', 2500);
+      }
+    }).catch(() => {
+      this.error = 'No se pudo copiar al portapapeles';
+      setTimeout(() => this.error = '', 3000);
     });
   }
 

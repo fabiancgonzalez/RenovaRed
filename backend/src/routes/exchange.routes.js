@@ -26,6 +26,8 @@ router.patch('/:id/estado', exchangeController.updateEstado);
 // ========== NUEVAS RUTAS PARA EL SISTEMA DE INTERCAMBIOS EN CHAT ==========
 
 router.get('/conversation/:conversationId/status', exchangeController.getExchangeStatus);
+router.post('/quote', exchangeController.getQuote);
+router.post('/payment-status', exchangeController.getPaymentStatus);
 router.post('/request', exchangeController.requestExchange);
 router.post('/:exchangeId/respond/:action', exchangeController.respondToExchange);
 

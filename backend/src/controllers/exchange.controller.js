@@ -81,3 +81,25 @@ exports.getExchangeStatus = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.getQuote = async (req, res) => {
+  try {
+    const payload = { ...req.query, ...req.body };
+    const result = await exchangeService.getQuote(payload);
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('ExchangeController.getQuote:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getPaymentStatus = async (req, res) => {
+  try {
+    const payload = { ...req.query, ...req.body };
+    const result = await exchangeService.getPaymentStatus(payload);
+    return res.status(result.status).json(result.body);
+  } catch (error) {
+    console.error('ExchangeController.getPaymentStatus:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};

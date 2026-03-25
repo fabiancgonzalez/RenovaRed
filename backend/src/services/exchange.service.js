@@ -1,5 +1,6 @@
 const { Exchange, User, Publication, Conversation, Message } = require('../models');
 const { Op } = require('sequelize');
+const materialQuoteService = require('./materialQuote.service');
 
 class ExchangeService {
   
@@ -111,9 +112,10 @@ class ExchangeService {
 
   async requestExchange(userId, data) {
     try {
-      const { conversationId, publicationId, sellerId, kg, price, notes } = data;
+      const { conversationId, publicationId, sellerId, kg, ks, price, notes, materialName } = data;
+      const exchangeQuantity = Number(kg || ks);
       
-      if (!kg || kg <= 0) {
+      if (!exchangeQuantity || exchangeQuantity <= 0) {
         return { status: 400, body: { success: false, message: 'La cantidad debe ser mayor a 0' } };
       }
       
@@ -149,7 +151,7 @@ class ExchangeService {
       }
       
       const currentStock = parseFloat(publication.cantidad) || 0;
-      if (kg > currentStock) {
+      if (exchangeQuantity > currentStock) {
         return { 
           status: 400, 
           body: { 
@@ -158,15 +160,30 @@ class ExchangeService {
           } 
         };
       }
+
+      let finalPrice = Number(price);
+      let paymentQuote = null;
+
+      if (!Number.isFinite(finalPrice) || finalPrice <= 0) {
+        const quoteMaterial = materialName || publication.titulo;
+        const quoteResult = await materialQuoteService.calculateQuote(quoteMaterial, exchangeQuantity);
+
+        if (quoteResult.success) {
+          finalPrice = quoteResult.data.precioTotalArs;
+          paymentQuote = quoteResult.data;
+        } else {
+          finalPrice = 0;
+        }
+      }
       
       const exchange = await Exchange.create({
         conversation_id: conversationId,
         publication_id: publicationId,
         buyer_id: userId,
         seller_id: sellerId,
-        cantidad: kg,
-        precio_final: price,
-        kg_aproximados: kg,
+        cantidad: exchangeQuantity,
+        precio_final: finalPrice,
+        kg_aproximados: exchangeQuantity,
         notas: notes,
         estado: 'Pendiente'
       });
@@ -176,7 +193,7 @@ class ExchangeService {
       const systemMessage = await Message.create({
         conversation_id: conversationId,
         sender_id: userId,
-        content: `📦 SOLICITUD DE INTERCAMBIO: ${kg}kg de "${publication.titulo}" por $${price || 'a convenir'}. Esperando confirmación del vendedor.`,
+        content: `📦 SOLICITUD DE INTERCAMBIO: ${exchangeQuantity}kg de "${publication.titulo}" por $${finalPrice > 0 ? finalPrice : 'a convenir'}. Esperando confirmación del vendedor.`,
         read: false
       });
       
@@ -201,8 +218,8 @@ class ExchangeService {
           conversationId,
           exchangeId: exchange.id,
           buyerName: buyer.nombre,
-          kg,
-          price
+          kg: exchangeQuantity,
+          price: finalPrice
         });
       }
       
@@ -211,7 +228,8 @@ class ExchangeService {
         body: { 
           success: true, 
           message: 'Solicitud de intercambio enviada. Esperando confirmación del vendedor.',
-          data: exchange 
+          data: exchange,
+          quote: paymentQuote
         }
       };
       
@@ -406,6 +424,63 @@ class ExchangeService {
       
     } catch (error) {
       console.error('Error getting exchange status:', error);
+      return { status: 500, body: { success: false, message: error.message } };
+    }
+  }
+
+  async getQuote(data) {
+    try {
+      const material = data.material || data.materialName;
+      const quantity = data.ks || data.kg;
+
+      if (!material) {
+        return { status: 400, body: { success: false, message: 'material es obligatorio' } };
+      }
+
+      const result = await materialQuoteService.calculateQuote(material, quantity);
+
+      if (!result.success) {
+        return { status: 404, body: { success: false, message: result.message } };
+      }
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          message: 'Cotización calculada correctamente',
+          data: result.data
+        }
+      };
+    } catch (error) {
+      console.error('Error getting quote:', error);
+      return { status: 500, body: { success: false, message: error.message } };
+    }
+  }
+
+  async getPaymentStatus(data) {
+    try {
+      const preferenceId = data.preferenceId || data.preference_id;
+      const externalReference = data.externalReference || data.external_reference;
+
+      const result = await materialQuoteService.getMercadoPagoPaymentStatus({
+        preferenceId,
+        externalReference
+      });
+
+      if (!result.success) {
+        return { status: 400, body: { success: false, message: result.message, details: result.details } };
+      }
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          message: 'Estado de pago consultado correctamente',
+          data: result.data
+        }
+      };
+    } catch (error) {
+      console.error('Error getting payment status:', error);
       return { status: 500, body: { success: false, message: error.message } };
     }
   }

@@ -65,6 +65,7 @@
             "production": {
               "buildTarget": "renovared:build:production"
             },
+             
             "development": {
               "buildTarget": "renovared:build:development"
             }

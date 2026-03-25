@@ -77,6 +77,57 @@ export interface ConversationDetail {
   deleted_by_other?: boolean;
 }
 
+export interface ExchangeQuote {
+  material: string;
+  inputMaterial: string;
+  ks: number;
+  precioUnitarioArs: number;
+  precioTotalArs: number;
+  moneda: string;
+  qrPayload: string;
+  qrImageUrl: string;
+  qrTipo?: 'interoperable' | 'informativo' | 'mercadopago_dinamico';
+  qrEsInteroperable?: boolean;
+  qrMensaje?: string;
+  mpPayment?: {
+    provider: string;
+    preferenceId: string;
+    initPoint: string;
+    sandboxInitPoint?: string | null;
+    externalReference?: string;
+  };
+  paymentIntent?: {
+    amountArs: number;
+    currency: string;
+    description: string;
+    receiver: {
+      provider?: string;
+      titular: string;
+      alias: string;
+      cvu?: string;
+      cbu?: string;
+    };
+    wallets: Array<{
+      id: string;
+      name: string;
+      webUrl: string;
+    }>;
+  };
+  cotizacionFuente: string;
+}
+
+export interface MercadoPagoPaymentStatus {
+  found: boolean;
+  status: string;
+  statusDetail: string;
+  approved: boolean;
+  paymentId?: string | number | null;
+  amount?: number | null;
+  currency?: string;
+  dateApproved?: string | null;
+  dateCreated?: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -143,6 +194,16 @@ export class ChatService {
   requestExchange(data: any): Observable<any> {
     const headers = this.getAuthHeaders();
     return this.http.post(`${this.apiUrl}/exchanges/request`, data, { headers });
+  }
+
+  getExchangeQuote(material: string, ks: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post(`${this.apiUrl}/exchanges/quote`, { material, ks }, { headers });
+  }
+
+  getMercadoPagoPaymentStatus(payload: { preferenceId?: string; externalReference?: string }): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post(`${this.apiUrl}/exchanges/payment-status`, payload, { headers });
   }
 
   respondToExchange(exchangeId: string, action: 'aceptar' | 'rechazar'): Observable<any> {

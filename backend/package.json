@@ -17,6 +17,7 @@
     "express": "^5.2.1",
     "google-auth-library": "^10.6.2",
     "jsonwebtoken": "^9.0.3",
+    "mercadopago": "^2.12.0",
     "pg": "^8.20.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.8",
