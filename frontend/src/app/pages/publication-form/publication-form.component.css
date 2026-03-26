@@ -128,6 +128,19 @@ h1 {
   object-fit: cover;
   border-radius: 10px;
 }
+.publication-image-preview button {
+  padding: 12px 22px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+}
+.publication-image-preview button:hover,
+.actions button.btn-secondary:hover {
+  border-color: rgba(255, 29, 29, 0.678);
+  color: rgba(255, 29, 29, 0.678);
+}
 .form-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
