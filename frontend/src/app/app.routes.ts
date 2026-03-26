@@ -10,9 +10,10 @@ import { MapsComponent } from './pages/maps/maps.component';
 import { PublicationFormComponent } from './pages/publication-form/publication-form.component';
 import { MaterialsExploreComponent } from './pages/materials-explore/materials-explore.component';
 import { MyPublicationsComponent } from './pages/my-publications/my-publications.component';
+import { HomeLoggedComponent } from './pages/home-logged/home-logged.component';
 
 export const routes: Routes = [
-    { path: '', component: HomeComponent },
+    { path: '', component: HomeLoggedComponent },
     { path: 'dashboard', component: DashboardComponent },
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },

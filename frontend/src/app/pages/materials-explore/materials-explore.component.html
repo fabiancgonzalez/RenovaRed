@@ -69,12 +69,12 @@
         <p class="meta" *ngIf="publication.precio">Precio: ${{ publication.precio }}</p>
 
         <div class="card-actions">
-          <button type="button" (click)="togglePublicationDetail(publication.id)">
+          <button type="button" class="btn-secondary" (click)="togglePublicationDetail(publication.id)">
             {{ isPublicationDetailVisible(publication.id) ? 'Ocultar' : 'Ver' }}
           </button>
 
           <button
-            type="button"
+            type="button" class="btn-primary"
             *ngIf="canContact(publication)"
             [disabled]="contactingPublicationId === publication.id"
             (click)="contactOwner(publication)">

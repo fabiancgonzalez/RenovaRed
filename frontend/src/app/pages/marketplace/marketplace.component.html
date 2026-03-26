@@ -7,19 +7,19 @@
 		</div>
 
 		<div class="hero-actions">
-			<button *ngIf="canManagePublications" class="btn-nueva-publicacion" type="button" (click)="goToCreatePublication()">
+			<button *ngIf="canManagePublications" class="btn-primary" type="button" (click)="goToCreatePublication()">
 				Nueva publicación
 			</button>
 
-			<button *ngIf="canManagePublications" class="btn-mis-publicaciones" type="button" (click)="goToMyPublications()">
+			<button *ngIf="canManagePublications" class="btn-secondary" type="button" (click)="goToMyPublications()">
 				Ver mis publicaciones
 			</button>
 
-			<button class="btn-mis-publicaciones" type="button" (click)="goToExploreMaterials()">
+			<button class="btn-secondary" type="button" (click)="goToExploreMaterials()">
 				Explorar materiales
 			</button>
 
-			<button *ngIf="!canManagePublications" class="btn-nueva-publicacion" type="button" (click)="goToLogin()">
+			<button *ngIf="!canManagePublications" class="btn-primary" type="button" (click)="goToLogin()">
 				Iniciar sesión para publicar
 			</button>
 		</div>
@@ -54,7 +54,7 @@
 						{{ isPublicationDetailVisible(publication.id) ? 'Ocultar' : 'Ver' }}
 					</button>
 
-					<button
+					<button class="btn-primary"
 						type="button"
 						*ngIf="canContact(publication)"
 						[disabled]="contactingPublicationId === publication.id"
