@@ -18,17 +18,14 @@ export class AdminGuard implements CanActivate {
     
     try {
       const user = JSON.parse(userRaw || '{}');
-      const isAdmin = user?.tipo === 'Admin';
-      
-      if (isAdmin) {
+      if (user.tipo === 'Admin') {
         return true;
       }
-      
-        this.router.navigate(['/dashboard']);
-      return false;
-    } catch {
-      this.router.navigate(['/login']);
-      return false;
+    } catch (e) {
+      console.error('Error parsing user:', e);
     }
+    
+    this.router.navigate(['/inicio']);
+    return false;
   }
 }

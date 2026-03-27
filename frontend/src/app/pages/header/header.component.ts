@@ -99,7 +99,11 @@ export class HeaderComponent implements OnInit {
   }
 
   goHome(): void {
-    this.router.navigate(['/']);
+    if (this.isAuthenticated) {
+      this.router.navigate(['/inicio']);
+    } else {
+      this.router.navigate(['/']);
+    }
     this.closeMenu();
   }
 
