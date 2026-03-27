@@ -47,6 +47,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private statInterval: any;
   private partnerInterval: any;
   private testimonialInterval: any;
+  private videoPlayAttempted = false;
   
   // Stats slider
   currentStatIndex = 0;
@@ -164,7 +165,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadHomeData();
     this.startStatAnimation();
     
-    // Organizar testimonios en grupos de 3
     for (let i = 0; i < this.allTestimonials.length; i += 3) {
       this.testimonialGroups.push(this.allTestimonials.slice(i, i + 3));
     }
@@ -186,6 +186,64 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.homeMap) {
       this.homeMap.remove();
+    }
+  }
+
+  initVideos() {
+    const heroVideo = document.querySelector('.hero-video') as HTMLVideoElement;
+    const ctaVideo = document.querySelector('.cta-video') as HTMLVideoElement;
+    
+    const tryPlayVideo = (video: HTMLVideoElement) => {
+      if (!video) return;
+      
+      video.muted = true;
+      video.setAttribute('playsinline', 'true');
+      video.setAttribute('autoplay', 'true');
+      video.setAttribute('loop', 'true');
+      video.preload = 'auto';
+      
+      const playPromise = video.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+        }).catch(() => {
+          if (!this.videoPlayAttempted) {
+            this.videoPlayAttempted = true;
+            
+            const playOnInteraction = () => {
+              if (heroVideo) heroVideo.play().catch(() => {});
+              if (ctaVideo) ctaVideo.play().catch(() => {});
+              document.removeEventListener('click', playOnInteraction);
+              document.removeEventListener('touchstart', playOnInteraction);
+              document.removeEventListener('scroll', playOnInteraction);
+            };
+            
+            document.addEventListener('click', playOnInteraction);
+            document.addEventListener('touchstart', playOnInteraction);
+            document.addEventListener('scroll', playOnInteraction, { once: true });
+          }
+        });
+      }
+    };
+    
+    if (heroVideo) {
+      if (heroVideo.readyState >= 2) {
+        tryPlayVideo(heroVideo);
+      } else {
+        heroVideo.addEventListener('canplay', () => {
+          tryPlayVideo(heroVideo);
+        }, { once: true });
+      }
+    }
+    
+    if (ctaVideo) {
+      if (ctaVideo.readyState >= 2) {
+        tryPlayVideo(ctaVideo);
+      } else {
+        ctaVideo.addEventListener('canplay', () => {
+          tryPlayVideo(ctaVideo);
+        }, { once: true });
+      }
     }
   }
 
@@ -274,16 +332,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
             this.data = response.data;
             this.animateStats();
             
-            // Organizar partners en grupos de 4 para el slider
             const chunkSize = 4;
             for (let i = 0; i < this.partners.length; i += chunkSize) {
               this.partnersGroups.push(this.partners.slice(i, i + chunkSize));
             }
             
-            // Iniciar sliders automáticos después de cargar datos
             setTimeout(() => {
               this.startPartnerAutoSlide();
               this.startTestimonialAutoSlide();
+              setTimeout(() => this.initVideos(), 100);
             }, 1000);
           }
           this.loading = false;
@@ -361,17 +418,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.mapMarkers = [];
     }
 
-    // Mapa con tema oscuro (prueba)
     this.homeMap = L.map(mapContainer).setView([-31.413865, -64.183882], 12);
 
-    // TileLayer oscuro - CartoDB Dark Matter
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; CartoDB',
       subdomains: 'abcd',
       maxZoom: 19
     }).addTo(this.homeMap);
 
-    // Marcadores con círculos verdes
     if (this.locations && this.locations.length > 0) {
       this.locations.forEach(location => {
         if (location.coordinates?.lat && location.coordinates?.lng) {
@@ -395,7 +449,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     } else {
-      // Marcadores de ejemplo
       const exampleMarkers = [
         { lat: -31.413865, lng: -64.183882, name: 'Cooperativa Central', type: 'Cooperativa' },
         { lat: -31.45, lng: -64.2, name: 'Recicladora Norte', type: 'Recicladora' },
