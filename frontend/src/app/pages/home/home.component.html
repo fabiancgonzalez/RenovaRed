@@ -1,4 +1,18 @@
 <div class="home">
+  <!-- Header -->
+  <div class="auth-header">
+    <div class="logo">
+      <a routerLink="/">
+        <img src="logoRenovared.png" alt="RenovaRed">
+      </a>
+    </div>
+    <div class="auth-buttons">
+      <a routerLink="/" class="btn-login">Inicio</a>
+      <a routerLink="/login" class="btn-login">Iniciar sesión</a>
+      <a routerLink="/register" class="btn-register">Registrarse</a>
+    </div>
+  </div>
+
   <!-- LOADING -->
   @if (loading) {
     <div class="loading-container">
@@ -17,131 +31,304 @@
 
   <!-- CONTENIDO PRINCIPAL -->
   @if (!loading && !error && data) {
-    <!-- HERO -->
-    <div class="home-content">
-      <h1>Economía Circular Inteligente</h1>
-      <p>Conectamos cooperativas, recicladoras y emprendedores <br> para fortalecer el impacto ambiental local.</p>
-      <div class="home-buttons">
-        <button type="button" (click)="exploreMaterials()" class="btn-primary">Explorar Materiales</button>
-        <button type="button" (click)="publishResources()" class="btn-secondary">Publicar Recursos</button>
+    <!-- HERO SECTION CON VIDEO -->
+    <section class="hero-section">
+      <div class="hero-video-bg">
+        <video autoplay muted loop playsinline class="hero-video">
+          <source src="assets/hero-video.mp4" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
       </div>
-    </div>
-
-    <!-- STATS -->
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-top">
-          <i class="fa-solid fa-recycle"></i>
-          <h2>{{ data.metrics.intercambios | number }}</h2>
-        </div>
-        <span>INTERCAMBIOS</span>
-      </div>
-      <div class="stat">
-        <div class="stat-top">
-          <i class="fa-solid fa-box"></i>
-          <h2>{{ data.metrics.reutilizados }} kg</h2>
-        </div>
-        <span>REUTILIZADOS</span>
-      </div>
-      <div class="stat">
-        <div class="stat-top">
-          <i class="fa-solid fa-user-group"></i>
-          <h2>{{ data.metrics.activos | number }}</h2>
-        </div>
-        <span>ACTIVOS</span>
-      </div>
-      <div class="stat">
-        <div class="stat-top">
-          <i class="fa-solid fa-leaf"></i>
-          <h2>{{ data.metrics.co2 }} kg</h2>
-        </div>
-        <span>CO₂ AHORRADO</span>
-      </div>
-    </div>
-
-    <!-- CARDS -->
-    <div class="cards">
-      @for (actor of getActorsList(); track actor.name) {
-        <div class="card">
-          <img [src]="actor.image" [alt]="actor.name" (load)="onImageLoad()" loading="eager">
-          <div class="overlay">
-            <span>{{ actor.name }}</span>
-            <small>Activos: <span class="numero-verde">{{ actor.count }}</span></small>
+      
+      <div class="hero-container">
+        <div class="hero-left">
+          <h1 class="hero-title">
+            Economía Circular <span class="gradient-text">Inteligente</span>
+          </h1>
+          <p class="hero-description">
+            Conectamos cooperativas, recicladoras y emprendedores<br>
+            para fortalecer el impacto ambiental local.
+          </p>
+          <div class="hero-buttons">
+            <button (click)="exploreMaterials()" class="btn-primary">
+              <i class="fa-solid fa-recycle"></i> Explorar Materiales
+            </button>
+            <button (click)="publishResources()" class="btn-secondary">
+              <i class="fa-solid fa-plus"></i> Publicar Recursos
+            </button>
           </div>
         </div>
-      }
-    </div>
+        
+        <div class="hero-right">
+          <div class="stats-slider-container">
+            <div class="stats-slider" [style.transform]="'translateX(-' + currentStatIndex * 100 + '%)'">
+              <div class="stat-slide">
+                <div class="stat-slide-icon"><i class="fa-solid fa-handshake"></i></div>
+                <div class="stat-slide-number">{{ animatedStats.intercambios | number }}+</div>
+                <div class="stat-slide-label">Intercambios realizados</div>
+              </div>
+              <div class="stat-slide">
+                <div class="stat-slide-icon"><i class="fa-solid fa-box"></i></div>
+                <div class="stat-slide-number">{{ animatedStats.reutilizados | number }}kg</div>
+                <div class="stat-slide-label">Materiales reciclados</div>
+              </div>
+              <div class="stat-slide">
+                <div class="stat-slide-icon"><i class="fa-solid fa-user-group"></i></div>
+                <div class="stat-slide-number">{{ animatedStats.activos | number }}</div>
+                <div class="stat-slide-label">Usuarios activos</div>
+              </div>
+              <div class="stat-slide">
+                <div class="stat-slide-icon"><i class="fa-solid fa-leaf"></i></div>
+                <div class="stat-slide-number">{{ animatedStats.co2 | number }}kg</div>
+                <div class="stat-slide-label">CO₂ ahorrado</div>
+              </div>
+            </div>
+            <div class="slider-dots">
+              <span class="dot" [class.active]="currentStatIndex === 0" (click)="goToStatSlide(0)"></span>
+              <span class="dot" [class.active]="currentStatIndex === 1" (click)="goToStatSlide(1)"></span>
+              <span class="dot" [class.active]="currentStatIndex === 2" (click)="goToStatSlide(2)"></span>
+              <span class="dot" [class.active]="currentStatIndex === 3" (click)="goToStatSlide(3)"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Flecha indicadora para scroll -->
+      <div class="scroll-indicator" (click)="scrollToNextSection()">
+        <div class="mouse">
+          <div class="wheel"></div>
+        </div>
+        <div class="arrow-down">
+          <i class="fa-solid fa-chevron-down"></i>
+          <i class="fa-solid fa-chevron-down"></i>
+        </div>
+        <span>Desliza para descubrir más</span>
+      </div>
+    </section>
+
+    <!-- QUIÉNES SOMOS -->
+    <section class="about-hero">
+      <div class="container">
+        <div class="about-grid">
+          <div class="about-text">
+            <h2 class="section-title-left">¿Qué es RenovaRed?</h2>
+            <p>Somos una plataforma que conecta cooperativas, recicladoras y emprendedores para fortalecer la economía circular local. Facilitamos el intercambio de materiales reciclables, productos sustentables y servicios ecológicos.</p>
+            <p>Nuestra misión es reducir residuos y crear un impacto ambiental positivo en la comunidad.</p>
+            <div class="stats-highlight">
+              <div class="stat-highlight">
+                <span class="stat-number">{{ data.metrics.intercambios | number }}+</span>
+                <span class="stat-label">Intercambios realizados</span>
+              </div>
+              <div class="stat-highlight">
+                <span class="stat-number">{{ data.metrics.reutilizados | number }}kg</span>
+                <span class="stat-label">Materiales reciclados</span>
+              </div>
+              <div class="stat-highlight">
+                <span class="stat-number">{{ data.metrics.co2 | number }}kg</span>
+                <span class="stat-label">CO₂ ahorrado</span>
+              </div>
+            </div>
+          </div>
+          <div class="about-image">
+            <img src="equipo.png" alt="Equipo RenovaRed">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACTORES DE LA ECONOMÍA CIRCULAR -->
+    <section class="actors-section">
+      <div class="container">
+        <h2 class="section-title">Actores de la Economía Circular</h2>
+        <div class="cards-grid">
+          <div class="actor-card" *ngFor="let actor of getActorsList()">
+            <div class="card-image">
+              <img [src]="actor.image" [alt]="actor.name">
+              <div class="card-overlay">
+                <span class="actor-name">{{ actor.name }}</span>
+                <span class="actor-count">{{ actor.count }} activos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- CÓMO FUNCIONA -->
-    <section class="section how-it-works">
+    <section class="how-it-works">
       <div class="container">
         <h2 class="section-title">¿Cómo funciona?</h2>
-        <div class="grid-3">
-          <div class="feature-card">
-            <div class="feature-number">1</div>
-            <i class="fas fa-user-plus feature-icon"></i>
-            <h3>Registrate</h3>
-            <p>Creá tu cuenta como cooperativa, recicladora o emprendedor</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-number">2</div>
-            <i class="fas fa-box-open feature-icon"></i>
-            <h3>Publicá</h3>
-            <p>Ofrecé materiales, productos o servicios disponibles</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-number">3</div>
-            <i class="fas fa-handshake feature-icon"></i>
-            <h3>Conectate</h3>
-            <p>Contactate con otros actores y concretá intercambios</p>
+        <div class="steps-grid">
+          <div class="step-card" *ngFor="let step of steps; let i = index">
+            <div class="step-number">{{ i + 1 }}</div>
+            <i [class]="step.icon" class="step-icon"></i>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.description }}</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- SOBRE RENOVARED -->
-    <section class="section about-section">
+    <!-- CONOCÉ AL EQUIPO -->
+    <section class="team-section">
       <div class="container">
-        <h2 class="section-title">Sobre RenovaRed</h2>
-        <div class="about-grid">
-          <div class="about-image-col">
-            <img src="equipo.png" alt="Equipo de RenovaRed" class="about-image">
-          </div>
-          <div class="about-text-col">
-            <p class="about-text">Somos una plataforma que conecta cooperativas, recicladoras y emprendedores para fortalecer la economía circular local. Facilitamos el intercambio de materiales reciclables, productos sustentables y servicios ecológicos.</p>
-            <p class="about-text">Nuestra misión es reducir residuos y crear un impacto ambiental positivo en la comunidad.</p>
+        <h2 class="section-title">Conocé al equipo</h2>
+        <div class="team-grid">
+          <div class="team-card" *ngFor="let member of teamMembers">
+            <div class="team-image">
+              <img [src]="member.image" [alt]="member.name">
+              <div class="team-social-overlay">
+                <a [href]="member.linkedin" target="_blank" class="team-social-link"><i class="fa-brands fa-linkedin-in"></i></a>
+                <a [href]="member.email" class="team-social-link"><i class="fa-regular fa-envelope"></i></a>
+                <a [href]="member.website" target="_blank" class="team-social-link"><i class="fa-brands fa-github"></i></a>
+              </div>
+            </div>
+            <h3>{{ member.name }}</h3>
+            <p>{{ member.role }}</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- BENEFICIOS -->
-    <section class="section benefits">
+    <!-- MAPA DE UBICACIONES -->
+    <section class="map-section">
       <div class="container">
-        <h2 class="section-title">Beneficios</h2>
-        <div class="grid-3">
-          <div class="benefit-card">
-            <i class="fas fa-leaf benefit-icon"></i>
-            <h3>Ambiental</h3>
-            <p>Reducí residuos y colaborá con el medio ambiente</p>
+        <h2 class="section-title">Nuestra comunidad en el mapa</h2>
+        <p class="section-subtitle">Descubrí los actores de la economía circular cerca de tu ubicación</p>
+        <div class="map-container">
+          <div id="homeMap" class="home-map"></div>
+        </div>
+        <div class="map-cta">
+          <button (click)="goToMap()" class="btn-outline">
+            <i class="fa-solid fa-location-dot"></i> Ver mapa completo
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLIENTES & PARTNERS -->
+    <section class="partners-section">
+      <div class="container">
+        <h2 class="section-title">Clientes & Partners</h2>
+        <div class="partners-slider-wrapper">
+          <button class="partner-slider-prev" (click)="prevPartnerSlide()">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <div class="partners-slider-container">
+            <div class="partners-slider" [style.transform]="'translateX(-' + currentPartnerIndex * 100 + '%)'">
+              <div class="partners-slide" *ngFor="let group of partnersGroups">
+                <div class="partners-grid">
+                  <div class="partner-card" *ngFor="let p of group">
+                    <div class="partner-logo-wrapper">
+                      <img [src]="p.logo" [alt]="p.name">
+                    </div>
+                    <span class="partner-name">{{ p.name }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="benefit-card">
-            <i class="fas fa-hand-holding-heart benefit-icon"></i>
-            <h3>Social</h3>
-            <p>Fortalecé cooperativas y emprendimientos locales</p>
+          <button class="partner-slider-next" (click)="nextPartnerSlide()">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="slider-dots partners-dots">
+          <span class="dot" *ngFor="let _ of partnersGroups; let i = index" 
+                [class.active]="currentPartnerIndex === i" 
+                (click)="goToPartnerSlide(i)"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIOS -->
+    <section class="testimonials-section">
+      <div class="container">
+        <h2 class="section-title">Lo que dice nuestra comunidad</h2>
+        <div class="testimonials-slider-wrapper">
+          <button class="testimonial-prev" (click)="prevTestimonial()">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <div class="testimonials-slider-container">
+            <div class="testimonials-slider" [style.transform]="'translateX(-' + currentTestimonialIndex * 100 + '%)'">
+              <div class="testimonials-slide" *ngFor="let group of testimonialGroups">
+                <div class="testimonials-grid">
+                  <div class="testimonial-card" *ngFor="let testimonial of group">
+                    <i class="fa-solid fa-quote-left"></i>
+                    <p>"{{ testimonial.text }}"</p>
+                    <div class="testimonial-author">
+                      <strong>{{ testimonial.author }}</strong>
+                      <span>{{ testimonial.role }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="benefit-card">
-            <i class="fas fa-chart-line benefit-icon"></i>
-            <h3>Económico</h3>
-            <p>Accedé a nuevos contactos y oportunidades</p>
-          </div>
+          <button class="testimonial-next" (click)="nextTestimonial()">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="slider-dots">
+          <span class="dot" *ngFor="let _ of testimonialGroups; let i = index" 
+                [class.active]="currentTestimonialIndex === i" 
+                (click)="goToTestimonialSlide(i)"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA FINAL CON VIDEO -->
+    <section class="cta-section">
+      <div class="cta-video-bg">
+        <video autoplay muted loop playsinline class="cta-video">
+          <source src="assets/cta-video.mp4" type="video/mp4">
+        </video>
+        <div class="cta-overlay"></div>
+      </div>
+      <div class="container">
+        <div class="cta-content">
+          <h2>¿Listo para ser parte del cambio?</h2>
+          <p>Únete a la red de economía circular más grande de Argentina</p>
+          <button (click)="publishResources()" class="btn-cta">
+            Comenzar ahora <i class="fa-solid fa-arrow-right"></i>
+          </button>
         </div>
       </div>
     </section>
 
     <!-- FOOTER -->
     <footer class="footer">
-      <div class="footer-container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <img src="logoFooter.png" alt="RenovaRed">
+          <p>Economía Circular Inteligente</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h4>Plataforma</h4>
+            <a routerLink="/materiales">Materiales</a>
+            <a routerLink="/marketplace">Marketplace</a>
+            <a routerLink="/maps">Mapa</a>
+          </div>
+          <div class="footer-column">
+            <h4>Recursos</h4>
+            <a href="#">Blog</a>
+            <a href="#">Guías</a>
+            <a href="#">FAQ</a>
+          </div>
+          <div class="footer-column">
+            <h4>Legal</h4>
+            <a href="#">Términos y condiciones</a>
+            <a href="#">Política de privacidad</a>
+          </div>
+        </div>
+        <div class="footer-social">
+          <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="social-icon"><i class="fa-brands fa-facebook"></i></a>
+          <a href="#" class="social-icon"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="#" class="social-icon"><i class="fa-brands fa-x-twitter"></i></a>
+        </div>
+      </div>
+      <div class="footer-bottom">
         <p>© 2026 RenovaRed - Todos los derechos reservados</p>
       </div>
     </footer>

@@ -208,7 +208,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     this.loading = false;
 
     setTimeout(() => {
-      this.router.navigate(['/dashboard'], { replaceUrl: true });
+      this.router.navigate(['/inicio'], { replaceUrl: true });
     }, 1500);
 
   }

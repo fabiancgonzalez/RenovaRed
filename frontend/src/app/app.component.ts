@@ -17,26 +17,23 @@ import { filter } from 'rxjs/operators';
 })
 export class AppComponent implements OnInit {
   currentUrl: string = '';
+  showHeader: boolean = false;
 
   constructor(public router: Router) {
-    this.currentUrl = this.router.url || '';
-
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
-      this.currentUrl = event.urlAfterRedirects;
+      this.currentUrl = event.url;
+      this.updateHeaderVisibility();
     });
   }
 
   ngOnInit() {
+    this.updateHeaderVisibility();
   }
 
-  isPublicPage(): boolean {
-    return this.currentUrl === '/login' ||
-           this.currentUrl === '/register';
-  }
-
-  isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+  updateHeaderVisibility(): void {
+    const noHeaderRoutes = ['/', '/login', '/register'];
+    this.showHeader = !noHeaderRoutes.includes(this.currentUrl);
   }
 }
