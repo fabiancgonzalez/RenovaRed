@@ -1,0 +1,159 @@
+/* Contenedor principal con animación */
+.messages-section {
+    animation: fadeInUp 0.5s ease;
+}
+
+/* Tarjeta del Formulario (Estilo Dark) */
+.card {
+    background: #111827;
+    border: 1px solid #2D3748;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.card h3 {
+    color: #f3f4f6;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Estilo de los Inputs y Selects */
+.search {
+    background: #1f2937;
+    border: 1px solid #374151;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.search:focus {
+    outline: none;
+    border-color: #22C55E;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.time {
+    display: block;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Botón de Publicar (Estilo Success) */
+.search-btn {
+    background: #22C55E;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.search-btn:hover:not(:disabled) {
+    background: #16a34a;
+    transform: translateY(-2px);
+}
+
+.search-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Tabla de Publicaciones */
+.users-table {
+    background: #111827;
+    border-radius: 12px;
+    border: 1px solid #2D3748;
+    overflow: hidden;
+}
+
+.user-row {
+    display: grid;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #1f2937;
+    color: #e5e7eb;
+}
+
+.user-row:last-child {
+    border-bottom: none;
+}
+
+.user-row.header {
+    background: #1f2937;
+    color: #9ca3af;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+/* Badges de Estado */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    width: fit-content;
+}
+
+.status-badge.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22C55E;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-badge.deleted {
+    background: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Botón Eliminar */
+.delete-btn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+
+.delete-btn:hover {
+    color: #EF4444;
+}
+
+/* Estado Vacío */
+.empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.2;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
