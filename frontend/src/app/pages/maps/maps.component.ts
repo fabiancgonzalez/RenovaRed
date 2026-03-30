@@ -23,6 +23,7 @@ interface UserCoordinates {
 interface MapUser {
   id: string;
   nombre: string;
+  email?: string;
   tipo: string;
   avatar_url?: string;
   ubicacion_texto?: string;
@@ -143,6 +144,22 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
     return 'No hay usuarios visibles con los filtros seleccionados.';
   }
 
+  get loggedUserWarningMessage(): string {
+    if (this.loggedUserDistance) {
+      return '';
+    }
+
+    if (!this.loggedUserMatchKeys.size) {
+      return 'No se pudo identificar la sesión actual para calcular tu vecino más cercano.';
+    }
+
+    if (this.allUsers.length < 2) {
+      return 'Se necesitan al menos dos usuarios con coordenadas para calcular proximidad.';
+    }
+
+    return 'Tu usuario logueado no aparece entre las ubicaciones disponibles del mapa.';
+  }
+
   private getLoggedUserMatchKeys(): Set<string> {
     const keys = new Set<string>();
 
@@ -155,12 +172,14 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
         this.addUserMatchKey(keys, user?.user_id);
         this.addUserMatchKey(keys, user?.userId);
         this.addUserMatchKey(keys, user?.sub);
+        this.addUserMatchKey(keys, user?.email);
       }
     } catch {
       // ignore parse errors and fallback to token extraction
     }
 
     this.addUserMatchKey(keys, this.getLoggedUserIdFromToken());
+    this.addUserMatchKey(keys, this.getLoggedUserEmailFromToken());
     return keys;
   }
 
@@ -181,6 +200,28 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
       const decodedPayload = JSON.parse(atob(normalizedBase64));
 
       return this.normalizeUserId(decodedPayload?.id ?? decodedPayload?.sub);
+    } catch {
+      return '';
+    }
+  }
+
+  private getLoggedUserEmailFromToken(): string {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return '';
+      }
+
+      const [, payload] = token.split('.');
+      if (!payload) {
+        return '';
+      }
+
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const normalizedBase64 = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+      const decodedPayload = JSON.parse(atob(normalizedBase64));
+
+      return this.normalizeUserId(decodedPayload?.email);
     } catch {
       return '';
     }
@@ -394,7 +435,10 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
       return null;
     }
 
-    const currentUser = sourceUsers.find((user) => this.loggedUserMatchKeys.has(this.toUserMatchKey(user.id)));
+    const currentUser = sourceUsers.find((user) =>
+      this.loggedUserMatchKeys.has(this.toUserMatchKey(user.id))
+      || this.loggedUserMatchKeys.has(this.toUserMatchKey(user.email))
+    );
     if (!currentUser) {
       return null;
     }

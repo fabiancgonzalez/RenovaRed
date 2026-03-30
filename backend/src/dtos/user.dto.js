@@ -92,6 +92,7 @@ class UserDTO {
     return {
       id: user.id,
       nombre: user.nombre,
+      email: user.email,
       tipo: user.tipo,
       avatar_url: user.avatar_url,
       ubicacion_texto: user.ubicacion_texto,

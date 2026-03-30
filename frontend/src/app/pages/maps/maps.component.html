@@ -21,11 +21,19 @@
 				<span class="metric-sub">entre actores</span>
 			</article>
 
-			<article class="metric-card" *ngIf="loggedUserDistance">
+			<article class="metric-card" *ngIf="loggedUserDistance; else noLoggedUserMetric">
 				<span class="metric-label">Tu ubicación</span>
 				<strong>{{ formatDistance(loggedUserDistance.distanceKm) }}</strong>
 				<span class="metric-sub">al actor más cercano</span>
 			</article>
+
+			<ng-template #noLoggedUserMetric>
+				<article class="metric-card muted">
+					<span class="metric-label">Tu ubicación</span>
+					<strong>Sin enlace</strong>
+					<span class="metric-sub">{{ loggedUserWarningMessage }}</span>
+				</article>
+			</ng-template>
 
 			<ng-template #noClosestPairMetric>
 				<article class="metric-card muted">

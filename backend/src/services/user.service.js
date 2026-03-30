@@ -144,7 +144,7 @@ class UserService {
   async getMapLocations() {
     const users = await User.findAll({
       where: { is_active: true },
-      attributes: ['id', 'nombre', 'tipo', 'avatar_url', 'ubicacion_texto', 'ubicacion_geom', 'google_places_data', 'reputacion'],
+      attributes: ['id', 'nombre', 'email', 'tipo', 'avatar_url', 'ubicacion_texto', 'ubicacion_geom', 'google_places_data', 'reputacion'],
       order: [['nombre', 'ASC']]
     });
 
