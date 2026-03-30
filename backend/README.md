@@ -34,3 +34,13 @@ npm run dev
    - `GET /api/health` - Health check del servidor
 
 **Documentación** - Swagger UI en `/api-docs`
+
+## Mercado Pago por vendedor
+- Variable opcional: `MP_ACCESS_TOKEN_BY_USER`
+- Formato: JSON string con `{ "<sellerId>": "<access_token_mp>" }`
+- Si no está definida, el backend usa el token global (`ACCESS_TOKEN_MP` / `MP_ACCESS_TOKEN` / `MERCADOPAGO_ACCESS_TOKEN`).
+
+Ejemplo:
+```env
+MP_ACCESS_TOKEN_BY_USER={"uuid-vendedor-1":"APP_USR-...","uuid-vendedor-2":"APP_USR-..."}
+```

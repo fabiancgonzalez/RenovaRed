@@ -134,6 +134,11 @@ class ExchangeService {
         return { status: 403, body: { success: false, message: 'Solo el comprador puede solicitar un intercambio' } };
       }
       
+      const resolvedSellerId = conversation.seller_id || sellerId;
+      if (!resolvedSellerId) {
+        return { status: 400, body: { success: false, message: 'No se pudo identificar al vendedor de la conversacion' } };
+      }
+
       const pendingExchange = await Exchange.findOne({ 
         where: { 
           conversation_id: conversationId,
@@ -166,7 +171,9 @@ class ExchangeService {
 
       if (!Number.isFinite(finalPrice) || finalPrice <= 0) {
         const quoteMaterial = materialName || publication.titulo;
-        const quoteResult = await materialQuoteService.calculateQuote(quoteMaterial, exchangeQuantity);
+        const quoteResult = await materialQuoteService.calculateQuote(quoteMaterial, exchangeQuantity, {
+          sellerId: conversation.seller_id
+        });
 
         if (quoteResult.success) {
           finalPrice = quoteResult.data.precioTotalArs;
@@ -180,7 +187,7 @@ class ExchangeService {
         conversation_id: conversationId,
         publication_id: publicationId,
         buyer_id: userId,
-        seller_id: sellerId,
+        seller_id: resolvedSellerId,
         cantidad: exchangeQuantity,
         precio_final: finalPrice,
         kg_aproximados: exchangeQuantity,
@@ -209,12 +216,12 @@ class ExchangeService {
           read: false
         };
         
-        io.to(`user:${userId}`).to(`user:${sellerId}`).emit('new-message', {
+        io.to(`user:${userId}`).to(`user:${resolvedSellerId}`).emit('new-message', {
           conversationId,
           message: messageData
         });
         
-        io.to(`user:${sellerId}`).emit('exchange-request', {
+        io.to(`user:${resolvedSellerId}`).emit('exchange-request', {
           conversationId,
           exchangeId: exchange.id,
           buyerName: buyer.nombre,
@@ -428,16 +435,34 @@ class ExchangeService {
     }
   }
 
-  async getQuote(data) {
+  async getQuote(userId, data) {
     try {
       const material = data.material || data.materialName;
       const quantity = data.ks || data.kg;
+      const conversationId = data.conversationId;
+      const sellerIdFromPayload = data.sellerId;
 
       if (!material) {
         return { status: 400, body: { success: false, message: 'material es obligatorio' } };
       }
 
-      const result = await materialQuoteService.calculateQuote(material, quantity);
+      let sellerId = sellerIdFromPayload;
+
+      if (conversationId) {
+        const conversation = await Conversation.findByPk(conversationId);
+        if (!conversation) {
+          return { status: 404, body: { success: false, message: 'Conversacion no encontrada' } };
+        }
+
+        const isParticipant = conversation.buyer_id === userId || conversation.seller_id === userId;
+        if (!isParticipant) {
+          return { status: 403, body: { success: false, message: 'No tenés permisos para esta conversación' } };
+        }
+
+        sellerId = conversation.seller_id;
+      }
+
+      const result = await materialQuoteService.calculateQuote(material, quantity, { sellerId });
 
       if (!result.success) {
         return { status: 404, body: { success: false, message: result.message } };
@@ -461,10 +486,12 @@ class ExchangeService {
     try {
       const preferenceId = data.preferenceId || data.preference_id;
       const externalReference = data.externalReference || data.external_reference;
+      const sellerId = data.sellerId || data.seller_id;
 
       const result = await materialQuoteService.getMercadoPagoPaymentStatus({
         preferenceId,
-        externalReference
+        externalReference,
+        sellerId
       });
 
       if (!result.success) {

@@ -95,6 +95,7 @@ export interface ExchangeQuote {
     initPoint: string;
     sandboxInitPoint?: string | null;
     externalReference?: string;
+    sellerId?: string | null;
   };
   paymentIntent?: {
     amountArs: number;
@@ -196,12 +197,12 @@ export class ChatService {
     return this.http.post(`${this.apiUrl}/exchanges/request`, data, { headers });
   }
 
-  getExchangeQuote(material: string, ks: number): Observable<any> {
+  getExchangeQuote(material: string, ks: number, conversationId?: string, sellerId?: string): Observable<any> {
     const headers = this.getAuthHeaders();
-    return this.http.post(`${this.apiUrl}/exchanges/quote`, { material, ks }, { headers });
+    return this.http.post(`${this.apiUrl}/exchanges/quote`, { material, ks, conversationId, sellerId }, { headers });
   }
 
-  getMercadoPagoPaymentStatus(payload: { preferenceId?: string; externalReference?: string }): Observable<any> {
+  getMercadoPagoPaymentStatus(payload: { preferenceId?: string; externalReference?: string; sellerId?: string | null }): Observable<any> {
     const headers = this.getAuthHeaders();
     return this.http.post(`${this.apiUrl}/exchanges/payment-status`, payload, { headers });
   }

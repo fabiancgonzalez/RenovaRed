@@ -522,7 +522,12 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     this.calculatingQuote = true;
 
-    this.chatService.getExchangeQuote(this.currentConversation.publication.titulo, this.exchangeData.kg).subscribe({
+    this.chatService.getExchangeQuote(
+      this.currentConversation.publication.titulo,
+      this.exchangeData.kg,
+      this.selectedConversationId || undefined,
+      this.currentConversation?.vendedor?.id || undefined
+    ).subscribe({
       next: (res) => {
         this.calculatingQuote = false;
         if (res?.success && res.data) {
@@ -581,7 +586,11 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.chatService.getMercadoPagoPaymentStatus({ preferenceId, externalReference }).subscribe({
+    this.chatService.getMercadoPagoPaymentStatus({
+      preferenceId,
+      externalReference,
+      sellerId: this.exchangeQuote?.mpPayment?.sellerId || this.currentConversation?.vendedor?.id || null
+    }).subscribe({
       next: (res) => {
         const payment = res?.data as MercadoPagoPaymentStatus | undefined;
         if (!res?.success || !payment) {

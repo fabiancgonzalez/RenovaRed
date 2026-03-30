@@ -34,8 +34,32 @@ class MaterialQuoteService {
     ).trim();
   }
 
-  getMercadoPagoClient() {
-    const token = this.getMercadoPagoAccessToken();
+  getMercadoPagoAccessTokenForSeller(sellerId) {
+    const normalizedSellerId = (sellerId || '').toString().trim();
+    if (!normalizedSellerId) {
+      return this.getMercadoPagoAccessToken();
+    }
+
+    const rawMap = (process.env.MP_ACCESS_TOKEN_BY_USER || '').trim();
+    if (rawMap) {
+      try {
+        const parsedMap = JSON.parse(rawMap);
+        if (parsedMap && typeof parsedMap === 'object') {
+          const sellerToken = (parsedMap[normalizedSellerId] || '').toString().trim();
+          if (sellerToken) {
+            return sellerToken;
+          }
+        }
+      } catch {
+        // ignore invalid JSON map and fallback to global token
+      }
+    }
+
+    return this.getMercadoPagoAccessToken();
+  }
+
+  getMercadoPagoClient(sellerId) {
+    const token = this.getMercadoPagoAccessTokenForSeller(sellerId);
 
     if (!token) {
       return null;
@@ -50,8 +74,8 @@ class MaterialQuoteService {
     return this.mpClient;
   }
 
-  async getMercadoPagoPaymentStatus({ preferenceId, externalReference }) {
-    const token = this.getMercadoPagoAccessToken();
+  async getMercadoPagoPaymentStatus({ preferenceId, externalReference, sellerId }) {
+    const token = this.getMercadoPagoAccessTokenForSeller(sellerId);
     if (!token) {
       return {
         success: false,
@@ -132,8 +156,8 @@ class MaterialQuoteService {
     }
   }
 
-  async createMercadoPagoPreference({ material, quantity, total }) {
-    const client = this.getMercadoPagoClient();
+  async createMercadoPagoPreference({ material, quantity, total, sellerId }) {
+    const client = this.getMercadoPagoClient(sellerId);
     if (!client) {
       return {
         success: false,
@@ -302,7 +326,8 @@ class MaterialQuoteService {
     return byToken || null;
   }
 
-  async calculateQuote(materialName, ksOrKg) {
+  async calculateQuote(materialName, ksOrKg, options = {}) {
+    const sellerId = options?.sellerId;
     const quantity = Number(ksOrKg);
     if (!Number.isFinite(quantity) || quantity <= 0) {
       return {
@@ -339,7 +364,8 @@ class MaterialQuoteService {
     const mpPreference = await this.createMercadoPagoPreference({
       material: quote.material,
       quantity,
-      total
+      total,
+      sellerId
     });
 
     let qrPayload, qrImageUrl, qrEsInteroperable, qrTipo, qrMensaje, mpPaymentData;
@@ -355,7 +381,8 @@ class MaterialQuoteService {
         preferenceId: mpPreference.data.preferenceId,
         initPoint: mpPreference.data.initPoint,
         sandboxInitPoint: mpPreference.data.sandboxInitPoint,
-        externalReference: mpPreference.data.externalReference
+        externalReference: mpPreference.data.externalReference,
+        sellerId: sellerId || null
       };
     } else {
       // Fallback: QR informativo con los datos del pago

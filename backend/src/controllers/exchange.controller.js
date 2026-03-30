@@ -85,7 +85,7 @@ exports.getExchangeStatus = async (req, res) => {
 exports.getQuote = async (req, res) => {
   try {
     const payload = { ...req.query, ...req.body };
-    const result = await exchangeService.getQuote(payload);
+    const result = await exchangeService.getQuote(req.user.id, payload);
     return res.status(result.status).json(result.body);
   } catch (error) {
     console.error('ExchangeController.getQuote:', error);

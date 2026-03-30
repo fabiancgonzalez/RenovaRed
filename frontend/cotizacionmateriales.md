@@ -9,6 +9,7 @@ Cobre	Metales	$3.85 (antiguo)	Precio histórico; actualmente es más alto
 Bronce	Metales	$3.25 (antiguo)	Precio histórico; actualmente es más alto
 Chatarra (Pesada)	Metales	$18	Metales ferrosos de mayor peso y calidad
 Chatarra (Liviana)	Metales	$13	Metales ferrosos de menor calidad o más livianos
+Chapas Galpones	Metales	$18	Se toma referencia de chatarra pesada para chapas metálicas
 Cartón	Papel y Cartón	$7.4 - $20	
 Papel Blanco	Papel y Cartón	$11.70	Papel de impresión de mayor valor
 Papel Mezcla (Diario)	Papel y Cartón	$6	Periódicos y revistas
@@ -27,6 +28,7 @@ Cobre	$3.85
 Bronce	$3.25
 Chatarra (Pesada)	$18
 Chatarra (Liviana)	$13
+Chapas Galpones	$18
 Cartón	$20
 Papel Blanco	$11.70
 Papel Mezcla (Diario)	$6

@@ -71,13 +71,13 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
   highlightedUserIds: string[] = [];
   closestPairGlobal: ClosestPair | null = null;
   loggedUserDistance: LoggedUserDistance | null = null;
-  private loggedUserId = '';
+  private loggedUserMatchKeys = new Set<string>();
 
   constructor(
     private readonly http: HttpClient,
     private readonly cdr: ChangeDetectorRef
   ) {
-    this.loggedUserId = this.getLoggedUserId();
+    this.loggedUserMatchKeys = this.getLoggedUserMatchKeys();
   }
 
   ngAfterViewInit(): void {
@@ -143,21 +143,25 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
     return 'No hay usuarios visibles con los filtros seleccionados.';
   }
 
-  private getLoggedUserId(): string {
+  private getLoggedUserMatchKeys(): Set<string> {
+    const keys = new Set<string>();
+
     try {
       const userRaw = localStorage.getItem('user');
       if (userRaw) {
         const user = JSON.parse(userRaw);
-        const normalizedId = this.normalizeUserId(user?.id);
-        if (normalizedId) {
-          return normalizedId;
-        }
+        this.addUserMatchKey(keys, user?.id);
+        this.addUserMatchKey(keys, user?._id);
+        this.addUserMatchKey(keys, user?.user_id);
+        this.addUserMatchKey(keys, user?.userId);
+        this.addUserMatchKey(keys, user?.sub);
       }
-
-      return this.getLoggedUserIdFromToken();
     } catch {
-      return this.getLoggedUserIdFromToken();
+      // ignore parse errors and fallback to token extraction
     }
+
+    this.addUserMatchKey(keys, this.getLoggedUserIdFromToken());
+    return keys;
   }
 
   private getLoggedUserIdFromToken(): string {
@@ -179,6 +183,17 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
       return this.normalizeUserId(decodedPayload?.id ?? decodedPayload?.sub);
     } catch {
       return '';
+    }
+  }
+
+  private toUserMatchKey(value: unknown): string {
+    return this.normalizeUserId(value).trim().toLowerCase();
+  }
+
+  private addUserMatchKey(collection: Set<string>, value: unknown): void {
+    const key = this.toUserMatchKey(value);
+    if (key) {
+      collection.add(key);
     }
   }
 
@@ -375,11 +390,11 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
   }
 
   private calculateLoggedUserDistance(sourceUsers: MapUser[]): LoggedUserDistance | null {
-    if (!this.loggedUserId) {
+    if (!this.loggedUserMatchKeys.size) {
       return null;
     }
 
-    const currentUser = sourceUsers.find((user) => user.id === this.loggedUserId);
+    const currentUser = sourceUsers.find((user) => this.loggedUserMatchKeys.has(this.toUserMatchKey(user.id)));
     if (!currentUser) {
       return null;
     }
@@ -558,15 +573,39 @@ export class MapsComponent implements AfterViewInit, OnDestroy {
     }
 
     if (loggedPair) {
+      const start: UserCoordinates = {
+        lat: loggedPair.first.coordinates.lat,
+        lng: loggedPair.first.coordinates.lng
+      };
+      const end: UserCoordinates = {
+        lat: loggedPair.second.coordinates.lat,
+        lng: loggedPair.second.coordinates.lng
+      };
+
       L.polyline([
-        [loggedPair.first.coordinates.lat, loggedPair.first.coordinates.lng],
-        [loggedPair.second.coordinates.lat, loggedPair.second.coordinates.lng]
+        [start.lat, start.lng],
+        [end.lat, end.lng]
       ], {
         color: '#2563eb',
-        weight: 4,
-        dashArray: '10 8',
-        opacity: 0.95
+        weight: 5,
+        opacity: 0.65
       }).addTo(this.markersLayer);
+
+      const segmentDistanceKm = this.calculateDistanceKm(start, end);
+      const pointsCount = Math.max(2, Math.min(24, Math.ceil(segmentDistanceKm / 5)));
+      for (let index = 0; index <= pointsCount; index += 1) {
+        const ratio = index / pointsCount;
+        const lat = start.lat + (end.lat - start.lat) * ratio;
+        const lng = start.lng + (end.lng - start.lng) * ratio;
+
+        L.circleMarker([lat, lng], {
+          radius: index === 0 || index === pointsCount ? 7 : 5,
+          color: '#1d4ed8',
+          fillColor: '#93c5fd',
+          fillOpacity: 1,
+          weight: 2
+        }).addTo(this.markersLayer);
+      }
     }
   }
 
