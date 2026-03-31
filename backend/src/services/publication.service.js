@@ -2,7 +2,7 @@ const { Publication, User, Category } = require('../models');
 const { Op } = require('sequelize');
 
 class PublicationService {
-  async getAll({ page = 1, limit = 20, estado, tipo_usuario, categoria_id, search, user_id, precio_min, precio_max } = {}) {
+  async getAll({ page = 1, limit = 20, estado, tipo_usuario, categoria_id, search, user_id, precio_min, precio_max, usuario_nombre, zona_geografica } = {}) {
     const where = {};
     const andConditions = [];
 
@@ -19,6 +19,11 @@ class PublicationService {
           { ubicacion_texto: { [Op.iLike]: `%${search}%` } }
         ]
       });
+    }
+
+    // Filtro por zona geográfica (ubicacion_texto)
+    if (zona_geografica && zona_geografica.trim()) {
+      andConditions.push({ ubicacion_texto: { [Op.iLike]: `%${zona_geografica.trim()}%` } });
     }
 
     const priceFilter = {};
@@ -48,11 +53,21 @@ class PublicationService {
       where[Op.and] = andConditions;
     }
 
+    // Filtro por nombre de usuario (join con User)
+    const userInclude = {
+      model: User,
+      as: 'usuario',
+      attributes: ['id', 'nombre', 'tipo', 'avatar_url', 'telefono'],
+    };
+    if (usuario_nombre && usuario_nombre.trim()) {
+      userInclude.where = { nombre: { [Op.iLike]: `%${usuario_nombre.trim()}%` } };
+    }
+
     const offset = (page - 1) * limit;
     const { count, rows } = await Publication.findAndCountAll({
       where,
       include: [
-        { model: User, as: 'usuario', attributes: ['id', 'nombre', 'tipo', 'avatar_url', 'telefono'] },
+        userInclude,
         { model: Category, as: 'categoria', attributes: ['id', 'nombre', 'icono', 'descripcion', 'color'], required: false }
       ],
       limit: parseInt(limit),

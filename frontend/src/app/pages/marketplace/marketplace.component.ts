@@ -84,6 +84,8 @@ export class MarketplaceComponent implements OnInit {
   searchTerm = '';
   minPrice: number | null = null;
   maxPrice: number | null = null;
+  userFilter: string = '';
+  zonaFilter: string = '';
   publicationImagePreview = '';
   expandedPublicationId: string | null = null;
   isAuthenticated = false;
@@ -151,7 +153,7 @@ export class MarketplaceComponent implements OnInit {
   }
 
   get hasActiveFilters(): boolean {
-    return !!this.selectedCategoryId || !!this.searchTerm.trim() || this.minPrice != null || this.maxPrice != null;
+    return !!this.selectedCategoryId || !!this.searchTerm.trim() || this.minPrice != null || this.maxPrice != null || !!this.userFilter.trim() || !!this.zonaFilter.trim();
   }
 
   async loadMarketplaceData(): Promise<void> {
@@ -163,7 +165,10 @@ export class MarketplaceComponent implements OnInit {
         await this.loadCategories();
       }
 
-      this.allPublications = await this.fetchAllPublications();
+      this.allPublications = await this.fetchAllPublications({
+        userFilter: this.userFilter,
+        zonaFilter: this.zonaFilter
+      });
       await this.loadMyPublications();
 
       this.loading = false;
@@ -330,6 +335,8 @@ export class MarketplaceComponent implements OnInit {
     this.searchTerm = '';
     this.minPrice = null;
     this.maxPrice = null;
+    this.userFilter = '';
+    this.zonaFilter = '';
     void this.loadMarketplaceData();
   }
 
@@ -511,7 +518,7 @@ export class MarketplaceComponent implements OnInit {
     }
   }
 
-  private async fetchAllPublications(): Promise<Publication[]> {
+  private async fetchAllPublications(filters: { userFilter?: string, zonaFilter?: string } = {}): Promise<Publication[]> {
     const publications: Publication[] = [];
     let page = 1;
     let pages = 1;
@@ -536,6 +543,14 @@ export class MarketplaceComponent implements OnInit {
 
       if (this.maxPrice != null && !Number.isNaN(this.maxPrice)) {
         query.set('precio_max', String(this.maxPrice));
+      }
+
+      // Nuevo: filtro por usuario (nombre) y zona geográfica
+      if (filters.userFilter && filters.userFilter.trim()) {
+        query.set('usuario_nombre', filters.userFilter.trim());
+      }
+      if (filters.zonaFilter && filters.zonaFilter.trim()) {
+        query.set('zona_geografica', filters.zonaFilter.trim());
       }
 
       const response = await firstValueFrom(

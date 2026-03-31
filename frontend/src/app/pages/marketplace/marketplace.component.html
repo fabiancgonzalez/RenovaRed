@@ -32,6 +32,22 @@
 	<section class="section-todas-publicaciones">
 		<h2>Todas las publicaciones</h2>
 
+		<!-- Filtros avanzados -->
+		<form class="marketplace-filters" (ngSubmit)="applyFilters()" style="margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+			<div>
+				<label for="userFilter">Usuario</label>
+				<input id="userFilter" name="userFilter" type="text" [(ngModel)]="userFilter" placeholder="Nombre de usuario" />
+			</div>
+			<div>
+				<label for="zonaFilter">Zona geográfica</label>
+				<input id="zonaFilter" name="zonaFilter" type="text" [(ngModel)]="zonaFilter" placeholder="Ej: Buenos Aires" />
+			</div>
+			<div>
+				<button type="submit" class="btn-primary">Filtrar</button>
+				<button type="button" class="btn-secondary" (click)="clearAllFilters()">Limpiar</button>
+			</div>
+		</form>
+
 		<div *ngIf="!loading && allPublications.length === 0" class="empty">
 			No hay publicaciones disponibles.
 		</div>
