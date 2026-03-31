@@ -369,3 +369,89 @@ button[type="submit"]:disabled {
         padding: 15px 20px; 
     }
 }
+/* Responsive    LE AGREGUE ESTO */
+@media (max-width: 768px) {
+    .auth-header {
+        padding: 15px 20px;
+    }
+    
+    .logo img {
+        width: 120px;
+    }
+    
+    .auth-buttons {
+        gap: 10px;
+    }
+    
+    .btn-login,
+    .btn-register {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+    
+    .btn-register {
+        padding: 6px 18px;
+    }
+    
+    .register-page {
+        padding: 80px 20px 30px;
+    }
+    
+    .register-card {
+        width: 100%;
+        max-width: 400px;
+        padding: 30px 20px;
+    }
+    
+    .input-group input,
+    .input-group select {
+        padding: 12px 40px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-header {
+        padding: 12px 15px;
+    }
+    
+    .logo img {
+        width: 100px;
+    }
+    
+    .auth-buttons {
+        gap: 8px;
+    }
+    
+    .btn-login,
+    .btn-register {
+        padding: 5px 10px;
+        font-size: 13px;
+    }
+    
+    .btn-register {
+        padding: 5px 15px;
+    }
+    
+    .register-page {
+        padding: 70px 15px 20px;
+    }
+    
+    .register-card {
+        padding: 25px 15px;
+    }
+    
+    .register-card h1 {
+        font-size: 24px;
+    }
+    
+    .checkbox-container {
+        font-size: 13px;
+        flex-wrap: wrap;
+    }
+    
+    button {
+        padding: 12px;
+        font-size: 15px;
+    }
+}
