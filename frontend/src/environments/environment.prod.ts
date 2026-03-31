@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://aconfigurar.vercel.app/api',
+  apiUrl: 'https://renovared-1shf.onrender.com/api',
   googleClientId: ''
 };
