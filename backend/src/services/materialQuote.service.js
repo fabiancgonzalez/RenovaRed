@@ -232,12 +232,27 @@ class MaterialQuoteService {
   parsePrice(rawPrice) {
     if (!rawPrice) return null;
 
-    const matches = rawPrice.match(/\$\s*([0-9]+(?:[\.,][0-9]+)?)/g);
-    if (!matches || matches.length === 0) return null;
+    const matches = Array.from(rawPrice.matchAll(/\$\s*([0-9][0-9.,]*)/g));
+    if (matches.length === 0) return null;
 
     const numericValues = matches
-      .map((value) => value.replace(/\$/g, '').replace(',', '.').trim())
-      .map((value) => parseFloat(value))
+      .map((match) => {
+        const rawNumber = (match[1] || '').trim();
+        if (!rawNumber) return NaN;
+
+        // Si tiene coma y no punto, asumimos:
+        // - "3,850" => separador de miles
+        // - "18,20" => decimal
+        if (rawNumber.includes(',') && !rawNumber.includes('.')) {
+          const commaParts = rawNumber.split(',');
+          if (commaParts.length === 2 && commaParts[1].length === 3) {
+            return parseFloat(commaParts.join(''));
+          }
+          return parseFloat(rawNumber.replace(',', '.'));
+        }
+
+        return parseFloat(rawNumber.replace(/,/g, ''));
+      })
       .filter((value) => Number.isFinite(value));
 
     if (numericValues.length === 0) return null;
@@ -252,11 +267,23 @@ class MaterialQuoteService {
       const trimmed = line.trim();
       if (!trimmed || !trimmed.includes('$')) continue;
 
-      const columns = trimmed.split('\t').map((col) => col.trim()).filter(Boolean);
+      let columns = [];
+
+      if (trimmed.includes('\t')) {
+        columns = trimmed.split('\t').map((col) => col.trim()).filter(Boolean);
+      } else if (trimmed.includes('|')) {
+        columns = trimmed.split('|').map((col) => col.trim()).filter(Boolean);
+      } else {
+        const match = trimmed.match(/^(.+?)\s+(\$.*)$/);
+        if (match) {
+          columns = [match[1].trim(), match[2].trim()];
+        }
+      }
+
       if (columns.length < 2) continue;
 
-      const material = columns[0];
-      const priceColumn = columns[2] || columns[1];
+      const material = columns.length >= 3 ? columns[1] : columns[0];
+      const priceColumn = columns.length >= 3 ? columns[2] : columns[1];
       const unitPrice = this.parsePrice(priceColumn);
 
       if (!material || !Number.isFinite(unitPrice)) continue;
