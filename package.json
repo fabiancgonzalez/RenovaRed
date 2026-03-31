@@ -2,6 +2,9 @@
   "name": "renovared",
   "version": "1.0.0",
   "scripts": {
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build --if-present",
     "frontend": "cd frontend && ng serve",
     "backend": "cd backend && npm run dev",
     "dev": "concurrently \"npm run frontend\" \"npm run backend\""
