@@ -1,3 +1,6 @@
+* {
+  box-sizing: border-box;
+}
 .publication-page {
   min-height: 100vh;
   padding: 40px;
@@ -170,9 +173,55 @@ h1 {
   background: rgba(34, 197, 94, 0.2);
   color: #86EFAC;
 }
+/* --- RESPONSIVIDAD --- */
 
 @media (max-width: 768px) {
+  .publication-page {
+    padding: 20px;
+  }
+
+  .publication-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 32px;
+  }
   .form-row {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .section-publication-form {
+    padding: 20px;
+  }
+}
+@media (max-width: 480px) {
+  .publication-hero {
+    text-align: center;
+    align-items: center;
+  }
+  .hero-actions, .actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  .btn-primary, 
+  .btn-secondary, 
+  .actions button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .publication-image-preview {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .publication-image-preview img {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
   }
 }
