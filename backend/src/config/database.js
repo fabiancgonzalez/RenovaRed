@@ -1,29 +1,53 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
+let sequelize;
+
+// Verificar si estamos en producción con DATABASE_URL
+if (process.env.DATABASE_URL) {
+  // Modo producción
+  console.log('Conectando a base de datos vía DATABASE_URL');
+  
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
-    logging: console.log, // mostrar las consultas SQL en consola (para debug)
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false // para Supabase
+        rejectUnauthorized: false // Necesario para Supabase
       }
     },
-    // CONFIGURACION DEL POOL
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
     pool: {
       max: 20,
       min: 2,
       acquire: 30000,
       idle: 10000
     }
-  }
-);
+  });
+} else {
+  // Modo desarrollo local
+  console.log('Conectando a base de datos vía variables separadas (local)');
+  
+  sequelize = new Sequelize(
+    process.env.DB_NAME || 'renovared',
+    process.env.DB_USER || 'postgres',
+    process.env.DB_PASSWORD || '',
+    {
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 5432,
+      dialect: 'postgres',
+      logging: console.log,
+      dialectOptions: {
+        ssl: false // En local no SSL
+      },
+      pool: {
+        max: 20,
+        min: 2,
+        acquire: 30000,
+        idle: 10000
+      }
+    }
+  );
+}
 
 module.exports = sequelize;

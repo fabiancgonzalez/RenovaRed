@@ -8,12 +8,20 @@ const swaggerSpecs = require('./src/config/swagger');
 
 const app = express();
 const server = http.createServer(app);
+
+// ========== CONFIGURACIÓN CORS PARA PRODUCCIÓN ==========
+const corsOptions = {
+  origin: true,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
 const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:4200",
-    methods: ["GET", "POST"],
-    credentials: true
-  }
+  cors: corsOptions,
+  transports: ['websocket', 'polling'],
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
 // ========== EXPORTAR IO ==========
@@ -24,9 +32,7 @@ module.exports.io = io;
 require('./src/websocket')(io);
 
 // ========== MIDDLEWARES ==========
-app.use(cors());
-
-// Configurar límites altos para payloads grandes (imágenes en base64)
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -104,6 +110,7 @@ server.timeout = 120000;
 server.listen(PORT, () => {
     console.log(`==========RenovaRed==========`);
     console.log(` - RenovaRed activo en: http://localhost:${PORT}`);
+    console.log(` - Entorno: ${process.env.NODE_ENV || 'development'}`);
     console.log(` - Health check: http://localhost:${PORT}/api/health`);
     console.log(` - Swagger: http://localhost:${PORT}/api-docs`);
     console.log(` - Swagger JSON: http://localhost:${PORT}/api-docs.json`);
