@@ -52,6 +52,7 @@ export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
   private editMap?: L.Map;
   private editMarker?: L.Marker;
   private viewMap?: L.Map;
+  private geocodeTimeout: ReturnType<typeof setTimeout> | null = null;
 
   profile: UserProfile | null = null;
   isOwnProfile = true;
@@ -59,6 +60,7 @@ export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
   isLoading = false;
   isSavingProfile = false;
   isChangingPassword = false;
+  isGeocodingLocation = false;
 
   errorMessage = '';
   successMessage = '';
@@ -124,6 +126,10 @@ export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.geocodeTimeout) {
+      clearTimeout(this.geocodeTimeout);
+      this.geocodeTimeout = null;
+    }
     this.editMap?.remove();
     this.viewMap?.remove();
   }
@@ -204,6 +210,20 @@ export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
       linkedin: this.profile?.linkedin || '',
       x_handle: this.profile?.x_handle || ''
     };
+  }
+
+  private syncProfilePreviewCoordinates(lat: number, lng: number): void {
+    if (!this.profile) return;
+
+    this.profile = {
+      ...this.profile,
+      ubicacion_texto: this.editForm.ubicacion_texto.trim() || this.profile.ubicacion_texto,
+      coordinates: { lat, lng }
+    };
+
+    if (this.viewMap) {
+      this.initializeViewMap();
+    }
   }
 
   copyToClipboard(text: string): void {
@@ -425,6 +445,137 @@ export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
 
     this.updateEditMarker(lat, lng, true);
+    this.syncProfilePreviewCoordinates(lat, lng);
+  }
+
+  onLocationTextInput(): void {
+    const query = this.editForm.ubicacion_texto.trim();
+
+    if (this.geocodeTimeout) {
+      clearTimeout(this.geocodeTimeout);
+      this.geocodeTimeout = null;
+    }
+
+    if (query.length < 5) {
+      return;
+    }
+
+    this.geocodeTimeout = setTimeout(() => {
+      this.geocodeLocation(query);
+    }, 800);
+  }
+
+  private async geocodeLocation(query: string): Promise<void> {
+    this.isGeocodingLocation = true;
+
+    try {
+      const params = new URLSearchParams({
+        q: query,
+        format: 'jsonv2',
+        limit: '1',
+        countrycodes: 'ar'
+      });
+
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo consultar la ubicación');
+      }
+
+      const results = await response.json();
+      const firstResult = Array.isArray(results) ? results[0] : null;
+
+      if (!firstResult?.lat || !firstResult?.lon) {
+        return;
+      }
+
+      const lat = Number(firstResult.lat);
+      const lng = Number(firstResult.lon);
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return;
+      }
+
+      this.editForm.latitud = lat.toFixed(6);
+      this.editForm.longitud = lng.toFixed(6);
+      this.updateEditMarker(lat, lng, true);
+      this.syncProfilePreviewCoordinates(lat, lng);
+    } catch (error) {
+      console.error('Error geocoding location:', error);
+    } finally {
+      this.isGeocodingLocation = false;
+    }
+  }
+
+  private async reverseGeocode(lat: number, lng: number): Promise<void> {
+    this.isGeocodingLocation = true;
+
+    try {
+      const params = new URLSearchParams({
+        lat: String(lat),
+        lon: String(lng),
+        format: 'jsonv2',
+        zoom: '18',
+        addressdetails: '1'
+      });
+
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo obtener la dirección');
+      }
+
+      const result = await response.json();
+      const formattedAddress = this.formatReverseGeocodeAddress(result);
+
+      if (formattedAddress) {
+        this.editForm.ubicacion_texto = formattedAddress;
+
+        if (this.profile) {
+          this.profile = {
+            ...this.profile,
+            ubicacion_texto: formattedAddress
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Error reverse geocoding location:', error);
+    } finally {
+      this.isGeocodingLocation = false;
+    }
+  }
+
+  private formatReverseGeocodeAddress(result: any): string {
+    const address = result?.address || {};
+
+    const streetNumber = address.house_number || '';
+    const road = address.road || address.pedestrian || address.footway || '';
+    const neighbourhood = address.suburb || address.neighbourhood || address.city_district || '';
+    const city = address.city || address.town || address.village || address.municipality || '';
+    const municipality = address.municipality || '';
+    const state = address.state || '';
+
+    const parts = [
+      streetNumber,
+      road,
+      neighbourhood,
+      city,
+      municipality && municipality !== city ? municipality : '',
+      state && state !== city ? state : ''
+    ].filter((value, index, array) => {
+      const normalized = String(value || '').trim();
+      return normalized && array.findIndex((item) => String(item || '').trim() === normalized) === index;
+    });
+
+    return parts.join(', ');
   }
 
   private initializeViewMap(): void {
@@ -469,6 +620,7 @@ export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     this.editMap.on('click', (event: L.LeafletMouseEvent) => {
       this.updateEditMarker(event.latlng.lat, event.latlng.lng, false);
+      this.reverseGeocode(event.latlng.lat, event.latlng.lng);
     });
 
     if (hasCoordinates) {
@@ -490,6 +642,8 @@ export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
         if (!markerPosition) return;
         this.editForm.latitud = markerPosition.lat.toFixed(6);
         this.editForm.longitud = markerPosition.lng.toFixed(6);
+        this.syncProfilePreviewCoordinates(markerPosition.lat, markerPosition.lng);
+        this.reverseGeocode(markerPosition.lat, markerPosition.lng);
       });
     } else {
       this.editMarker.setLatLng(position);
@@ -497,6 +651,7 @@ export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     this.editForm.latitud = lat.toFixed(6);
     this.editForm.longitud = lng.toFixed(6);
+    this.syncProfilePreviewCoordinates(lat, lng);
 
     if (shouldCenter) {
       this.editMap.setView(position, Math.max(this.editMap.getZoom(), 14));

@@ -217,6 +217,14 @@
     box-sizing: border-box;
 }
 
+.location-status {
+    display: inline-block;
+    margin-top: 8px;
+    color: #22C55E;
+    font-size: 12px;
+    font-weight: 500;
+}
+
 /* Info Grid - Dos columnas iguales */
 .info-grid {
     display: grid;

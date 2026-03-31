@@ -221,7 +221,10 @@
 
                     <div class="form-group">
                         <label>Ubicación (texto)</label>
-                        <input type="text" [(ngModel)]="editForm.ubicacion_texto" name="ubicacion_texto" placeholder="Ej: Buenos Aires, Argentina">
+                        <input type="text" [(ngModel)]="editForm.ubicacion_texto" name="ubicacion_texto" placeholder="Ej: Buenos Aires, Argentina" (ngModelChange)="onLocationTextInput()">
+                        @if (isGeocodingLocation) {
+                            <small class="location-status">Buscando coordenadas automáticamente...</small>
+                        }
                     </div>
 
                     <div class="form-row">
