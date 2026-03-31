@@ -1,3 +1,6 @@
+* {
+  box-sizing: border-box;
+}
 .materials-page {
   min-height: 100vh;
   padding: 40px;
