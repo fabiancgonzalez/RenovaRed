@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { MercadoPagoConfig, Preference } = require('mercadopago');
+const { MaterialQuote } = require('../models');
 
 const QUOTE_FILE_PATH = path.resolve(__dirname, '../../../frontend/cotizacionmateriales.md');
 /////  por las dudas de que el path pueda variar según dónde se ejecute el backend, se puede configurar la ruta del archivo de cotizaciones mediante una variable de entorno, por ejemplo: MATERIAL_QUOTE_FILE_PATH. Si no se configura, se usará el path relativo actual.
@@ -23,6 +24,19 @@ class MaterialQuoteService {
     };
     this.mpClient = null;
     this.mpToken = '';
+  }
+
+  mapDbQuote(record) {
+    return {
+      id: record.id,
+      categoryName: record.category_name || '',
+      material: record.material_name,
+      normalizedMaterial: this.normalizeText(record.material_name),
+      unitPrice: Number(record.unit_price_ars),
+      notes: record.notes || '',
+      isActive: record.is_active !== false,
+      source: 'database'
+    };
   }
 
   getMercadoPagoAccessToken() {
@@ -303,7 +317,7 @@ class MaterialQuoteService {
     return Array.from(quotesMap.values());
   }
 
-  loadQuotes() {
+  loadQuotesFromFile() {
     if (!fs.existsSync(QUOTE_FILE_PATH)) {
       throw new Error('No se encontró el archivo de cotizaciones de materiales');
     }
@@ -442,5 +456,279 @@ class MaterialQuoteService {
     };
   }
 }
+
+MaterialQuoteService.prototype.loadQuotesFromDatabase = async function loadQuotesFromDatabase() {
+  try {
+    const rows = await MaterialQuote.findAll({
+      where: { is_active: true },
+      order: [['material_name', 'ASC']]
+    });
+
+    return rows.map((row) => this.mapDbQuote(row));
+  } catch (error) {
+    console.warn('MaterialQuoteService.loadQuotesFromDatabase fallback:', error.message);
+    return [];
+  }
+};
+
+MaterialQuoteService.prototype.loadQuotes = async function loadQuotes() {
+  const databaseQuotes = await this.loadQuotesFromDatabase();
+  if (databaseQuotes.length > 0) {
+    return databaseQuotes;
+  }
+
+  if (typeof this.loadQuotesFromFile === 'function') {
+    return this.loadQuotesFromFile();
+  }
+
+  return [];
+};
+
+MaterialQuoteService.prototype.getAllQuotes = async function getAllQuotes() {
+  return this.loadQuotes();
+};
+
+MaterialQuoteService.prototype.getAdminQuotes = async function getAdminQuotes() {
+  const rows = await MaterialQuote.findAll({
+    order: [['material_name', 'ASC']]
+  });
+
+  return {
+    status: 200,
+    body: {
+      success: true,
+      data: rows
+    }
+  };
+};
+
+MaterialQuoteService.prototype.createQuote = async function createQuote(data) {
+  const material_name = String(data.material_name || '').trim();
+  const category_name = String(data.category_name || '').trim();
+  const notes = String(data.notes || '').trim();
+  const unit_price_ars = Number(data.unit_price_ars);
+  const is_active = data.is_active !== false;
+
+  if (!material_name) {
+    return { status: 400, body: { success: false, message: 'material_name es obligatorio' } };
+  }
+
+  if (!Number.isFinite(unit_price_ars) || unit_price_ars <= 0) {
+    return { status: 400, body: { success: false, message: 'unit_price_ars debe ser mayor a 0' } };
+  }
+
+  const existing = await MaterialQuote.findOne({ where: { material_name } });
+  if (existing) {
+    return { status: 409, body: { success: false, message: 'Ya existe una cotizacion para ese material' } };
+  }
+
+  const created = await MaterialQuote.create({
+    material_name,
+    category_name: category_name || null,
+    unit_price_ars,
+    notes: notes || null,
+    is_active
+  });
+
+  return {
+    status: 201,
+    body: {
+      success: true,
+      message: 'Cotizacion creada correctamente',
+      data: created
+    }
+  };
+};
+
+MaterialQuoteService.prototype.updateQuote = async function updateQuote(id, data) {
+  const quote = await MaterialQuote.findByPk(id);
+  if (!quote) {
+    return { status: 404, body: { success: false, message: 'Cotizacion no encontrada' } };
+  }
+
+  const updates = {};
+
+  if (data.material_name !== undefined) {
+    const material_name = String(data.material_name || '').trim();
+    if (!material_name) {
+      return { status: 400, body: { success: false, message: 'material_name es obligatorio' } };
+    }
+
+    const existing = await MaterialQuote.findOne({ where: { material_name } });
+    if (existing && existing.id !== id) {
+      return { status: 409, body: { success: false, message: 'Ya existe una cotizacion para ese material' } };
+    }
+
+    updates.material_name = material_name;
+  }
+
+  if (data.category_name !== undefined) {
+    const category_name = String(data.category_name || '').trim();
+    updates.category_name = category_name || null;
+  }
+
+  if (data.notes !== undefined) {
+    const notes = String(data.notes || '').trim();
+    updates.notes = notes || null;
+  }
+
+  if (data.unit_price_ars !== undefined) {
+    const unit_price_ars = Number(data.unit_price_ars);
+    if (!Number.isFinite(unit_price_ars) || unit_price_ars <= 0) {
+      return { status: 400, body: { success: false, message: 'unit_price_ars debe ser mayor a 0' } };
+    }
+    updates.unit_price_ars = unit_price_ars;
+  }
+
+  if (data.is_active !== undefined) {
+    updates.is_active = Boolean(data.is_active);
+  }
+
+  await quote.update(updates);
+
+  return {
+    status: 200,
+    body: {
+      success: true,
+      message: 'Cotizacion actualizada correctamente',
+      data: quote
+    }
+  };
+};
+
+MaterialQuoteService.prototype.deleteQuote = async function deleteQuote(id) {
+  const quote = await MaterialQuote.findByPk(id);
+  if (!quote) {
+    return { status: 404, body: { success: false, message: 'Cotizacion no encontrada' } };
+  }
+
+  await quote.destroy();
+
+  return {
+    status: 200,
+    body: {
+      success: true,
+      message: 'Cotizacion eliminada correctamente'
+    }
+  };
+};
+
+MaterialQuoteService.prototype.findQuoteForMaterial = async function findQuoteForMaterial(materialName = '') {
+  const normalizedInput = this.normalizeText(materialName);
+  if (!normalizedInput) return null;
+
+  const quotes = await this.loadQuotes();
+
+  const exact = quotes.find((quote) => quote.normalizedMaterial === normalizedInput);
+  if (exact) return exact;
+
+  const partial = quotes.find((quote) =>
+    normalizedInput.includes(quote.normalizedMaterial) || quote.normalizedMaterial.includes(normalizedInput)
+  );
+
+  if (partial) return partial;
+
+  const tokens = normalizedInput.split(/[^a-z0-9]+/).filter(Boolean);
+  if (tokens.length === 0) return null;
+
+  const byToken = quotes.find((quote) =>
+    tokens.some((token) => token.length > 2 && quote.normalizedMaterial.includes(token))
+  );
+
+  return byToken || null;
+};
+
+MaterialQuoteService.prototype.calculateQuote = async function calculateQuote(materialName, ksOrKg, options = {}) {
+  const sellerId = options?.sellerId;
+  const quantity = Number(ksOrKg);
+  if (!Number.isFinite(quantity) || quantity <= 0) {
+    return {
+      success: false,
+      message: 'La cantidad en ks/kg debe ser mayor a 0'
+    };
+  }
+
+  const quote = await this.findQuoteForMaterial(materialName);
+  if (!quote) {
+    return {
+      success: false,
+      message: 'No se encontró cotización para el material indicado'
+    };
+  }
+
+  const total = Number((quote.unitPrice * quantity).toFixed(2));
+  const paymentHolder = (process.env.PAYMENT_HOLDER || 'RenovaRed').trim();
+  const receiver = {
+    provider: 'Mercado Pago',
+    titular: paymentHolder,
+    alias: '',
+    cvu: '',
+    cbu: ''
+  };
+  const paymentIntent = {
+    amountArs: total,
+    currency: 'ARS',
+    description: `Intercambio ${quantity} kg de ${quote.material}`,
+    receiver,
+    wallets: SUPPORTED_WALLETS.filter((wallet) => wallet.id === 'mercadopago')
+  };
+
+  const mpPreference = await this.createMercadoPagoPreference({
+    material: quote.material,
+    quantity,
+    total,
+    sellerId
+  });
+
+  let qrPayload;
+  let qrImageUrl;
+  let qrEsInteroperable;
+  let qrTipo;
+  let qrMensaje;
+  let mpPaymentData;
+
+  if (mpPreference.success) {
+    qrPayload = mpPreference.data.initPoint;
+    qrImageUrl = mpPreference.data.qrImageUrl;
+    qrEsInteroperable = true;
+    qrTipo = 'mercadopago_dinamico';
+    qrMensaje = 'QR dinámico de Mercado Pago. Escaneá con la app de Mercado Pago para pagar.';
+    mpPaymentData = {
+      provider: 'mercadopago',
+      preferenceId: mpPreference.data.preferenceId,
+      initPoint: mpPreference.data.initPoint,
+      sandboxInitPoint: mpPreference.data.sandboxInitPoint,
+      externalReference: mpPreference.data.externalReference,
+      sellerId: sellerId || null
+    };
+  } else {
+    qrPayload = `RENOVARED|ARS:${total}|${quote.material}|KG:${quantity}`;
+    qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(qrPayload)}`;
+    qrEsInteroperable = false;
+    qrTipo = 'informativo';
+    qrMensaje = `(Mercado Pago temporalmente no disponible) ${mpPreference.message}`;
+    mpPaymentData = null;
+  }
+
+  return {
+    success: true,
+    data: {
+      material: quote.material,
+      inputMaterial: materialName,
+      ks: quantity,
+      precioUnitarioArs: quote.unitPrice,
+      precioTotalArs: total,
+      moneda: 'ARS',
+      qrPayload,
+      qrImageUrl,
+      qrTipo,
+      qrEsInteroperable,
+      qrMensaje,
+      paymentIntent,
+      mpPayment: mpPaymentData,
+      cotizacionFuente: quote.source === 'database' ? 'database/material_quotes' : 'frontend/cotizacionmateriales.md'
+    }
+  };
+};
 
 module.exports = new MaterialQuoteService();

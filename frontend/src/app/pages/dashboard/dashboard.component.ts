@@ -5,7 +5,6 @@ import { environment } from '../../../environments/environment';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MaterialManagementComponent } from '../material-management/material-management.component';
 
 interface DashboardData {
   metrics: {
@@ -30,7 +29,7 @@ interface DashboardData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, MaterialManagementComponent],
+  imports: [RouterLink, CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -56,6 +55,25 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     totalConversations: 0,
     activeConversations: 0,
     noResponseConversations: 0
+  };
+  materialQuotes: any[] = [];
+  filteredMaterialQuotes: any[] = [];
+  materialQuotesLoading = false;
+  materialQuoteSaving = false;
+  materialQuoteSearch = '';
+  materialQuoteError = '';
+  materialQuoteSuccess = '';
+  editingMaterialQuoteId: string | null = null;
+  paginatedMaterialQuotes: any[] = [];
+  materialQuotesCurrentPage = 1;
+  materialQuotesPerPage = 6;
+  materialQuotesTotalPages = 0;
+  materialQuoteForm = {
+    category_name: '',
+    material_name: '',
+    unit_price_ars: null as number | null,
+    notes: '',
+    is_active: true
   };
 
   private usersChart: Chart | null = null;
@@ -155,7 +173,16 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       }, 100);
     } else if (v === 'messages') {
       this.loadConversationsForAdmin();
+    } else if (v === 'materials') {
+      this.loadMaterialQuotes();
     }
+  }
+
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') || '';
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
   }
 
   loadDashboardData() {
@@ -597,5 +624,146 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (diff < 3600) return `hace ${Math.floor(diff / 60)} minutos`;
     if (diff < 86400) return `hace ${Math.floor(diff / 3600)} horas`;
     return date.toLocaleDateString('es-AR');
+  }
+
+  loadMaterialQuotes() {
+    this.materialQuotesLoading = true;
+    this.materialQuoteError = '';
+
+    this.http.get<any>(`${environment.apiUrl}/material-quotes`, {
+      headers: this.getAuthHeaders()
+    }).subscribe({
+      next: (res) => {
+        this.materialQuotes = res.data || [];
+        this.applyMaterialQuoteFilter();
+        this.materialQuotesLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading material quotes:', err);
+        this.materialQuoteError = err.error?.message || 'No se pudieron cargar las cotizaciones';
+        this.materialQuotesLoading = false;
+      }
+    });
+  }
+
+  applyMaterialQuoteFilter() {
+    const term = this.materialQuoteSearch.trim().toLowerCase();
+    this.filteredMaterialQuotes = this.materialQuotes.filter((quote) => {
+      if (!term) return true;
+
+      return [quote.material_name, quote.category_name, quote.notes]
+        .filter(Boolean)
+        .some((value: string) => value.toLowerCase().includes(term));
+    });
+
+    this.materialQuotesCurrentPage = 1;
+    this.updateMaterialQuotesPagination();
+  }
+
+  updateMaterialQuotesPagination() {
+    this.materialQuotesTotalPages = Math.max(1, Math.ceil(this.filteredMaterialQuotes.length / this.materialQuotesPerPage));
+
+    if (this.materialQuotesCurrentPage > this.materialQuotesTotalPages) {
+      this.materialQuotesCurrentPage = this.materialQuotesTotalPages;
+    }
+
+    const start = (this.materialQuotesCurrentPage - 1) * this.materialQuotesPerPage;
+    const end = start + this.materialQuotesPerPage;
+    this.paginatedMaterialQuotes = this.filteredMaterialQuotes.slice(start, end);
+  }
+
+  goToMaterialQuotesPage(page: number) {
+    if (page < 1 || page > this.materialQuotesTotalPages) return;
+    this.materialQuotesCurrentPage = page;
+    this.updateMaterialQuotesPagination();
+  }
+
+  startEditMaterialQuote(quote: any) {
+    this.editingMaterialQuoteId = quote.id;
+    this.materialQuoteError = '';
+    this.materialQuoteSuccess = '';
+    this.materialQuoteForm = {
+      category_name: quote.category_name || '',
+      material_name: quote.material_name || '',
+      unit_price_ars: Number(quote.unit_price_ars),
+      notes: quote.notes || '',
+      is_active: quote.is_active !== false
+    };
+  }
+
+  cancelMaterialQuoteEdit() {
+    this.editingMaterialQuoteId = null;
+    this.materialQuoteForm = {
+      category_name: '',
+      material_name: '',
+      unit_price_ars: null,
+      notes: '',
+      is_active: true
+    };
+  }
+
+  saveMaterialQuote() {
+    const payload = {
+      category_name: this.materialQuoteForm.category_name.trim(),
+      material_name: this.materialQuoteForm.material_name.trim(),
+      unit_price_ars: Number(this.materialQuoteForm.unit_price_ars),
+      notes: this.materialQuoteForm.notes.trim(),
+      is_active: this.materialQuoteForm.is_active
+    };
+
+    if (!payload.material_name) {
+      this.materialQuoteError = 'Ingresá un nombre de material';
+      return;
+    }
+
+    if (!Number.isFinite(payload.unit_price_ars) || payload.unit_price_ars <= 0) {
+      this.materialQuoteError = 'Ingresá una cotización válida mayor a 0';
+      return;
+    }
+
+    this.materialQuoteSaving = true;
+    this.materialQuoteError = '';
+    this.materialQuoteSuccess = '';
+
+    const request$ = this.editingMaterialQuoteId
+      ? this.http.put<any>(`${environment.apiUrl}/material-quotes/${this.editingMaterialQuoteId}`, payload, { headers: this.getAuthHeaders() })
+      : this.http.post<any>(`${environment.apiUrl}/material-quotes`, payload, { headers: this.getAuthHeaders() });
+
+    request$.subscribe({
+      next: (res) => {
+        this.materialQuoteSuccess = res.message || 'Cotización guardada correctamente';
+        this.cancelMaterialQuoteEdit();
+        this.loadMaterialQuotes();
+        this.materialQuoteSaving = false;
+      },
+      error: (err) => {
+        console.error('Error saving material quote:', err);
+        this.materialQuoteError = err.error?.message || 'No se pudo guardar la cotización';
+        this.materialQuoteSaving = false;
+      }
+    });
+  }
+
+  deleteMaterialQuote(id: string) {
+    if (!confirm('¿Eliminar esta cotización de material?')) return;
+
+    this.materialQuoteError = '';
+    this.materialQuoteSuccess = '';
+
+    this.http.delete<any>(`${environment.apiUrl}/material-quotes/${id}`, {
+      headers: this.getAuthHeaders()
+    }).subscribe({
+      next: (res) => {
+        this.materialQuoteSuccess = res.message || 'Cotización eliminada correctamente';
+        if (this.editingMaterialQuoteId === id) {
+          this.cancelMaterialQuoteEdit();
+        }
+        this.loadMaterialQuotes();
+      },
+      error: (err) => {
+        console.error('Error deleting material quote:', err);
+        this.materialQuoteError = err.error?.message || 'No se pudo eliminar la cotización';
+      }
+    });
   }
 }

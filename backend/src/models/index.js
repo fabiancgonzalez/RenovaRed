@@ -7,6 +7,7 @@ const Exchange = require('./Exchange.model');
 const Message = require('./Message.model');
 const Favorite = require('./Favorite.model');
 const DailyStats = require('./DailyStats.model');
+const MaterialQuote = require('./MaterialQuote.model');
 
 // = ASOCIACIONES =
 
@@ -65,5 +66,6 @@ module.exports = {
   Exchange,
   Message,
   Favorite,
-  DailyStats
+  DailyStats,
+  MaterialQuote
 };

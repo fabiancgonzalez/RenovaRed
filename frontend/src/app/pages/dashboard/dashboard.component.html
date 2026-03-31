@@ -286,11 +286,119 @@
         }
     </div>
 
-    <div *ngIf="view === 'materials'" class="user-section">
-            <h1>Mis Materiales</h1>
+    <div *ngIf="view === 'materials'" class="materials-admin-section">
+            <h1>Cotizaciones de Materiales</h1>
             <p class="subtitle">Gestioná tus recursos y publicaciones</p>
         
-        <app-material-management></app-material-management>
+        <div class="materials-admin-grid">
+            <section class="material-quote-form-card">
+                <div class="section-heading">
+                    <div>
+                        <h3>{{ editingMaterialQuoteId ? 'Editar cotización' : 'Nueva cotización' }}</h3>
+                        <p>{{ editingMaterialQuoteId ? 'Actualizá el registro seleccionado.' : 'Creá una cotización que quedará disponible para el cálculo en intercambios.' }}</p>
+                    </div>
+                </div>
+
+                <div class="feedback error" *ngIf="materialQuoteError">{{ materialQuoteError }}</div>
+                <div class="feedback success" *ngIf="materialQuoteSuccess">{{ materialQuoteSuccess }}</div>
+
+                <div class="material-quote-form">
+                    <label>
+                        <span>Tipo / Categoría</span>
+                        <input type="text" [(ngModel)]="materialQuoteForm.category_name" placeholder="Ej: Textiles, Plásticos, Metales">
+                    </label>
+                    <label>
+                        <span>Material</span>
+                        <input type="text" [(ngModel)]="materialQuoteForm.material_name" placeholder="Ej: Rollos de Tela">
+                    </label>
+                    <label>
+                        <span>Cotización por kg (ARS)</span>
+                        <input type="number" min="0.01" step="0.01" [(ngModel)]="materialQuoteForm.unit_price_ars" placeholder="Ej: 2.90">
+                    </label>
+                    <label>
+                        <span>Notas</span>
+                        <textarea rows="4" [(ngModel)]="materialQuoteForm.notes" placeholder="Contexto, fuente o aclaraciones para administración..."></textarea>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" [(ngModel)]="materialQuoteForm.is_active">
+                        <span>Disponible para cotización</span>
+                    </label>
+                    <div class="form-actions">
+                        <button class="primary-btn" (click)="saveMaterialQuote()" [disabled]="materialQuoteSaving">
+                            <i class="fa-solid" [ngClass]="editingMaterialQuoteId ? 'fa-floppy-disk' : 'fa-plus'"></i>
+                            {{ materialQuoteSaving ? 'Guardando...' : (editingMaterialQuoteId ? 'Guardar cambios' : 'Crear cotización') }}
+                        </button>
+                        <button class="ghost-btn" *ngIf="editingMaterialQuoteId" (click)="cancelMaterialQuoteEdit()">Cancelar edición</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="material-quote-list-card">
+                <div class="section-heading">
+                    <div>
+                        <h3>Listado</h3>
+                        <p>{{ filteredMaterialQuotes.length }} materiales configurados</p>
+                    </div>
+                    <input class="materials-search" type="text" [(ngModel)]="materialQuoteSearch" (input)="applyMaterialQuoteFilter()" placeholder="Buscar material o categoría...">
+                </div>
+
+                <div class="loading-state" *ngIf="materialQuotesLoading">Cargando cotizaciones...</div>
+
+                <div class="material-quotes-list" *ngIf="!materialQuotesLoading && filteredMaterialQuotes.length > 0">
+                    <article class="material-quote-item" *ngFor="let quote of paginatedMaterialQuotes">
+                        <div class="quote-main">
+                            <div class="quote-header">
+                                <div>
+                                    <h4>{{ quote.material_name }}</h4>
+                                    <p>{{ quote.category_name || 'Sin categoría' }}</p>
+                                </div>
+                                <span class="quote-status" [class.inactive]="quote.is_active === false">
+                                    {{ quote.is_active === false ? 'Inactivo' : 'Activo' }}
+                                </span>
+                            </div>
+                            <div class="quote-price">${{ quote.unit_price_ars }} ARS / kg</div>
+                            <p class="quote-notes" *ngIf="quote.notes">{{ quote.notes }}</p>
+                            <p class="quote-meta">Actualizado: {{ quote.updated_at | date:'short' }}</p>
+                        </div>
+                        <div class="quote-actions">
+                            <button class="edit-btn" (click)="startEditMaterialQuote(quote)">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="delete-btn" (click)="deleteMaterialQuote(quote.id)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="material-quotes-pagination" *ngIf="!materialQuotesLoading && filteredMaterialQuotes.length > materialQuotesPerPage">
+                    <button
+                        class="pagination-nav"
+                        (click)="goToMaterialQuotesPage(materialQuotesCurrentPage - 1)"
+                        [disabled]="materialQuotesCurrentPage === 1">
+                        <i class="fa-solid fa-chevron-left"></i>
+                        Anterior
+                    </button>
+
+                    <span class="pagination-summary">
+                        Página {{ materialQuotesCurrentPage }} de {{ materialQuotesTotalPages }}
+                    </span>
+
+                    <button
+                        class="pagination-nav"
+                        (click)="goToMaterialQuotesPage(materialQuotesCurrentPage + 1)"
+                        [disabled]="materialQuotesCurrentPage === materialQuotesTotalPages">
+                        Siguiente
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="empty-state" *ngIf="!materialQuotesLoading && filteredMaterialQuotes.length === 0">
+                    <i class="fa-solid fa-box-open"></i>
+                    <p>No hay cotizaciones guardadas todavía.</p>
+                </div>
+            </section>
+        </div>
     </div>
 
 </main>

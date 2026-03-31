@@ -91,6 +91,9 @@ app.use('/api/conversations/:conversationId/messages', messageRoutes);
 const healthRoutes = require('./src/routes/health.routes');
 app.use('/api/health', healthRoutes);
 
+const materialQuoteRoutes = require('./src/routes/materialQuote.routes');
+app.use('/api/material-quotes', materialQuoteRoutes);
+
 // 404 para rutas no encontradas
 app.use((req, res) => {
     res.status(404).json({
