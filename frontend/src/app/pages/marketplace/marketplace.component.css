@@ -1,3 +1,49 @@
+(añadir al final del archivo)
+
+/* === Marketplace Filters (inputs, labels, form) === */
+.marketplace-filters {
+	background: #101624;
+	border-radius: 16px;
+	padding: 18px 24px 10px 24px;
+	border: 1px solid #2D3748;
+	margin-bottom: 24px;
+	box-shadow: 0 2px 8px 0 rgba(16,22,36,0.04);
+}
+.marketplace-filters label {
+	display: block;
+	color: #9CA3AF;
+	font-size: 13px;
+	margin-bottom: 6px;
+	font-weight: 500;
+}
+.marketplace-filters input[type="text"] {
+	width: 220px;
+	padding: 10px 14px;
+	border-radius: 8px;
+	border: 1px solid #2D3748;
+	background: #0B1120;
+	color: #fff;
+	font-size: 15px;
+	transition: border-color 0.2s;
+	outline: none;
+	margin-bottom: 0;
+}
+.marketplace-filters input[type="text"]:focus {
+	border-color: #22C55E;
+}
+.marketplace-filters input.ng-valid.ng-dirty,
+.marketplace-filters input.ng-valid.ng-touched,
+.marketplace-filters input.ng-valid.ng-submitted {
+	border-color: #22C55E;
+}
+.marketplace-filters input.ng-invalid.ng-dirty,
+.marketplace-filters input.ng-invalid.ng-touched,
+.marketplace-filters input.ng-invalid.ng-submitted {
+	border-color: #EF4444;
+}
+.marketplace-filters button {
+	margin-top: 18px;
+}
 .marketplace {
 	min-height: 100vh;
 	padding: 40px;
