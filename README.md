@@ -73,7 +73,7 @@ Este proyecto fue desarrollado con una arquitectura fullstack moderna:
 - API REST
 
 ### 🗄️ Base de datos
-- (Completar: MySQL / MongoDB / PostgreSQL)
+- Supabase
 
 ---
 
