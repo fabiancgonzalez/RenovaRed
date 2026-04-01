@@ -1,4 +1,3 @@
-# RenovaRed
 # 🌱 RenovaRed
 
 > Transformando residuos en oportunidades ♻️
