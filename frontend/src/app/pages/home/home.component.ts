@@ -94,8 +94,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     {
       name: 'Matías Orona',
       role: 'Frontend/Backend Developer',
-      image: 'assets/team/default.png',
-      linkedin: 'https://linkedin.com/',
+      image: 'assets/team/4.jpg',
+      linkedin: 'https://www.linkedin.com/in/matias-german-orona/',
       email: 'mailto:matias@renovared.com',
       website: 'https://github.com/matiasorona'
     }
