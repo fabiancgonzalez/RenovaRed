@@ -71,7 +71,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       name: 'Rodrigo Muñoz',
       role: 'Frontend/Backend Developer',
       image: 'assets/team/3.png',
-      linkedin: 'https://linkedin.com/',
+      linkedin: 'https://www.linkedin.com/in/rodrimunoz/',
       email: 'mailto:rodrigo@renovared.com.ar',
       website: 'https://github.com/D3PA'
     },
@@ -80,22 +80,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       role: 'Frontend/Backend Developer',
       image: 'assets/team/1.png',
       linkedin: 'https://www.linkedin.com/in/fabiangonzalezmonier/',
-      email: 'mailto:ceferinomonier@gmail.com',
+      email: 'mailto:fabian@renovared.com',
       website: 'https://github.com/fabiancgonzalez'
     },
     {
       name: 'Luana Lencina',
-      role: 'Frontend Developer',
+      role: 'Frontend/Backend Developer',
       image: 'assets/team/2.jpg',
-      linkedin: 'https://linkedin.com/',
+      linkedin: 'https://www.linkedin.com/in/luana-lencina-qa-tester-manual-automatizado-%F0%9F%92%BB-880120216/',
       email: 'mailto:luana@renovared.com.ar',
       website: 'https://github.com/Lulencina'
     },
     {
       name: 'Matías Orona',
-      role: 'Frontend Developer',
-      image: 'assets/team/default.png',
-      linkedin: 'https://linkedin.com/',
+      role: 'Frontend/Backend Developer',
+      image: 'assets/team/4.jpg',
+      linkedin: 'https://www.linkedin.com/in/matias-german-orona/',
       email: 'mailto:matias@renovared.com',
       website: 'https://github.com/matiasorona'
     }

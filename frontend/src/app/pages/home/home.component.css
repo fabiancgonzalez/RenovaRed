@@ -11,13 +11,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
-  position: absolute;
+  padding: 15px 40px;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 1000;
   background: transparent;
+  backdrop-filter: blur(3px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .logo img {
@@ -675,7 +677,6 @@
   gap: 15px;
   opacity: 0;
   transition: opacity 0.3s ease;
-  backdrop-filter: blur(4px);
 }
 
 .team-card:hover .team-social-overlay {
@@ -708,7 +709,7 @@
 
 .team-social-link:hover {
   transform: translateY(-3px) scale(1.1);
-  background: #22C55E;
+  background: #199245;
   color: white;
 }
 
