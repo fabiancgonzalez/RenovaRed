@@ -76,11 +76,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       website: 'https://github.com/D3PA'
     },
     {
-      name: 'Fabian Ceferino',
+      name: 'Fabian Gonzalez',
       role: 'Frontend/Backend Developer',
       image: 'assets/team/1.png',
-      linkedin: 'https://linkedin.com/',
-      email: 'mailto:fabian@renovared.com',
+      linkedin: 'https://www.linkedin.com/in/fabiangonzalezmonier/',
+      email: 'mailto:ceferinomonier@gmail.com',
       website: 'https://github.com/fabiancgonzalez'
     },
     {
