@@ -4,6 +4,10 @@
   "buildCommand": "npm --prefix frontend run build",
   "outputDirectory": "frontend/dist/renovared/browser",
   "functions": {
+    "api/chat.js": {
+      "includeFiles": "backend/src/data/knowledge-base.json",
+      "maxDuration": 60
+    },
     "api/**/*.js": {
       "maxDuration": 60
     }
