@@ -66,6 +66,80 @@
   text-decoration: underline;
 }
 
+/* ── Tarjeta móvil ─────────────────────────────────────────── */
+.help-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.pdf-card {
+  background: linear-gradient(135deg, #0f172a, #111827);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 18px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.5);
+}
+
+.pdf-icon {
+  font-size: 3.5rem;
+  color: #EF4444;
+  margin-bottom: 1rem;
+}
+
+.pdf-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
+  color: #F9FAFB;
+}
+
+.pdf-card p {
+  color: #9CA3AF;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.75rem;
+}
+
+.pdf-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-pdf-open,
+.btn-pdf-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.btn-pdf-open:active,
+.btn-pdf-download:active {
+  opacity: 0.75;
+}
+
+.btn-pdf-open {
+  background: #22C55E;
+  color: #0B1120;
+}
+
+.btn-pdf-download {
+  background: transparent;
+  color: #3B82F6;
+  border: 1px solid #3B82F6;
+}
+
 @media (max-width: 768px) {
   .help-page {
     min-height: calc(100vh - 90px);

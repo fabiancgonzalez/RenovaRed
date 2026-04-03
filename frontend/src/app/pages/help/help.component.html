@@ -4,7 +4,8 @@
     <p>Consulta el documento para aprender como publicar e intercambiar materiales en la plataforma.</p>
   </header>
 
-  <main class="help-content">
+  <!-- DESKTOP: iframe nativo -->
+  <main class="help-content" *ngIf="!isMobile">
     <iframe
       [src]="pdfUrl"
       title="Guia de uso RenovaRed"
@@ -14,7 +15,26 @@
     </iframe>
   </main>
 
-  <footer class="help-footer">
+  <!-- MOBILE: los navegadores moviles no renderizan PDFs en iframe -->
+  <main class="help-mobile" *ngIf="isMobile">
+    <div class="pdf-card">
+      <div class="pdf-icon">
+        <i class="fa-regular fa-file-pdf"></i>
+      </div>
+      <h2>Guia de Uso RenovaRed</h2>
+      <p>Tu navegador movil no puede mostrar el PDF en pantalla.<br>Abrilo directamente para verlo completo.</p>
+      <div class="pdf-actions">
+        <a [href]="pdfHref" target="_blank" rel="noopener noreferrer" class="btn-pdf-open">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir PDF
+        </a>
+        <a [href]="pdfHref" download="Ayuda-RenovaRed.pdf" class="btn-pdf-download">
+          <i class="fa-solid fa-download"></i> Descargar
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="help-footer" *ngIf="!isMobile">
     <a [href]="pdfHref" target="_blank" rel="noopener noreferrer">Abrir PDF en una pestana nueva</a>
   </footer>
 </section>
