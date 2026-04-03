@@ -72,8 +72,11 @@
         type="text" 
         [(ngModel)]="newMessage" 
         (keyup.enter)="sendMessage()"
+        (keydown.enter)="sendMessage()"
         placeholder="Escribe tu mensaje..."
         [disabled]="isLoading"
+        autocomplete="off"
+        inputmode="text"
       />
       <button (click)="sendMessage()" [disabled]="!newMessage.trim() || isLoading">
         {{ isLoading ? '...' : '📤' }}

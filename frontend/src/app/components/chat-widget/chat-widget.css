@@ -327,3 +327,29 @@
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
+
+/* ── Responsive: móvil ───────────────────────────────────── */
+@media (max-width: 480px) {
+  .chat-widget-container {
+    bottom: 12px;
+    right: 12px;
+  }
+
+  /* Ventana ocupa casi toda la pantalla en móvil */
+  .chat-window {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    bottom: 0;
+    right: 0;
+    border-radius: 0;
+    max-height: 100dvh;
+  }
+
+  /* El input no queda tapado por el teclado virtual */
+  .chat-input {
+    padding: 10px 12px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}
