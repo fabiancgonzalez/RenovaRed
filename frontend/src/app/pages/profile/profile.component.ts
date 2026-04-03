@@ -664,7 +664,7 @@ export class ProfileComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   contactUser(): void {
     if (this.profile?.id) {
-      this.router.navigate(['/chat', this.profile.id]);
+      this.router.navigate(['/chat']);
     }
   }
 }

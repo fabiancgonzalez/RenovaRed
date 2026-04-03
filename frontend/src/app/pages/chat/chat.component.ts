@@ -374,6 +374,28 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.loadConversation(conversationId);
   }
 
+  private resetSelectedConversation(): void {
+    this.selectedConversationId = null;
+    this.currentConversation = null;
+    this.conversationDeletedByOther = false;
+    this.exchangeStatus = null;
+    this.lastCompletedExchange = null;
+    this.isBuyer = false;
+    this.isSeller = false;
+  }
+
+  private handleConversationNotFound(conversationId: string): void {
+    this.conversations = this.conversations.filter(conv => conv.id !== conversationId);
+
+    if (this.selectedConversationId === conversationId) {
+      this.resetSelectedConversation();
+    }
+
+    this.error = 'La conversación ya no está disponible';
+    this.router.navigate(['/chat'], { replaceUrl: true });
+    this.cdr.detectChanges();
+  }
+
   loadConversation(conversationId: string): void {
     this.chatService.getConversation(conversationId).subscribe({
       next: (response) => {
@@ -391,7 +413,13 @@ export class ChatComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error cargando conversación:', err);
-        this.error = 'No se pudo cargar la conversación';
+
+        if (err?.status === 404) {
+          this.handleConversationNotFound(conversationId);
+          return;
+        }
+
+        this.error = err?.error?.message || 'No se pudo cargar la conversación';
       }
     });
   }
@@ -812,10 +840,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.selectedConversationId = null;
-    this.currentConversation = null;
-    this.conversationDeletedByOther = false;
+    this.resetSelectedConversation();
     this.error = '';
+    this.router.navigate(['/chat'], { replaceUrl: true });
   }
 
   toggleActionsDropdown(conversationId: string, event: Event): void {
@@ -843,9 +870,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.conversations = this.conversations.filter(c => c.id !== id);
 
       if (this.selectedConversationId === id) {
-        this.selectedConversationId = null;
-        this.currentConversation = null;
-        this.conversationDeletedByOther = false;
+        this.resetSelectedConversation();
       }
 
       this.cancelDelete();
