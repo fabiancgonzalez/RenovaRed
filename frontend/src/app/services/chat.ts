@@ -22,7 +22,7 @@ export interface ChatMessage {
 export class ChatWidgetService {
 
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/chat`;
+  private apiUrl = environment.chatApiUrl ?? `${environment.apiUrl}/chat`;
   private localFallbackApiUrl = 'http://localhost:3000/api/chat';
   // Historial de conversación
   private conversationHistory: ChatMessage[] = [
