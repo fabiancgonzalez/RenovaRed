@@ -1,12 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import pdfParse from 'pdf-parse';
 
 const GEMINI_MODELS = (process.env.GEMINI_MODELS || 'gemini-2.5-flash,gemini-2.0-flash,gemini-flash-latest,gemini-2.0-flash-lite')
   .split(',').map(m => m.trim()).filter(Boolean);
 
 const KB_FILE_PATH = path.resolve(process.cwd(), 'backend', 'src', 'data', 'knowledge-base.json');
+const HELP_PDF_PATH = path.resolve(process.cwd(), 'frontend', 'public', 'assets', 'help', 'Ayuda RenovaRed.pdf');
 
 let kbDocs = [];
+let pdfDocs = [];
+let pdfLoadingPromise = null;
 
 function normalizeText(value) {
   return String(value || '')
@@ -29,6 +33,62 @@ function tokenize(value) {
     .filter((token) => token.length >= 3 && !stopwords.has(token));
 }
 
+function chunkTextByWords(text, wordsPerChunk = 120) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  const chunks = [];
+
+  for (let index = 0; index < words.length; index += wordsPerChunk) {
+    const chunk = words.slice(index, index + wordsPerChunk).join(' ').trim();
+    if (chunk.length >= 40) {
+      chunks.push(chunk);
+    }
+  }
+
+  return chunks;
+}
+
+async function loadPdfKnowledge() {
+  if (pdfLoadingPromise) {
+    return pdfLoadingPromise;
+  }
+
+  pdfLoadingPromise = (async () => {
+    try {
+      if (!fs.existsSync(HELP_PDF_PATH)) {
+        pdfDocs = [];
+        return;
+      }
+
+      const pdfBuffer = fs.readFileSync(HELP_PDF_PATH);
+      const parsed = await pdfParse(pdfBuffer);
+      const text = String(parsed?.text || '').replace(/\s+/g, ' ').trim();
+
+      if (!text) {
+        pdfDocs = [];
+        return;
+      }
+
+      pdfDocs = chunkTextByWords(text).map((chunk, index) => ({
+        id: `pdf-ayuda-${index + 1}`,
+        titulo: 'Ayuda RenovaRed (PDF)',
+        categoria: 'ayuda-pdf',
+        contenido: chunk,
+        fuente: 'Ayuda RenovaRed.pdf',
+        ciudad: 'General',
+        fecha_actualizacion: null,
+        _tokens: tokenize(`Ayuda RenovaRed ${chunk}`)
+      }));
+    } catch (error) {
+      pdfDocs = [];
+      console.error('[KB] Error cargando PDF de ayuda:', error.message);
+    } finally {
+      pdfLoadingPromise = null;
+    }
+  })();
+
+  return pdfLoadingPromise;
+}
+
 function loadKnowledgeBase() {
   try {
     const raw = fs.readFileSync(KB_FILE_PATH, 'utf8');
@@ -49,6 +109,10 @@ function loadKnowledgeBase() {
     kbDocs = [];
     console.error('[KB] Error cargando knowledge-base.json:', error.message);
   }
+
+  loadPdfKnowledge().catch((error) => {
+    console.error('[KB] Error iniciando carga de PDF:', error.message);
+  });
 }
 
 function scoreDocument(queryTokens, doc) {
@@ -71,9 +135,17 @@ function scoreDocument(queryTokens, doc) {
 function searchKnowledgeBase(userMessage, topK = 4) {
   const queryTokens = tokenize(userMessage);
 
-  return kbDocs
+  const rankedKb = kbDocs
     .map((doc) => ({ doc, score: scoreDocument(queryTokens, doc) }))
     .filter((entry) => entry.score > 0)
+    .map((entry) => ({ ...entry, sourceType: 'kb-json' }));
+
+  const rankedPdf = pdfDocs
+    .map((doc) => ({ doc, score: scoreDocument(queryTokens, doc) }))
+    .filter((entry) => entry.score > 0)
+    .map((entry) => ({ ...entry, sourceType: 'kb-pdf' }));
+
+  return [...rankedKb, ...rankedPdf]
     .sort((a, b) => b.score - a.score)
     .slice(0, topK)
     .map((entry) => ({
@@ -84,8 +156,18 @@ function searchKnowledgeBase(userMessage, topK = 4) {
       fuente: entry.doc.fuente,
       ciudad: entry.doc.ciudad,
       fecha_actualizacion: entry.doc.fecha_actualizacion,
-      score: entry.score
+      score: entry.score,
+      sourceType: entry.sourceType
     }));
+}
+
+function hasLocalAnswer(hits, minScore = 4) {
+  if (!Array.isArray(hits) || hits.length === 0) {
+    return false;
+  }
+
+  const topScore = Number(hits[0]?.score || 0);
+  return topScore >= minScore;
 }
 
 function formatKnowledgeContext(hits) {
@@ -97,6 +179,7 @@ function formatKnowledgeContext(hits) {
     .map((hit, index) => [
       `[DOC ${index + 1}]`,
       `titulo: ${hit.titulo}`,
+      `sourceType: ${hit.sourceType || 'kb-json'}`,
       `categoria: ${hit.categoria || 'general'}`,
       `contenido: ${hit.contenido}`,
       `fuente: ${hit.fuente || 'sin fuente'}`,
@@ -125,15 +208,48 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'El campo userMessage es obligatorio' });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY no configurada en el servidor' });
-  }
-
   try {
+    await loadPdfKnowledge();
+
+    const kbHits = searchKnowledgeBase(userMessage, Number(process.env.KB_TOP_K || 4));
+    const localMinScore = Number(process.env.KB_LOCAL_MIN_SCORE || 4);
+
+    if (hasLocalAnswer(kbHits, localMinScore)) {
+      const topSources = kbHits
+        .slice(0, 3)
+        .map((hit) => `- ${hit.titulo}: ${hit.contenido}`)
+        .join('\n');
+
+      return res.status(200).json({
+        reply: `Encontre esta informacion en la base de conocimientos de RenovaRed:\n${topSources}`,
+        model: 'local-kb-pdf',
+        usedLocalKnowledge: true,
+        sources: kbHits.map((hit) => ({
+          id: hit.id,
+          titulo: hit.titulo,
+          fuente: hit.fuente,
+          sourceType: hit.sourceType
+        }))
+      });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(200).json({
+        reply: 'No encontre respuesta suficiente en la base de conocimientos local y Gemini no esta configurado en este momento.',
+        model: 'fallback-no-gemini',
+        usedLocalKnowledge: false,
+        sources: kbHits.map((hit) => ({
+          id: hit.id,
+          titulo: hit.titulo,
+          fuente: hit.fuente,
+          sourceType: hit.sourceType
+        }))
+      });
+    }
+
     let data = null;
     let selectedModel = null;
     let lastError = null;
-    const kbHits = searchKnowledgeBase(userMessage, Number(process.env.KB_TOP_K || 4));
     const knowledgeContext = formatKnowledgeContext(kbHits);
 
     const promptText = `Eres un asistente experto en economia circular y sustentabilidad para RenovaRed.
@@ -188,7 +304,13 @@ ${userMessage}`;
       return res.status(200).json({
         reply: 'El servicio de IA esta temporalmente no disponible. Mientras se restablece: separa papel, plastico, vidrio y metales; limpia envases antes de reciclar; prioriza reutilizar antes de desechar.',
         model: 'fallback-static',
-        sources: kbHits.map((hit) => ({ id: hit.id, titulo: hit.titulo, fuente: hit.fuente }))
+        usedLocalKnowledge: false,
+        sources: kbHits.map((hit) => ({
+          id: hit.id,
+          titulo: hit.titulo,
+          fuente: hit.fuente,
+          sourceType: hit.sourceType
+        }))
       });
     }
 
@@ -204,7 +326,13 @@ ${userMessage}`;
     return res.status(200).json({
       reply,
       model: selectedModel,
-      sources: kbHits.map((hit) => ({ id: hit.id, titulo: hit.titulo, fuente: hit.fuente }))
+      usedLocalKnowledge: false,
+      sources: kbHits.map((hit) => ({
+        id: hit.id,
+        titulo: hit.titulo,
+        fuente: hit.fuente,
+        sourceType: hit.sourceType
+      }))
     });
   } catch (error) {
     console.error('Error en /api/chat:', error);

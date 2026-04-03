@@ -439,5 +439,383 @@
     "fuente": "Prensa RenovaRed",
     "ciudad": "General",
     "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "db-publication-7fb9984e-4b89-42bf-b621-5e2364d4d4d0",
+    "titulo": "Fardos de PET de colores",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Fardos de PET de colores PET de colores (verde, azul, marrón) compactado. Separado por color bajo pedido. Categoria: Plástico. Ubicacion: Mendiolaza, Gran Córdoba. Disponibilidad: Lunes, Miércoles y Viernes. Cantidad: 77. Precio publicado: ARS 38.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "Mendiolaza, Gran Córdoba",
+    "fecha_actualizacion": "2026-04-03"
+  },
+  {
+    "id": "db-publication-08e8b37f-9ccc-4f7c-8e3c-8f355d8664b6",
+    "titulo": "Botellas de Vidrio",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Botellas de Vidrio Botellas de  Vidrio Recicladas Categoria: Vidrio. Ubicacion: Avenida Arturo Capdevila 6350 , villa Esquiu. Disponibilidad: No especificada. Cantidad: 290. Precio publicado: ARS 90000.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "Avenida Arturo Capdevila 6350 , villa Esquiu",
+    "fecha_actualizacion": "2026-04-03"
+  },
+  {
+    "id": "db-publication-e2735f2e-fc2c-4143-93ed-281cbe1d71ea",
+    "titulo": "Tela Jeans en rollo",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Tela Jeans en rollo Telas de diferentes tipos de Jean (camperas, vaqueros) Categoria: Textil. Ubicacion: Barrio Suarez, Córdoba. Disponibilidad: No especificada. Cantidad: 300. Precio publicado: ARS 120000.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "Barrio Suarez, Córdoba",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-publication-ee2d0acf-5ec5-4db9-9149-1d72012a0a31",
+    "titulo": "Rollos de Tela",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Rollos de Tela Telas de diversos colores en excelente estado Categoria: Textil. Ubicacion: Córdoba. Disponibilidad: No especificada. Cantidad: 50. Precio publicado: ARS 6000.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "Córdoba",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-publication-b7fd9fb9-6854-4d66-b2bb-ec3dabde7238",
+    "titulo": "Chapas Galpones",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Chapas Galpones gggggggg Categoria: Metal. Ubicacion: colonia tirolesa, cordoba. Disponibilidad: No especificada. Cantidad: 700. Precio publicado: ARS 235.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "colonia tirolesa, cordoba",
+    "fecha_actualizacion": "2026-03-30"
+  },
+  {
+    "id": "db-publication-eac918e3-5cd7-4c37-91f0-baee277f1fff",
+    "titulo": "Aluminio compactado",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Aluminio compactado Aluminio compactado en latas Categoria: Aluminio. Ubicacion: Avenida Valparaiso 1328. Disponibilidad: No especificada. Cantidad: 218. Precio publicado: ARS 7500.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "Avenida Valparaiso 1328",
+    "fecha_actualizacion": "2026-03-30"
+  },
+  {
+    "id": "db-publication-7cbc82c1-b0a4-4730-aeb8-dda411ad63b0",
+    "titulo": "Plástico reciclado PET",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Plástico reciclado PET 1 tonelada de plástico PET reciclado, listo para reutilizar Categoria: Plástico. Ubicacion: José Ignacio Díaz, Córdoba. Disponibilidad: No especificada. Cantidad: 1000. Precio publicado: ARS 200000.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "José Ignacio Díaz, Córdoba",
+    "fecha_actualizacion": "2026-03-30"
+  },
+  {
+    "id": "db-publication-62b72fd2-2aba-4d5f-93b2-d2b4b4c1b098",
+    "titulo": "caños de plastico",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: caños de plastico CANÑOS DE PVC Categoria: Plástico. Ubicacion: la granja, cordoba. Disponibilidad: No especificada. Cantidad: 1500. Precio publicado: ARS 325.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "la granja, cordoba",
+    "fecha_actualizacion": "2026-03-25"
+  },
+  {
+    "id": "db-publication-7f4a5b26-44ae-4533-9d31-e20b99ec7b59",
+    "titulo": "Pallets de madera en buen estado",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Pallets de madera en buen estado Pallets firmes, sin humedad. Perfectos para muebles o construcción. Categoria: Madera. Ubicacion: Córdoba Capital. Disponibilidad: No especificada. Cantidad: 75. Precio publicado: ARS 8000.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "Córdoba Capital",
+    "fecha_actualizacion": "2026-03-24"
+  },
+  {
+    "id": "db-publication-178e86fa-1aeb-44d6-9a5d-0a40bca6fdb6",
+    "titulo": "Tuberías PVC para reciclaje",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Tuberías PVC para reciclaje Tuberías y cañerías de PVC de obra. Cortadas en tramos de 1 metro. Categoria: Plástico. Ubicacion: Alta Gracia, Gran Córdoba. Disponibilidad: Miércoles y Viernes. Cantidad: 1247. Precio publicado: ARS 35.00. Estado: Pausada.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "Alta Gracia, Gran Córdoba",
+    "fecha_actualizacion": "2026-03-20"
+  },
+  {
+    "id": "db-publication-2064fd45-053c-4147-938c-bae424aba57a",
+    "titulo": "Chatarra de hierro y acero",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Chatarra de hierro y acero Retazos de hierro, ángulos, perfiles y acero estructural. Precio por kg según tipo. Categoria: Metal. Ubicacion: Jesús María, Gran Córdoba. Disponibilidad: Lunes a Viernes. Cantidad: 325. Precio publicado: ARS 55.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "Jesús María, Gran Córdoba",
+    "fecha_actualizacion": "2026-03-20"
+  },
+  {
+    "id": "db-publication-c9bb20cb-892f-4ee7-9f6c-36d390cf136d",
+    "titulo": "Fardos de CARTULINA  de colores",
+    "categoria": "plataforma-publicaciones",
+    "contenido": "Publicacion: Fardos de CARTULINA  de colores rrrrrr Categoria: Cartón. Ubicacion: Villa Esqiu, cordoba. Disponibilidad: No especificada. Cantidad: 524. Precio publicado: ARS 217.00. Estado: Disponible.",
+    "fuente": "DB RenovaRed - publications",
+    "ciudad": "Villa Esqiu, cordoba",
+    "fecha_actualizacion": "2026-03-18"
+  },
+  {
+    "id": "db-material-quote-a27ff596-67f5-404c-ac16-7e311c0ce612",
+    "titulo": "Cotizacion de Acero Inoxidable (Baterias de cocina)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Acero Inoxidable (Baterias de cocina). Categoria: Metales. Precio de referencia: ARS 110.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-24fefb1f-1f47-4042-8833-86df2ba86c99",
+    "titulo": "Cotizacion de PEAD Soplado (Envases de shampoo, detergente)",
+    "categoria": "material-quotes",
+    "contenido": "Material: PEAD Soplado (Envases de shampoo, detergente). Categoria: Plasticos. Precio de referencia: ARS 18.20 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-ef499d70-e63b-4f12-a716-e9682766898e",
+    "titulo": "Cotizacion de PP (Bazar, polipropileno)",
+    "categoria": "material-quotes",
+    "contenido": "Material: PP (Bazar, polipropileno). Categoria: Plasticos. Precio de referencia: ARS 13.50 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-fff6244f-05f5-4607-b176-823d52328919",
+    "titulo": "Cotizacion de Nylon (Film, bolsas)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Nylon (Film, bolsas). Categoria: Plasticos. Precio de referencia: ARS 7.30 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-04c812fa-23bf-44f4-9018-52551252c0d1",
+    "titulo": "Cotizacion de Plastico en general (Mezcla)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Plastico en general (Mezcla). Categoria: Plasticos. Precio de referencia: ARS 0.75 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-b5109f16-ef94-4623-b061-b5eee60c04e9",
+    "titulo": "Cotizacion de PEAD Rigido (Tapa de pote, sillas)",
+    "categoria": "material-quotes",
+    "contenido": "Material: PEAD Rigido (Tapa de pote, sillas). Categoria: Plasticos. Precio de referencia: ARS 14.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-cf7861d0-6f72-4ac6-8f84-ddf849217c4d",
+    "titulo": "Cotizacion de PVC Rigido (Canos, perfiles)",
+    "categoria": "material-quotes",
+    "contenido": "Material: PVC Rigido (Canos, perfiles). Categoria: Plasticos. Precio de referencia: ARS 9.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-e4b13c8f-6007-41b3-b0fd-69ec8377d22e",
+    "titulo": "Cotizacion de PS (Poliestireno, bandejas)",
+    "categoria": "material-quotes",
+    "contenido": "Material: PS (Poliestireno, bandejas). Categoria: Plasticos. Precio de referencia: ARS 6.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-bd3f7bd5-c592-48c0-bfba-68882c521e2f",
+    "titulo": "Cotizacion de Poliuretano (Espumas)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Poliuretano (Espumas). Categoria: Plasticos. Precio de referencia: ARS 3.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-840ba99d-3815-4b28-b4c0-23f31ba7f69e",
+    "titulo": "Cotizacion de Aluminio (Latas, perfiles)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Aluminio (Latas, perfiles). Categoria: Metales. Precio de referencia: ARS 140.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-7791fd19-8c18-4da1-8359-231d544592d7",
+    "titulo": "Cotizacion de Cobre (Cableado, tuberias)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Cobre (Cableado, tuberias). Categoria: Metales. Precio de referencia: ARS 3850.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-ef522860-b79f-4452-96ed-a46b11cb7502",
+    "titulo": "Cotizacion de Bronce (Grifos, piezas)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Bronce (Grifos, piezas). Categoria: Metales. Precio de referencia: ARS 3250.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-dc9f824e-bcc6-468b-bf61-ba1667351696",
+    "titulo": "Cotizacion de Chatarra Pesada (Hierro grueso)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Chatarra Pesada (Hierro grueso). Categoria: Metales. Precio de referencia: ARS 18.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-9dd9b3e3-f966-4902-ae75-6befa24496ca",
+    "titulo": "Cotizacion de Chatarra Liviana (Hierro delgado)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Chatarra Liviana (Hierro delgado). Categoria: Metales. Precio de referencia: ARS 13.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-cb610490-2646-4e7c-8b0e-a6493559e072",
+    "titulo": "Cotizacion de Chapas de Galpon",
+    "categoria": "material-quotes",
+    "contenido": "Material: Chapas de Galpon. Categoria: Metales. Precio de referencia: ARS 18.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-c60f2515-9351-4f8d-b7d4-3717d94cc8e2",
+    "titulo": "Cotizacion de Plomo (Baterias, contrapesos)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Plomo (Baterias, contrapesos). Categoria: Metales. Precio de referencia: ARS 35.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-c7ec28b8-b6f0-4084-97f7-887a8f26cac8",
+    "titulo": "Cotizacion de Metal Blanco (Aleacion de estano)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Metal Blanco (Aleacion de estano). Categoria: Metales. Precio de referencia: ARS 8.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-bb19909a-094f-45bf-8c6b-65eaf58fe557",
+    "titulo": "Cotizacion de Metales Electronicos (Placas)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Metales Electronicos (Placas). Categoria: Metales. Precio de referencia: ARS 50.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-5f22081f-2022-41e7-af59-ff301d9a8972",
+    "titulo": "Cotizacion de Carton (Corrugado)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Carton (Corrugado). Categoria: Papel y carton. Precio de referencia: ARS 20.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-d315a615-28d2-4fc0-8fe1-90f835746bf8",
+    "titulo": "Cotizacion de Papel Blanco (Imprenta, oficina)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Papel Blanco (Imprenta, oficina). Categoria: Papel y carton. Precio de referencia: ARS 11.70 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-a3b02ba0-52d3-4f43-bf50-e7614be699b4",
+    "titulo": "Cotizacion de Papel Mezcla (Diario, revistas)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Papel Mezcla (Diario, revistas). Categoria: Papel y carton. Precio de referencia: ARS 6.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-66a6b51d-117b-4153-9a6e-12357d8cba0c",
+    "titulo": "Cotizacion de Papel Mezcla Corriente (Residuos de oficina)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Papel Mezcla Corriente (Residuos de oficina). Categoria: Papel y carton. Precio de referencia: ARS 7.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-1b6d235d-7aa9-4c60-a950-155b21bc2a85",
+    "titulo": "Cotizacion de Afiches y Folletos (Papel couche)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Afiches y Folletos (Papel couche). Categoria: Papel y carton. Precio de referencia: ARS 3.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-9c340737-e88d-46fc-a8a2-b1525b7a8a24",
+    "titulo": "Cotizacion de Rollos de Tela",
+    "categoria": "material-quotes",
+    "contenido": "Material: Rollos de Tela. Categoria: Textiles. Precio de referencia: ARS 2.90 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-fa7ef60b-835a-465e-875e-079ec0412ea4",
+    "titulo": "Cotizacion de Tela (Prendas, rezagos)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Tela (Prendas, rezagos). Categoria: Textiles. Precio de referencia: ARS 3.70 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-0704956e-16b0-4b09-a753-75cdcae3d56e",
+    "titulo": "Cotizacion de Vidrio (Envases)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Vidrio (Envases). Categoria: Vidrio. Precio de referencia: ARS 0.50 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-1ce6d52a-c19a-4949-9d32-ee7e23116de5",
+    "titulo": "Cotizacion de Tetra Brik (Envases de leche/jugo)",
+    "categoria": "material-quotes",
+    "contenido": "Material: Tetra Brik (Envases de leche/jugo). Categoria: Multicapa. Precio de referencia: ARS 0.50 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-c45493ca-78a7-4943-a089-ba404cb5ebf0",
+    "titulo": "Cotizacion de PET (Botellas de gaseosa)",
+    "categoria": "material-quotes",
+    "contenido": "Material: PET (Botellas de gaseosa). Categoria: Plasticos. Precio de referencia: ARS 35.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+  {
+    "id": "db-material-quote-810c2d78-82ce-4d58-aaff-47388d294252",
+    "titulo": "Cotizacion de Cables de cobre",
+    "categoria": "material-quotes",
+    "contenido": "Material: Cables de cobre. Categoria: Metales. Precio de referencia: ARS 800.00 por unidad. Notas: Carga inicial desde cotizacionmateriales.md. Se toma el valor maximo del rango.",
+    "fuente": "DB RenovaRed - material_quotes",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
+  },
+    {
+    "id": "contacto-001",
+    "titulo": "Contactar a Usuario",
+    "categoria": "Contactos",
+    "contenido": "Para contactar a un usuario registrado en RenovaRed, ingresa a su perfil desde la sección 'Intercambios' o 'Publicaciones'. Haz clic en 'Enviar mensaje' y completa el formulario con tu consulta. El usuario recibirá una notificación y podrá responderte directamente desde la plataforma.",
+    "fuente": "DB RenovaRed - contactos",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-03-31"
   }
 ]

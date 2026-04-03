@@ -110,6 +110,7 @@ app.use('/api/material-quotes', materialQuoteRoutes);
 const {
   loadKnowledgeBase,
   searchKnowledgeBase,
+  hasLocalAnswer,
   formatKnowledgeContext,
   getKnowledgeBaseStats
 } = require('./src/services/knowledgeBase.service');
@@ -138,18 +139,49 @@ app.post('/api/chat', async (req, res) => {
   const { userMessage } = req.body;
 
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY no configurada en el backend' });
-    }
-
     if (!userMessage || typeof userMessage !== 'string') {
       return res.status(400).json({ error: 'El campo userMessage es obligatorio' });
+    }
+
+    const kbHits = searchKnowledgeBase(userMessage, Number(process.env.KB_TOP_K || 4));
+    const localMinScore = Number(process.env.KB_LOCAL_MIN_SCORE || 4);
+
+    if (hasLocalAnswer(kbHits, localMinScore)) {
+      const topSources = kbHits
+        .slice(0, 3)
+        .map((hit) => `- ${hit.titulo}: ${hit.contenido}`)
+        .join('\n');
+
+      return res.json({
+        reply: `Encontre esta informacion en la base de conocimientos de RenovaRed:\n${topSources}`,
+        model: 'local-kb-pdf',
+        usedLocalKnowledge: true,
+        sources: kbHits.map((hit) => ({
+          id: hit.id,
+          titulo: hit.titulo,
+          fuente: hit.fuente,
+          sourceType: hit.sourceType
+        }))
+      });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(200).json({
+        reply: 'No encontre respuesta suficiente en la base de conocimientos local .',
+        model: 'fallback-no-gemini',
+        usedLocalKnowledge: false,
+        sources: kbHits.map((hit) => ({
+          id: hit.id,
+          titulo: hit.titulo,
+          fuente: hit.fuente,
+          sourceType: hit.sourceType
+        }))
+      });
     }
 
     let data = null;
     let selectedModel = null;
     let lastError = null;
-    const kbHits = searchKnowledgeBase(userMessage, Number(process.env.KB_TOP_K || 4));
     const knowledgeContext = formatKnowledgeContext(kbHits);
 
     const promptText = `Eres un asistente experto en economia circular y sustentabilidad para RenovaRed.
@@ -206,7 +238,13 @@ ${userMessage}`;
       return res.json({
         reply: 'El servicio de IA esta temporalmente no disponible. Mientras se restablece: separa papel, plastico, vidrio y metales; limpia y seca envases antes de reciclar; prioriza reutilizar antes de desechar; y lleva materiales a puntos de acopio habilitados en tu ciudad.',
         model: 'fallback-static',
-        sources: kbHits.map((hit) => ({ id: hit.id, titulo: hit.titulo, fuente: hit.fuente }))
+        usedLocalKnowledge: false,
+        sources: kbHits.map((hit) => ({
+          id: hit.id,
+          titulo: hit.titulo,
+          fuente: hit.fuente,
+          sourceType: hit.sourceType
+        }))
       });
     }
 
@@ -223,7 +261,13 @@ ${userMessage}`;
     res.json({
       reply,
       model: selectedModel,
-      sources: kbHits.map((hit) => ({ id: hit.id, titulo: hit.titulo, fuente: hit.fuente }))
+      usedLocalKnowledge: false,
+      sources: kbHits.map((hit) => ({
+        id: hit.id,
+        titulo: hit.titulo,
+        fuente: hit.fuente,
+        sourceType: hit.sourceType
+      }))
     });
 
   } catch (error) {

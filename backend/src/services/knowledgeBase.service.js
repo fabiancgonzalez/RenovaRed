@@ -1,9 +1,21 @@
 const fs = require('fs');
 const path = require('path');
+let pdfParse = null;
+
+try {
+  pdfParse = require('pdf-parse');
+} catch (_) {
+  pdfParse = null;
+}
 
 const KB_FILE_PATH = path.resolve(__dirname, '../data/knowledge-base.json');
+const HELP_PDF_PATH = path.resolve(__dirname, '../../../frontend/public/assets/help/Ayuda RenovaRed.pdf');
 
 let kbDocs = [];
+let pdfDocs = [];
+let pdfLoaded = false;
+let pdfLoadError = null;
+let pdfLoadingPromise = null;
 
 function normalizeText(value) {
   return String(value || '')
@@ -26,6 +38,78 @@ function tokenize(value) {
     .filter((token) => token.length >= 3 && !stopwords.has(token));
 }
 
+function chunkTextByWords(text, wordsPerChunk = 120) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  const chunks = [];
+
+  for (let index = 0; index < words.length; index += wordsPerChunk) {
+    const chunk = words.slice(index, index + wordsPerChunk).join(' ').trim();
+    if (chunk.length >= 40) {
+      chunks.push(chunk);
+    }
+  }
+
+  return chunks;
+}
+
+async function loadPdfKnowledge() {
+  if (pdfLoadingPromise) {
+    return pdfLoadingPromise;
+  }
+
+  pdfLoadingPromise = (async () => {
+    try {
+      if (!pdfParse) {
+        pdfDocs = [];
+        pdfLoaded = false;
+        pdfLoadError = 'Dependencia pdf-parse no instalada';
+        return;
+      }
+
+      if (!fs.existsSync(HELP_PDF_PATH)) {
+        pdfDocs = [];
+        pdfLoaded = false;
+        pdfLoadError = `No existe PDF de ayuda en: ${HELP_PDF_PATH}`;
+        return;
+      }
+
+      const buffer = fs.readFileSync(HELP_PDF_PATH);
+      const parsed = await pdfParse(buffer);
+      const text = String(parsed?.text || '').replace(/\s+/g, ' ').trim();
+
+      if (!text) {
+        pdfDocs = [];
+        pdfLoaded = false;
+        pdfLoadError = 'El PDF no contiene texto indexable';
+        return;
+      }
+
+      pdfDocs = chunkTextByWords(text).map((chunk, index) => ({
+        id: `pdf-ayuda-${index + 1}`,
+        titulo: 'Ayuda RenovaRed (PDF)',
+        categoria: 'ayuda-pdf',
+        contenido: chunk,
+        fuente: 'Ayuda RenovaRed.pdf',
+        ciudad: 'General',
+        fecha_actualizacion: null,
+        _tokens: tokenize(`Ayuda RenovaRed ${chunk}`)
+      }));
+
+      pdfLoaded = true;
+      pdfLoadError = null;
+    } catch (error) {
+      pdfDocs = [];
+      pdfLoaded = false;
+      pdfLoadError = error.message;
+      console.error('[KB] Error cargando PDF de ayuda:', error.message);
+    } finally {
+      pdfLoadingPromise = null;
+    }
+  })();
+
+  return pdfLoadingPromise;
+}
+
 function loadKnowledgeBase() {
   try {
     const raw = fs.readFileSync(KB_FILE_PATH, 'utf8');
@@ -46,6 +130,10 @@ function loadKnowledgeBase() {
     kbDocs = [];
     console.error('[KB] Error cargando knowledge-base.json:', error.message);
   }
+
+  loadPdfKnowledge().catch((error) => {
+    console.error('[KB] Error iniciando carga de PDF:', error.message);
+  });
 }
 
 function scoreDocument(queryTokens, doc) {
@@ -68,9 +156,17 @@ function scoreDocument(queryTokens, doc) {
 function searchKnowledgeBase(userMessage, topK = 4) {
   const queryTokens = tokenize(userMessage);
 
-  const ranked = kbDocs
+  const rankedKb = kbDocs
     .map((doc) => ({ doc, score: scoreDocument(queryTokens, doc) }))
     .filter((entry) => entry.score > 0)
+    .map((entry) => ({ ...entry, sourceType: 'kb-json' }));
+
+  const rankedPdf = pdfDocs
+    .map((doc) => ({ doc, score: scoreDocument(queryTokens, doc) }))
+    .filter((entry) => entry.score > 0)
+    .map((entry) => ({ ...entry, sourceType: 'kb-pdf' }));
+
+  const ranked = [...rankedKb, ...rankedPdf]
     .sort((a, b) => b.score - a.score)
     .slice(0, topK)
     .map((entry) => ({
@@ -81,10 +177,20 @@ function searchKnowledgeBase(userMessage, topK = 4) {
       fuente: entry.doc.fuente,
       ciudad: entry.doc.ciudad,
       fecha_actualizacion: entry.doc.fecha_actualizacion,
-      score: entry.score
+      score: entry.score,
+      sourceType: entry.sourceType
     }));
 
   return ranked;
+}
+
+function hasLocalAnswer(hits, minScore = 4) {
+  if (!Array.isArray(hits) || hits.length === 0) {
+    return false;
+  }
+
+  const topScore = Number(hits[0]?.score || 0);
+  return topScore >= minScore;
 }
 
 function formatKnowledgeContext(hits) {
@@ -97,6 +203,7 @@ function formatKnowledgeContext(hits) {
       return [
         `[DOC ${index + 1}]`,
         `titulo: ${hit.titulo}`,
+        `sourceType: ${hit.sourceType || 'kb-json'}`,
         `categoria: ${hit.categoria || 'general'}`,
         `contenido: ${hit.contenido}`,
         `fuente: ${hit.fuente || 'sin fuente'}`,
@@ -110,7 +217,11 @@ function formatKnowledgeContext(hits) {
 function getKnowledgeBaseStats() {
   return {
     totalDocs: kbDocs.length,
-    kbFilePath: KB_FILE_PATH
+    totalPdfChunks: pdfDocs.length,
+    kbFilePath: KB_FILE_PATH,
+    helpPdfPath: HELP_PDF_PATH,
+    pdfLoaded,
+    pdfLoadError
   };
 }
 
@@ -119,6 +230,7 @@ loadKnowledgeBase();
 module.exports = {
   loadKnowledgeBase,
   searchKnowledgeBase,
+  hasLocalAnswer,
   formatKnowledgeContext,
   getKnowledgeBaseStats
 };
