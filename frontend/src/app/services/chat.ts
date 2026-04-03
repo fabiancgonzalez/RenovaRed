@@ -22,7 +22,7 @@ export interface ChatMessage {
 export class ChatWidgetService {
 
   private http = inject(HttpClient);
-  private apiUrl = environment.chatApiUrl ?? `${environment.apiUrl}/chat`;
+  private chatApiUrl = environment.chatApiUrl ?? `${environment.apiUrl}/chat`;
   private localFallbackApiUrl = 'http://localhost:3000/api/chat';
   private canUseLocalFallback = !environment.production;
   // Historial de conversación
@@ -46,12 +46,12 @@ export class ChatWidgetService {
 
 
 
-    return this.http.post<{ reply: string }>(this.apiUrl, {
+    return this.http.post<{ reply: string }>(this.chatApiUrl, {
       messages: this.conversationHistory,
       userMessage: userMessage
     }).pipe(
       catchError((error: any) => {
-        const shouldFallback = this.canUseLocalFallback && this.apiUrl !== this.localFallbackApiUrl && error?.status === 404;
+        const shouldFallback = this.canUseLocalFallback && this.chatApiUrl !== this.localFallbackApiUrl && error?.status === 404;
         if (!shouldFallback) {
           return throwError(() => error);
         }
