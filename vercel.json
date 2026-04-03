@@ -5,6 +5,14 @@
   "outputDirectory": "frontend/dist/renovared/browser",
   "rewrites": [
     {
+      "source": "/api/chat",
+      "destination": "/backend/api/chat"
+    },
+    {
+      "source": "/api/chat/(.*)",
+      "destination": "/backend/api/chat"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

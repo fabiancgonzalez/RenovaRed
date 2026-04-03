@@ -2,7 +2,13 @@ const GEMINI_MODELS = (process.env.GEMINI_MODELS || 'gemini-2.5-flash,gemini-2.0
   .split(',').map(m => m.trim()).filter(Boolean);
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Allow', 'POST, OPTIONS');
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST, OPTIONS');
     return res.status(405).json({ error: 'Metodo no permitido' });
   }
 
