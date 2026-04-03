@@ -147,13 +147,20 @@ app.post('/api/chat', async (req, res) => {
     const localMinScore = Number(process.env.KB_LOCAL_MIN_SCORE || 4);
 
     if (hasLocalAnswer(kbHits, localMinScore)) {
-      const topSources = kbHits
-        .slice(0, 3)
+      const publicationHits = kbHits.filter((h) => h.categoria === 'plataforma-publicaciones').slice(0, 3);
+      const nonContactHits = kbHits.filter((h) => h.id !== 'contacto-001').slice(0, 3);
+      const contactHit = kbHits.find((h) => h.id === 'contacto-001');
+
+      const topSources = (publicationHits.length > 0 ? publicationHits : nonContactHits)
         .map((hit) => `- ${hit.titulo}: ${hit.contenido}`)
         .join('\n');
 
+      const contactSuffix = contactHit
+        ? `\n\n**¿Cómo contactar al vendedor?**\n${contactHit.contenido}`
+        : '';
+
       return res.json({
-        reply: `Encontre esta informacion en la base de conocimientos de RenovaRed:\n${topSources}`,
+        reply: `Encontre esta informacion en la base de conocimientos de RenovaRed:\n${topSources}${contactSuffix}`,
         model: 'local-kb-pdf',
         usedLocalKnowledge: true,
         sources: kbHits.map((hit) => ({

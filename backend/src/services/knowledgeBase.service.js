@@ -181,6 +181,28 @@ function searchKnowledgeBase(userMessage, topK = 4) {
       sourceType: entry.sourceType
     }));
 
+  // Inject contacto-001 when query asks who sells/has something, or when publication results appear
+  const queryNorm = normalizeText(userMessage);
+  const contactIntent = /quien (vende|tiene|ofrece|publica|dispone|comercializa)|donde (consigo|comprar|adquirir|encontrar|conseguir)|como contactar/.test(queryNorm);
+  const hasPublications = ranked.some((r) => r.categoria === 'plataforma-publicaciones');
+
+  if ((contactIntent || hasPublications) && !ranked.some((r) => r.id === 'contacto-001')) {
+    const contactDoc = kbDocs.find((doc) => doc.id === 'contacto-001');
+    if (contactDoc) {
+      ranked.push({
+        id: contactDoc.id,
+        titulo: contactDoc.titulo,
+        categoria: contactDoc.categoria,
+        contenido: contactDoc.contenido,
+        fuente: contactDoc.fuente,
+        ciudad: contactDoc.ciudad,
+        fecha_actualizacion: contactDoc.fecha_actualizacion,
+        score: 1,
+        sourceType: 'kb-json'
+      });
+    }
+  }
+
   return ranked;
 }
 
