@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Ayuda - RenovaRed</title>
+    <style>
+        :root {
+            --primary-color: #2e7d32; /* Verde ecológico */
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1000px;
+            margin: 20px auto;
+            width: 95%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .instructions {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+
+        .iframe-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 640px;
+        }
+
+        iframe {
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Guía de Uso RenovaRed</h1>
+    </header>
+
+    <div class="container">
+        <div class="instructions">
+            <h3>¿Cómo publicar e intercambiar materiales?</h3>
+            <p>Sigue los pasos interactivos en el tutorial de abajo para aprender a usar la plataforma correctamente.</p>
+        </div>
+
+        <div class="iframe-wrapper">
+            <!-- Tu iframe de Tango -->
+            <iframe 
+                src="/assets/help/Ayuda%20RenovaRed.pdf#view=FitH" 
+                sandbox="allow-scripts allow-top-navigation-by-user-activation allow-popups allow-same-origin" 
+                security="restricted" 
+                title="Publish and Trade Materials in RenovaRed" 
+                referrerpolicy="strict-origin-when-cross-origin" 
+                webkitallowfullscreen 
+                mozallowfullscreen 
+                allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 RenovaRed - Transformando residuos en recursos.
+    </footer>
+
+</body>
+</html>

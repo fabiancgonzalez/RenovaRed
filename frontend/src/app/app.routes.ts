@@ -11,6 +11,7 @@ import { PublicationFormComponent } from './pages/publication-form/publication-f
 import { MaterialsExploreComponent } from './pages/materials-explore/materials-explore.component';
 import { MyPublicationsComponent } from './pages/my-publications/my-publications.component';
 import { HomeLoggedComponent } from './pages/home-logged/home-logged.component';
+import { HelpComponent } from './pages/help/help.component';
 import { AuthGuard } from './guards/auth.guard';
 import { PublicGuard } from './guards/public.guard';
 import { AdminGuard } from './guards/admin.guard';
@@ -20,6 +21,7 @@ export const routes: Routes = [
     { path: '', component: HomeComponent, canActivate: [PublicGuard] },
     { path: 'login', component: LoginComponent, canActivate: [PublicGuard] },
     { path: 'register', component: RegisterComponent, canActivate: [PublicGuard] },
+    { path: 'help', component: HelpComponent },
     
     // Rutas protegidas
     { path: 'inicio', component: HomeLoggedComponent, canActivate: [AuthGuard] },

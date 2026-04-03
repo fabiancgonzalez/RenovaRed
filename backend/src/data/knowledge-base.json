@@ -1,0 +1,443 @@
+[
+  {
+    "id": "login-001",
+    "titulo": "Como iniciar sesion en RenovaRed",
+    "categoria": "login",
+    "contenido": "Visita renovared.vercel.app, haz clic en 'Iniciar sesion' (esquina superior derecha). Ingresa tu email y contraseña. Si es correcto, veras tu panel.",
+    "fuente": "Manual de usuario",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "login-002",
+    "titulo": "Registro de nuevo usuario",
+    "categoria": "login",
+    "contenido": "En la pagina principal, haz clic en 'Registrarse'. Completa nombre, email, telefono y crea una contraseña segura. Recibiras un correo de verificacion.",
+    "fuente": "Guia RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "login-003",
+    "titulo": "Recuperar contraseña olvidada",
+    "categoria": "login",
+    "contenido": "En la pantalla de 'Iniciar sesion', haz clic en '¿Olvidaste tu contraseña?'. Ingresa tu email. Recibiras un enlace para crear una nueva.",
+    "fuente": "Soporte tecnico",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "login-004",
+    "titulo": "Error de credenciales",
+    "categoria": "login",
+    "contenido": "Si al loguearte ves 'usuario o contraseña incorrectos', verifica mayusculas, tildes y que el email este bien escrito. Usa la opcion 'mostrar contraseña'.",
+    "fuente": "FAQ",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "login-005",
+    "titulo": "Acceso con Google",
+    "categoria": "login",
+    "contenido": "En la pantalla de login, tambien puedes usar el boton 'Acceder con Google'. Se abrira una ventana para elegir tu cuenta de Google.",
+    "fuente": "Manual de usuario",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "intercambio-001",
+    "titulo": "Como publicar un material para intercambiar",
+    "categoria": "intercambios",
+    "contenido": "Una vez logueado, ve a 'Intercambios' > 'Nueva publicacion'. Selecciona categoria (carton, plastico, RAEE, etc), agrega foto, descripcion, cantidad y ubicacion. Haz clic en 'Publicar'.",
+    "fuente": "Guia RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "intercambio-002",
+    "titulo": "Responder a un intercambio disponible",
+    "categoria": "intercambios",
+    "contenido": "En el muro de intercambios, busca un material que te interese. Haz clic en 'Interesado' o 'Contactar'. Se abrira un chat interno con el publicante para acordar entrega.",
+    "fuente": "Manual de usuario",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "intercambio-003",
+    "titulo": "Gestionar solicitudes recibidas",
+    "categoria": "intercambios",
+    "contenido": "Cuando alguien solicita tu material, recibiras una notificacion. Ve a 'Mis publicaciones' > 'Solicitudes'. Ahi puedes aceptar, rechazar o chatear con el interesado.",
+    "fuente": "Ayuda RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "intercambio-004",
+    "titulo": "Cerrar un intercambio exitoso",
+    "categoria": "intercambios",
+    "contenido": "Despues de entregar/recibir el material, ambas partes deben ir a la solicitud y marcar 'Completar intercambio'. Esto suma reputacion positiva.",
+    "fuente": "Manual de usuario",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "intercambio-005",
+    "titulo": "Reportar problema en un intercambio",
+    "categoria": "intercambios",
+    "contenido": "Si hubo un incumplimiento, ve al chat de la solicitud, haz clic en '...' y selecciona 'Reportar'. Explica el motivo. El equipo de RenovaRed mediara.",
+    "fuente": "Soporte tecnico",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "reciclaje-carton-001",
+    "titulo": "Reciclaje de carton limpio",
+    "categoria": "reciclaje",
+    "contenido": "El carton limpio y seco se puede reciclar. Evita mezclarlo con restos de comida.",
+    "fuente": "Guia RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "reciclaje-plastico-001",
+    "titulo": "Reciclaje de botellas PET",
+    "categoria": "reciclaje",
+    "contenido": "Las botellas de plastico (PET) deben estar vacias, aplastadas y con tapa. No es necesario enjuagar con jabon, solo sin liquidos.",
+    "fuente": "Guia RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "reciclaje-vidrio-001",
+    "titulo": "Reciclaje de envases de vidrio",
+    "categoria": "reciclaje",
+    "contenido": "Deposita botellas y frascos de vidrio en contenedor verde (o especifico). No se deben romper antes, ya que peligra al recolector.",
+    "fuente": "Municipio local",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "reciclaje-metales-001",
+    "titulo": "Reciclaje de latas de aluminio",
+    "categoria": "reciclaje",
+    "contenido": "Las latas de bebida van aplastadas. El acero (latas de conservas) tambien es reciclable. Separa por tipo si es posible.",
+    "fuente": "Manual de reciclaje",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "reciclaje-textil-001",
+    "titulo": "Reciclaje de ropa y calzado",
+    "categoria": "reciclaje",
+    "contenido": "La ropa en buen estado se puede donar o intercambiar. Rota o manchada, busca contenedor textil especifico. No va al residuo comun.",
+    "fuente": "Guia RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "raee-baterias-001",
+    "titulo": "Disposicion de baterias usadas",
+    "categoria": "raee",
+    "contenido": "Las baterias no van al residuo comun. Guardalas en un recipiente seguro y llevalas a un punto autorizado.",
+    "fuente": "Guia RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "raee-electrodomesticos-001",
+    "titulo": "Reciclaje de pequeños electrodomesticos",
+    "categoria": "raee",
+    "contenido": "Secadores, licuadoras, planchas rotas: lleva a punto limpio o centros de acopio de RAEE. No los deseches en la basura comun.",
+    "fuente": "Municipio local",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "raee-electronicos-001",
+    "titulo": "Reciclaje de celulares y tablets",
+    "categoria": "raee",
+    "contenido": "Antes de reciclar, elimina datos personales (restauracion de fabrica). Luego deposita en campanas especificas de RAEE.",
+    "fuente": "Sostenibilidad digital",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "raee-cables-001",
+    "titulo": "Reciclaje de cables y cargadores",
+    "categoria": "raee",
+    "contenido": "Cables y cargadores en desuso son RAEE. Se pueden llevar a puntos de reciclaje de electronicos. No van al plastico ni al residuo comun.",
+    "fuente": "Guia RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "raee-toners-001",
+    "titulo": "Cartuchos de tinta y toner",
+    "categoria": "raee",
+    "contenido": "Muchas tiendas de informatica y programas de reciclaje reciben toners usados. Algunos se pueden rellenar. No se tiran a la basura.",
+    "fuente": "Ayuda RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "acopio-municipal-001",
+    "titulo": "Puntos de acopio municipales",
+    "categoria": "acopio",
+    "contenido": "Consulta web o redes del municipio para horarios y ubicaciones actualizadas de acopio.",
+    "fuente": "Municipio local",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "acopio-limpieza-001",
+    "titulo": "Puntos limpios fijos",
+    "categoria": "acopio",
+    "contenido": "Los puntos limpios reciben residuos peligrosos o grandes (pinturas, pilas, muebles). Lleva solo en horario indicado.",
+    "fuente": "Medioambiente",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "acopio-movil-001",
+    "titulo": "Unidades de reciclaje moviles",
+    "categoria": "acopio",
+    "contenido": "Algunos municipios tienen camiones recolectores que recorren barrios. Sigue el calendario en la app o web.",
+    "fuente": "Municipio local",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "acopio-empresa-001",
+    "titulo": "Reciclaje en empresas",
+    "categoria": "acopio",
+    "contenido": "Si tu empresa genera grandes volumenes (carton, papel, plasticos), contacta a un gestor autorizado. RenovaRed tiene seccion 'Empresas'.",
+    "fuente": "Guia RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "acopio-escuela-001",
+    "titulo": "Campanas de reciclaje escolar",
+    "categoria": "acopio",
+    "contenido": "Escuelas pueden organizar puntos de acopio de RAEE o tapitas. Publica la campana en RenovaRed para difundir.",
+    "fuente": "Educacion ambiental",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "perfil-001",
+    "titulo": "Completar perfil de usuario",
+    "categoria": "perfil",
+    "contenido": "Ve a 'Mi perfil' > 'Editar'. Agrega foto, direccion aproximada (no publica exacta) y telefono de contacto. Esto genera confianza en intercambios.",
+    "fuente": "Manual de usuario",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "perfil-002",
+    "titulo": "Ver reputacion y calificaciones",
+    "categoria": "perfil",
+    "contenido": "En tu perfil, otros usuarios ven tus estrellas (1 a 5) y comentarios de intercambios completados. Manten buena calificacion cumpliendo.",
+    "fuente": "Ayuda RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "perfil-003",
+    "titulo": "Notificaciones",
+    "categoria": "perfil",
+    "contenido": "Configura que notificaciones quieres recibir (email, push, o en app). Ve a 'Configuracion' > 'Notificaciones'.",
+    "fuente": "Soporte tecnico",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "perfil-004",
+    "titulo": "Cambiar contraseña",
+    "categoria": "perfil",
+    "contenido": "Por seguridad, cambia tu contraseña cada 6 meses. Ve a 'Mi perfil' > 'Seguridad' > 'Cambiar contraseña'.",
+    "fuente": "Manual de usuario",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "perfil-005",
+    "titulo": "Eliminar cuenta",
+    "categoria": "perfil",
+    "contenido": "Si deseas borrar tu cuenta, ve a 'Configuracion avanzada' > 'Eliminar cuenta'. Se enviara un email de confirmacion. Los datos se borraran en 30 dias.",
+    "fuente": "Politica de privacidad",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "consejos-001",
+    "titulo": "Preparar materiales para intercambio",
+    "categoria": "consejos",
+    "contenido": "Limpia los materiales (sin restos organicos). Clasificalos por tipo. Pesa o estima cantidad para que la publicacion sea clara.",
+    "fuente": "Guia RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "consejos-002",
+    "titulo": "Seguridad en puntos de encuentro",
+    "categoria": "consejos",
+    "contenido": "Para intercambios presenciales, elige lugares publicos y concurridos (plaza, estacion de servicio). No des tu direccion exacta hasta acordar.",
+    "fuente": "Seguridad usuario",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "consejos-003",
+    "titulo": "Embalaje ecologico",
+    "categoria": "consejos",
+    "contenido": "Si envias por correo, usa cajas de carton recicladas o papel periodico. Evita plastico burbuja nuevo. Reutiliza sobres.",
+    "fuente": "Eco-friendly",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "consejos-004",
+    "titulo": "Comunicacion clara en chat",
+    "categoria": "consejos",
+    "contenido": "En el chat interno, especifica: que dia, horario, lugar y como reconocer el material. Confirma si es entrega o retiro.",
+    "fuente": "Manual de usuario",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "consejos-005",
+    "titulo": "Que hacer si no responden",
+    "categoria": "consejos",
+    "contenido": "Si un usuario no responde en 5 dias, puedes cancelar tu solicitud o publicacion. Usa el boton 'Cancelar' y deja feedback constructivo.",
+    "fuente": "Ayuda RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "soporte-001",
+    "titulo": "Contactar a soporte tecnico",
+    "categoria": "soporte",
+    "contenido": "En la pagina, haz clic en 'Ayuda' (fondo). Luego 'Contactar'. Completa el formulario con tu email y problema. Responden en 48 hs.",
+    "fuente": "Soporte RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "soporte-002",
+    "titulo": "Preguntas frecuentes (FAQ)",
+    "categoria": "soporte",
+    "contenido": "Antes de contactar, revisa la seccion 'FAQ' donde hay respuestas a problemas comunes de login, intercambios y cuentas.",
+    "fuente": "Centro de ayuda",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "soporte-003",
+    "titulo": "Reportar bug o error tecnico",
+    "categoria": "soporte",
+    "contenido": "Si la pagina no carga o un boton no funciona, reporta en 'Soporte' con captura de pantalla. Incluye navegador y sistema operativo.",
+    "fuente": "Soporte tecnico",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "soporte-004",
+    "titulo": "Solicitar cambio de datos personales",
+    "categoria": "soporte",
+    "contenido": "Para cambiar email o datos sensibles, escribe a soporte@renovared.com (simulado) con asunto 'Actualizacion de datos' y tu nombre completo.",
+    "fuente": "Politica de datos",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "soporte-005",
+    "titulo": "Como ser voluntario o punto de acopio",
+    "categoria": "soporte",
+    "contenido": "Si representas a una organizacion o municipio y quieres aparecer como punto de acopio oficial, contacta a 'Alianzas' en la seccion 'Empresas'.",
+    "fuente": "RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "residuos-organicos-001",
+    "titulo": "Compostaje domestico",
+    "categoria": "residuos-organicos",
+    "contenido": "Restos de frutas, verduras, cascaras de huevo y yerba se pueden compostar. No agregues carne ni lacteos.",
+    "fuente": "Guia compostaje",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "residuos-organicos-002",
+    "titulo": "Aceite de cocina usado",
+    "categoria": "residuos-organicos",
+    "contenido": "El aceite vegetal usado no va por la cañeria. Deja enfriar, guarda en botella plastica y lleva a punto de reciclaje (se hace biodiesel).",
+    "fuente": "Medioambiente",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "residuos-organicos-003",
+    "titulo": "Residuos de jardin",
+    "categoria": "residuos-organicos",
+    "contenido": "Pasto, hojas y ramas pequenas se pueden llevar a centros de compostaje municipal o usarlos como mulch. No mezclar con basura comun.",
+    "fuente": "Municipio local",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "educacion-001",
+    "titulo": "Guia para escuelas: taller de reciclaje",
+    "categoria": "educacion",
+    "contenido": "RenovaRed ofrece material descargable para educadores: juegos, separadores de residuos y guias por edades. Solicitar en 'Recursos educativos'.",
+    "fuente": "RenovaRed Educa",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "educacion-002",
+    "titulo": "Calculadora de huella de carbono personal",
+    "categoria": "educacion",
+    "contenido": "Usa la herramienta interna 'Mi Huella' (disponible tras login) para calcular el impacto de tus residuos y ver como reducirlo.",
+    "fuente": "Sostenibilidad",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "educacion-003",
+    "titulo": "Video tutoriales",
+    "categoria": "educacion",
+    "contenido": "En el canal de YouTube de RenovaRed (ver video de ejemplo) hay tutoriales de uso de la plataforma. Busca la lista de reproduccion 'Como usar RenovaRed'.",
+    "fuente": "YouTube",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "novedades-001",
+    "titulo": "Nueva funcion: intercambio con puntos",
+    "categoria": "actualizaciones",
+    "contenido": "A partir de abril 2026, se pueden ganar 'Puntos Renova' por cada intercambio completado. Luego canjearlos por descuentos en comercios aliados.",
+    "fuente": "Blog RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "novedades-002",
+    "titulo": "App movil en desarrollo",
+    "categoria": "actualizaciones",
+    "contenido": "La aplicacion para Android e iOS estara disponible en junio 2026. Mientras tanto, la web es responsive (funciona en celular).",
+    "fuente": "Comunicado oficial",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  },
+  {
+    "id": "novedades-003",
+    "titulo": "Alianza con municipios",
+    "categoria": "actualizaciones",
+    "contenido": "RenovaRed se integro con 5 municipios para sincronizar horarios de puntos limpios. Ver mapa en seccion 'Acopio cercano'.",
+    "fuente": "Prensa RenovaRed",
+    "ciudad": "General",
+    "fecha_actualizacion": "2026-04-02"
+  }
+]

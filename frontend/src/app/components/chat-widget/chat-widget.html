@@ -1,0 +1,83 @@
+<!-- chat-widget.component.html -->
+<div class="chat-widget-container">
+  <!-- Botón flotante -->
+  <button class="chat-toggle-btn" (click)="toggleChat()" [class.active]="isOpen">
+    <span class="chat-icon" *ngIf="!isOpen">💬</span>
+    <span class="close-icon" *ngIf="isOpen">✕</span>
+    <span class="notification-badge" *ngIf="unreadCount > 0 && !isOpen">
+      {{ unreadCount }}
+    </span>
+  </button>
+
+  <!-- Ventana de chat -->
+  <div class="chat-window" *ngIf="isOpen" [@slideInOut]>
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="header-content">
+        <div class="avatar">🤖</div>
+        <div class="title-section">
+          <h3>Asistente RenovaRed</h3>
+          <p class="status">🟢 En línea | Economía Circular</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="clear-btn" (click)="clearChat()" title="Limpiar conversación">
+          🗑️
+        </button>
+        <button class="close-btn" (click)="toggleChat()">✕</button>
+      </div>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="chat-messages" #messageContainer>
+      <div *ngIf="messages.length === 0" class="welcome-message">
+        <div class="welcome-icon">🌱</div>
+        <h4>¡Bienvenido a RenovaRed!</h4>
+        <p>Pregúntame sobre:</p>
+        <div class="suggestions">
+          <button class="suggestion-btn" (click)="newMessage = '¿Cómo reciclar electrónicos?'">📱 Reciclaje de electrónicos</button>
+          <button class="suggestion-btn" (click)="newMessage = 'Puntos de acopio cerca de mí'">📍 Puntos de acopio</button>
+          <button class="suggestion-btn" (click)="newMessage = 'Beneficios de economía circular'">♻️ Beneficios circulares</button>
+        </div>
+      </div>
+
+      <div *ngFor="let msg of messages" class="message" [class.user]="msg.role === 'user'" [class.bot]="msg.role === 'assistant'">
+        <div class="message-avatar">
+          {{ msg.role === 'user' ? '👤' : '🤖' }}
+        </div>
+        <div class="message-content">
+          <div class="message-text">{{ msg.content }}</div>
+          <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
+          <div *ngIf="msg.imageUrl" class="message-image">
+            <img [src]="msg.imageUrl" alt="Imagen compartida">
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="isLoading" class="message bot typing">
+        <div class="message-avatar">🤖</div>
+        <div class="message-content">
+          <div class="typing-indicator">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input">
+      <button class="attach-btn" (click)="fileInput.click()">📎</button>
+      <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden>
+      <input 
+        type="text" 
+        [(ngModel)]="newMessage" 
+        (keyup.enter)="sendMessage()"
+        placeholder="Escribe tu mensaje..."
+        [disabled]="isLoading"
+      />
+      <button (click)="sendMessage()" [disabled]="!newMessage.trim() || isLoading">
+        {{ isLoading ? '...' : '📤' }}
+      </button>
+    </div>
+  </div>
+</div>

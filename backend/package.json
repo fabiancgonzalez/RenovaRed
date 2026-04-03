@@ -4,7 +4,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "kb:import": "node scripts/import-kb-csv.js",
+    "kb:sync:db": "node scripts/sync-kb-from-db.js"
   },
   "keywords": [],
   "author": "",
