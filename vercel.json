@@ -3,18 +3,22 @@
   "installCommand": "npm --prefix frontend install",
   "buildCommand": "npm --prefix frontend run build",
   "outputDirectory": "frontend/dist/renovared/browser",
-  "rewrites": [
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 60
+    }
+  },
+  "routes": [
     {
-      "source": "/api/chat",
-      "destination": "/backend/api/chat"
+      "src": "/api/chat",
+      "dest": "/api/chat.js"
     },
     {
-      "source": "/api/chat/(.*)",
-      "destination": "/backend/api/chat"
+      "handle": "filesystem"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
