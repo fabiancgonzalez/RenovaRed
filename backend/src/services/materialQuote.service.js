@@ -175,7 +175,7 @@ class MaterialQuoteService {
     if (!client) {
       return {
         success: false,
-        message: 'Mercado Pago no está configurado. Definí MP_ACCESS_TOKEN en backend/.env'
+        message: ''
       };
     }
 

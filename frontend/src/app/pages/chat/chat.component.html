@@ -458,7 +458,7 @@
               step="100"
               placeholder="Ej: 5000"
               class="form-input">
-            <small class="hint-text">Opcional - deja en 0 si es a convenir</small>
+            <small class="hint-text" style="color: #f59e0b;">Opcional - deja en 0  (CERO) si es a convenir</small>
           </div>
           
           <div class="form-group">
@@ -501,7 +501,6 @@
             } @else {
               <div class="quote-line"><strong>QR de referencia:</strong></div>
               <img class="exchange-qr" [src]="exchangeQuote.qrImageUrl" alt="QR de referencia del intercambio" />
-              <small class="error-text">{{ exchangeQuote.qrMensaje }}</small>
             }
 
             @if (exchangeQuote.paymentIntent) {
