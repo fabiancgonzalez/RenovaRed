@@ -12,7 +12,7 @@
 
     <div class="search-box">
       <i class="fa-solid fa-search"></i>
-      <input type="text" placeholder="Buscar conversación...">
+      <input type="text" placeholder="Buscar conversación..." [(ngModel)]="searchTerm">
     </div>
 
     <div class="conversations-list">
@@ -28,7 +28,7 @@
         <div class="success-message">{{ successMessage }}</div>
       }
 
-      @for (conv of conversations; track conv.id) {
+      @for (conv of filteredConversations; track conv.id) {
         <div class="conversation-item" 
              [class.active]="selectedConversationId === conv.id"
              (click)="selectConversation(conv.id)">
@@ -74,7 +74,12 @@
           </div>
         </div>
       } @empty {
-        @if (!loading) {
+        @if (!loading && conversations.length && searchTerm.trim()) {
+          <div class="empty-state">
+            <i class="fa-solid fa-search"></i>
+            <p>No hay conversaciones que coincidan con tu búsqueda</p>
+          </div>
+        } @else if (!loading) {
           <div class="empty-state">
             <i class="fa-regular fa-comment-dots"></i>
             <p>No tenés conversaciones</p>

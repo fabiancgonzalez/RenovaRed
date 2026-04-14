@@ -26,6 +26,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
 
   conversations: Conversation[] = [];
+  searchTerm = '';
   currentConversation: ConversationDetail | null = null;
   newMessage = '';
   loading = false;
@@ -120,6 +121,27 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
 
     this.stopPaymentStatusPolling();
+  }
+
+  get filteredConversations(): Conversation[] {
+    const normalizedSearch = this.normalizeSearchValue(this.searchTerm);
+
+    if (!normalizedSearch) {
+      return this.conversations;
+    }
+
+    return this.conversations.filter((conversation) => {
+      const valuesToMatch = [
+        conversation.otro_usuario?.nombre,
+        conversation.otro_usuario?.email,
+        conversation.otro_usuario?.tipo,
+        conversation.otro_usuario?.ubicacion_texto,
+        conversation.ultimo_mensaje,
+        conversation.estado
+      ];
+
+      return valuesToMatch.some((value) => this.normalizeSearchValue(value).includes(normalizedSearch));
+    });
   }
 
   handleDocumentClick(): void {
@@ -351,6 +373,18 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     });
+  }
+
+  private normalizeSearchValue(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    return String(value)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
   }
 
   selectConversation(conversationId: string): void {
