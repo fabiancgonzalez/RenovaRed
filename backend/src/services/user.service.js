@@ -67,7 +67,7 @@ class UserService {
   }
 
   // Obtener todos los usuarios con paginación y filtros
-  async getAll({ page = 1, limit = 20, tipo, is_active } = {}) {
+  async getAll({ page = 1, limit = 60, tipo, is_active } = {}) {
     const where = {};
     if (tipo) where.tipo = tipo;
     if (is_active !== undefined) where.is_active = is_active === 'true';
