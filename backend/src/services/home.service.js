@@ -1,18 +1,28 @@
-const { DailyStats, User, Category, Publication } = require('../models');
+const { DailyStats, User, Category, Publication, Exchange, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 class HomeService {
+  async getExchangesTotalCount() {
+    try {
+      const [row] = await sequelize.query('SELECT COUNT(*)::int AS total FROM exchanges');
+      return Number(row?.[0]?.total) || 0;
+    } catch (error) {
+      console.error('Error obteniendo total de intercambios:', error);
+      return 0;
+    }
+  }
   
   // Obtener métricas desde daily_stats
   async getMetrics() {
     try {
+      const totalExchanges = await this.getExchangesTotalCount();
       const latestStats = await DailyStats.findOne({
         order: [['fecha', 'DESC']]
       });
 
       if (latestStats) {
         return {
-          intercambios: latestStats.intercambios_completados || 0,
+          intercambios: totalExchanges,
           reutilizados: latestStats.kg_reutilizados || 0,
           activos: (latestStats.cooperativas_activas || 0) + 
                    (latestStats.recicladoras_activas || 0) + 
@@ -26,7 +36,7 @@ class HomeService {
 
       // Fallback si no hay stats
       return {
-        intercambios: 3450,
+        intercambios: totalExchanges,
         reutilizados: 19000,
         activos: 600,
         co2: 12500,
@@ -37,7 +47,7 @@ class HomeService {
     } catch (error) {
       console.error('Error obteniendo metrics:', error);
       return {
-        intercambios: 3450,
+        intercambios: 0,
         reutilizados: 19000,
         activos: 600,
         co2: 12500,

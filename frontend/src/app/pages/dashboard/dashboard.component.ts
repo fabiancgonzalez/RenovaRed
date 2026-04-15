@@ -78,6 +78,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private usersChart: Chart | null = null;
   private materialsChart: Chart | null = null;
+  private dashboardRefreshInterval: ReturnType<typeof setInterval> | null = null;
   
   private resizeObserver: ResizeObserver | null = null;
   private resizeTimeout: any;
@@ -89,6 +90,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadDashboardData();
+    this.startDashboardAutoRefresh();
   }
 
   ngAfterViewInit(): void {
@@ -116,6 +118,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.resizeTimeout) {
       clearTimeout(this.resizeTimeout);
     }
+
+    this.stopDashboardAutoRefresh();
   }
 
   @HostListener('window:resize')
@@ -165,17 +169,38 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   setView(v: string) {
     this.view = v;
     if (v === 'users') {
+      this.stopDashboardAutoRefresh();
       this.loadUsers();
     } else if (v === 'dashboard') {
+      this.startDashboardAutoRefresh();
+      this.loadDashboardData();
       setTimeout(() => {
         this.loadStatsCharts();
         this.loadCategoriesChart();
       }, 100);
     } else if (v === 'messages') {
+      this.stopDashboardAutoRefresh();
       this.loadConversationsForAdmin();
     } else if (v === 'materials') {
+      this.stopDashboardAutoRefresh();
       this.loadMaterialQuotes();
     }
+  }
+
+  private startDashboardAutoRefresh() {
+    if (this.dashboardRefreshInterval) return;
+
+    this.dashboardRefreshInterval = setInterval(() => {
+      if (this.view === 'dashboard') {
+        this.loadDashboardData();
+      }
+    }, 10000);
+  }
+
+  private stopDashboardAutoRefresh() {
+    if (!this.dashboardRefreshInterval) return;
+    clearInterval(this.dashboardRefreshInterval);
+    this.dashboardRefreshInterval = null;
   }
 
   private getAuthHeaders(): HttpHeaders {
@@ -186,7 +211,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadDashboardData() {
-    this.http.get<any>(`${environment.apiUrl}/home`)
+    const params = { _t: Date.now() };
+    this.http.get<any>(`${environment.apiUrl}/home`, { params })
     .subscribe({
       next: (response) => {
         if (response.success) {
