@@ -1,5 +1,6 @@
-const { Conversation, User, Message, Publication, Category } = require('../models');
+const { Conversation, User, Message, Publication, Category, Exchange } = require('../models');
 const { Op } = require('sequelize');
+const dailyStatsService = require('./dailyStats.service');
 
 class ConversationService {
   async create(userId, data) {
@@ -412,6 +413,7 @@ class ConversationService {
       }
 
       const updateData = {};
+      const wasCompleted = conversation.estado === 'completado' || !!conversation.completed_at;
       if (estado) updateData.estado = estado;
       if (cantidad) updateData.cantidad = cantidad;
       if (precio_final) updateData.precio_final = precio_final;
@@ -419,6 +421,22 @@ class ConversationService {
       if (estado === 'completado') updateData.completed_at = new Date();
 
       await conversation.update(updateData);
+
+      const nowCompleted = (estado === 'completado') && !wasCompleted;
+      if (nowCompleted) {
+        const linkedCompletedExchange = await Exchange.findOne({
+          where: {
+            conversation_id: conversation.id,
+            estado: { [Op.in]: ['Aceptado', 'Completado'] }
+          }
+        });
+
+        if (!linkedCompletedExchange) {
+          const kg = Number(updateData.kg_aproximados || conversation.kg_aproximados || updateData.cantidad || conversation.cantidad || 0) || 0;
+          const co2 = Number(conversation.co2_ahorrado_kg || (kg * 2.5)) || 0;
+          await dailyStatsService.registerCompletedExchange({ kg, co2 });
+        }
+      }
 
       const updatedConversation = await this.getConversationWithUsers(id);
 

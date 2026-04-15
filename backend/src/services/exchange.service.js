@@ -1,8 +1,20 @@
 const { Exchange, User, Publication, Conversation, Message } = require('../models');
 const { Op } = require('sequelize');
 const materialQuoteService = require('./materialQuote.service');
+const dailyStatsService = require('./dailyStats.service');
 
 class ExchangeService {
+  async registerDailyStatsIfCompleted(exchange, nextEstado) {
+    const completedStates = ['Aceptado', 'Completado'];
+    const wasCompleted = !!exchange.completed_at || completedStates.includes(exchange.estado);
+    const nowCompleted = completedStates.includes(nextEstado);
+
+    if (!nowCompleted || wasCompleted) return;
+
+    const kg = Number(exchange.kg_aproximados || exchange.cantidad || 0) || 0;
+    const co2 = Number(exchange.co2_ahorrado_kg || (kg * 2.5)) || 0;
+    await dailyStatsService.registerCompletedExchange({ kg, co2 });
+  }
   
   async getAll({ page = 1, limit = 20, estado, buyer_id, seller_id } = {}) {
     const where = {};
@@ -91,6 +103,7 @@ class ExchangeService {
     const updates = { estado };
     if (estado === 'Completado') updates.completed_at = new Date();
 
+    await this.registerDailyStatsIfCompleted(exchange, estado);
     await exchange.update(updates);
     return { status: 200, body: { success: true, message: `Estado actualizado a ${estado}`, data: exchange } };
   }
@@ -296,6 +309,14 @@ class ExchangeService {
         });
         
         const co2Saved = requestedKg * 2.5;
+
+        await this.registerDailyStatsIfCompleted({
+          estado: exchange.estado,
+          completed_at: exchange.completed_at,
+          kg_aproximados: exchange.kg_aproximados || requestedKg,
+          cantidad: exchange.cantidad || requestedKg,
+          co2_ahorrado_kg: co2Saved
+        }, 'Aceptado');
         
         await exchange.update({ 
           estado: 'Aceptado',
