@@ -809,7 +809,61 @@
     "ciudad": "General",
     "fecha_actualizacion": "2026-03-31"
   },
-    {
+  {
+    "id": "cordoba-reciclaje-001",
+    "titulo": "EcoPuntos y Centros Verdes en Cordoba Capital",
+    "categoria": "acopio",
+    "contenido": "En Cordoba Capital, los EcoPuntos y Centros Verdes reciben principalmente residuos secos, limpios y secos: papel, carton, plastico y vidrio. Horarios de referencia: lunes a viernes de 8:00 a 20:00 o 9:00 a 19:00 segun punto activo.",
+    "fuente": "Ambiente Municipalidad de Cordoba",
+    "ciudad": "Cordoba Capital",
+    "fecha_actualizacion": "2026-04-15"
+  },
+  {
+    "id": "cordoba-reciclaje-002",
+    "titulo": "Direcciones clave de Centros Verdes y EcoPuntos (Cordoba)",
+    "categoria": "acopio",
+    "contenido": "Centros Verdes: Norte (Bv. Los Alemanes 3387), Sur (Av. Cjal. Felipe Belardinelli 4776), Este (Av. Circunvalacion 6591 Colectora SE), Centro (Rodriguez Pena 470), ECOFEM (Av. Alem 1447), Telas (Av. Armada Argentina 1633). EcoPuntos destacados: Plaza Alta Cordoba (Mariano Fragueiro y Baigorri), Parque de las Tejas (Bv. Chacabuco S/N), Plaza de la Intendencia (Caseros y Bolivar). CTR: Rancagua (Av. Circunvalacion y Rancagua) y Villa Union (Jose Antonio Ceballos y Pasaje Llanquelen).",
+    "fuente": "Ambiente Municipalidad de Cordoba",
+    "ciudad": "Cordoba Capital",
+    "fecha_actualizacion": "2026-04-15"
+  },
+  {
+    "id": "cordoba-reciclaje-003",
+    "titulo": "Horarios y mapa oficial de reciclaje en Cordoba",
+    "categoria": "acopio",
+    "contenido": "Para dias y horarios especificos de recoleccion diferenciada por domicilio, consultar el mapa oficial de ambiente.cordoba.gob.ar. Horarios de CTR: lunes a viernes de 8:00 a 21:00 y sabados y domingos de 8:00 a 20:00. Fuente municipal: https://cordoba.gob.ar/2022/12/link-2",
+    "fuente": "Municipalidad de Cordoba",
+    "ciudad": "Cordoba Capital",
+    "fecha_actualizacion": "2026-04-15"
+  },
+  {
+    "id": "cordoba-raee-001",
+    "titulo": "Reciclaje de electronicos (RAEE) en Cordoba Capital",
+    "categoria": "raee",
+    "contenido": "En Cordoba Capital, el reciclaje de RAEE se gestiona principalmente por CTR para equipos grandes y CPC para dispositivos pequenos. Equipos grandes: televisores, monitores y lavarropas. Equipos pequenos: telefonos, mouses, teclados y herramientas de mano. Servicio orientado a vecinos.",
+    "fuente": "Municipalidad de Cordoba y medios locales",
+    "ciudad": "Cordoba Capital",
+    "fecha_actualizacion": "2026-04-15"
+  },
+  {
+    "id": "cordoba-raee-002",
+    "titulo": "Puntos y horarios RAEE en Cordoba Capital",
+    "categoria": "raee",
+    "contenido": "CTR Rancagua: Av. Rancagua y Av. Circunvalacion, lunes a domingo de 08:00 a 20:00. CTR Villa Union: Av. Revolucion Libertadora y Av. Circunvalacion, lunes a viernes de 08:00 a 21:00 y sabados y domingos hasta las 20:00. CPC: reciben pequenos dispositivos, horario general lunes a viernes de 08:30 a 13:30. Referencias: https://cordoba.gob.ar/wp-content/uploads/2022/12/link-2.pdf y https://hoydia.com.ar/informacion-general/reciclan-los-artefactos-electricos-y-electronicos-en-desuso-donde-se-receptan/",
+    "fuente": "Ambiente Municipalidad de Cordoba",
+    "ciudad": "Cordoba Capital",
+    "fecha_actualizacion": "2026-04-15"
+  },
+  {
+    "id": "cordoba-raee-003",
+    "titulo": "Como entregar RAEE y pilas en Cordoba",
+    "categoria": "raee",
+    "contenido": "Proceso para vecinos: 1) Separacion por tamano (CPC para pequenos, CTR para grandes). 2) Entrega directa sin turno previo en el centro correspondiente. 3) Tratamiento en economia circular: desarme y recupero de metales, cables y plasticos. 4) Pilas y baterias: se entregan por separado en contenedores del programa Sacate las Pilas (CPC, Palacio Municipal y puntos adheridos). Fuente: https://cordoba.gob.ar/tag/programa-sacate-las-pilas/ y mapa ambiental oficial en https://ambiente.cordoba.gob.ar/",
+    "fuente": "Municipalidad de Cordoba",
+    "ciudad": "Cordoba Capital",
+    "fecha_actualizacion": "2026-04-15"
+  },
+  {
     "id": "contacto-001",
     "titulo": "Contactar a Usuario",
     "categoria": "Contactos",

@@ -8,10 +8,18 @@ import { FormsModule } from '@angular/forms';
 
 interface DashboardData {
   metrics: {
-    intercambios: number;
-    reutilizados: number;
-    activos: number;
-    co2: number;
+    today: {
+      usuarios: number;
+      intercambios: number;
+      reutilizados: number;
+      co2: number;
+    };
+    total: {
+      usuarios: number;
+      intercambios: number;
+      reutilizados: number;
+      co2: number;
+    };
   };
   actors: {
     cooperativas: number;

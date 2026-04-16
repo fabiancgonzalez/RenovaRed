@@ -122,6 +122,17 @@ h3{
     color: #22C55E;
 }
 
+.metric-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.metric-value-row h2 {
+    margin: 0;
+}
+
 /*    CHART - RESPONSIVE    */
 .charts {
     display: grid;
@@ -680,6 +691,14 @@ canvas {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Card metrics total text */
+.card p.total {
+    font-size: 12px;
+    color: #9CA3AF;
+    margin: 0;
+    font-weight: 400;
 }
 
 /* ===== RESPONSIVE ===== */

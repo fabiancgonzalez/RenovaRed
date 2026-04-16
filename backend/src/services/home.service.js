@@ -1,47 +1,78 @@
 const { DailyStats, User, Category, Publication } = require('../models');
+const { fn, col } = require('sequelize');
 
 class HomeService {
-  // Obtener métricas desde daily_stats
+  toNumber(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  // Obtener métricas desde daily_stats (hoy y totales)
   async getMetrics() {
     try {
-      const latestStats = await DailyStats.findOne({
-        order: [['fecha', 'DESC']]
-      });
+      const today = new Date().toISOString().split('T')[0];
 
-      if (latestStats) {
-        return {
-          intercambios: latestStats.intercambios_completados || 0,
-          reutilizados: latestStats.kg_reutilizados || 0,
-          activos: (latestStats.cooperativas_activas || 0) + 
-                   (latestStats.recicladoras_activas || 0) + 
-                   (latestStats.emprendedores_activos || 0),
-          co2: latestStats.co2_ahorrado_kg || 0,
-          cooperativas: latestStats.cooperativas_activas || 0,
-          recicladoras: latestStats.recicladoras_activas || 0,
-          emprendedores: latestStats.emprendedores_activos || 0
-        };
+      const [
+        todayStats,
+        totalsRow,
+        latestStats
+      ] = await Promise.all([
+        DailyStats.findOne({ where: { fecha: today } }),
+        DailyStats.findOne({
+          raw: true,
+          attributes: [
+            [fn('COALESCE', fn('SUM', col('nuevos_usuarios')), 0), 'usuarios'],
+            [fn('COALESCE', fn('SUM', col('intercambios_completados')), 0), 'intercambios'],
+            [fn('COALESCE', fn('SUM', col('kg_reutilizados')), 0), 'reutilizados'],
+            [fn('COALESCE', fn('SUM', col('co2_ahorrado_kg')), 0), 'co2']
+          ]
+        }),
+        DailyStats.findOne({ order: [['fecha', 'DESC']] })
+      ]);
+
+      const todayData = {
+        usuarios: this.toNumber(todayStats?.nuevos_usuarios),
+        intercambios: this.toNumber(todayStats?.intercambios_completados),
+        reutilizados: this.toNumber(todayStats?.kg_reutilizados),
+        co2: this.toNumber(todayStats?.co2_ahorrado_kg),
+      };
+
+      const totalData = {
+        usuarios: this.toNumber(totalsRow?.usuarios),
+        intercambios: this.toNumber(totalsRow?.intercambios),
+        reutilizados: this.toNumber(totalsRow?.reutilizados),
+        co2: this.toNumber(totalsRow?.co2),
+      };
+
+      // Si existe historial pero los agregados llegan en 0/null, usar la fila mas reciente como respaldo
+      if (
+        latestStats &&
+        totalData.usuarios === 0 &&
+        totalData.intercambios === 0 &&
+        totalData.reutilizados === 0 &&
+        totalData.co2 === 0
+      ) {
+        totalData.usuarios = this.toNumber(latestStats.nuevos_usuarios);
+        totalData.intercambios = this.toNumber(latestStats.intercambios_completados);
+        totalData.reutilizados = this.toNumber(latestStats.kg_reutilizados);
+        totalData.co2 = this.toNumber(latestStats.co2_ahorrado_kg);
       }
 
-      // Fallback si no hay stats
       return {
-        intercambios: 33,
-        reutilizados: 1200,
-        activos: 32,
-        co2: 500,
-        cooperativas: 14,
-        recicladoras: 10,
-        emprendedores: 8
+        today: todayData,
+        total: totalData,
+        actores: {
+          cooperativas: this.toNumber(latestStats?.cooperativas_activas),
+          recicladoras: this.toNumber(latestStats?.recicladoras_activas),
+          emprendedores: this.toNumber(latestStats?.emprendedores_activos)
+        }
       };
     } catch (error) {
       console.error('Error obteniendo metrics:', error);
       return {
-        intercambios: 0,
-        reutilizados: 1200,
-        activos: 32,
-        co2:500,
-        cooperativas: 14,
-        recicladoras: 10,
-        emprendedores: 8
+        today: { usuarios: 0, intercambios: 0, reutilizados: 0, co2: 0 },
+        total: { usuarios: 0, intercambios: 0, reutilizados: 0, co2: 0 },
+        actores: { cooperativas: 0, recicladoras: 0, emprendedores: 0 }
       };
     }
   }
@@ -71,16 +102,10 @@ class HomeService {
 
     return {
       metrics: {
-        intercambios: metrics.intercambios,
-        reutilizados: metrics.reutilizados,
-        activos: metrics.activos,
-        co2: metrics.co2
+        today: metrics.today,
+        total: metrics.total
       },
-      actors: {
-        cooperativas: metrics.cooperativas,
-        recicladoras: metrics.recicladoras,
-        emprendedores: metrics.emprendedores
-      },
+      actors: metrics.actores,
       categories: categories.map(c => ({
         id: c.id,
         nombre: c.nombre

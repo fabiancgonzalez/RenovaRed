@@ -2,15 +2,22 @@ const { DailyStats } = require('../models');
 const { Op } = require('sequelize');
 
 class DailyStatsService {
-  async registerCompletedExchange({ kg = 0, co2 = 0, fecha } = {}) {
+  async getOrCreateByDate(fecha) {
     const targetDate = fecha || new Date().toISOString().split('T')[0];
+
+    let stat = await DailyStats.findOne({ where: { fecha: targetDate } });
+    if (!stat) {
+      stat = await DailyStats.create({ fecha: targetDate });
+    }
+
+    return stat;
+  }
+
+  async registerCompletedExchange({ kg = 0, co2 = 0, fecha } = {}) {
     const kgValue = Number(kg) || 0;
     const co2Value = Number(co2) || 0;
 
-    const [stat] = await DailyStats.findOrCreate({
-      where: { fecha: targetDate },
-      defaults: { fecha: targetDate }
-    });
+    const stat = await this.getOrCreateByDate(fecha);
 
     await stat.increment({
       intercambios_completados: 1,
@@ -18,6 +25,18 @@ class DailyStatsService {
       co2_ahorrado_kg: co2Value
     });
 
+    return stat.reload();
+  }
+
+  async registerNewUser(fecha) {
+    const stat = await this.getOrCreateByDate(fecha);
+    await stat.increment({ nuevos_usuarios: 1 });
+    return stat.reload();
+  }
+
+  async registerNewPublication(fecha) {
+    const stat = await this.getOrCreateByDate(fecha);
+    await stat.increment({ nuevas_publicaciones: 1 });
     return stat.reload();
   }
 

@@ -1,5 +1,6 @@
 const { Publication, User, Category } = require('../models');
 const { Op } = require('sequelize');
+const dailyStatsService = require('./dailyStats.service');
 
 class PublicationService {
   async getAll({ page = 1, limit = 20, estado, tipo_usuario, categoria_id, search, user_id, precio_min, precio_max, usuario_nombre, zona_geografica } = {}) {
@@ -132,6 +133,8 @@ class PublicationService {
       estado: 'Disponible',
       published_at: new Date()
     });
+
+    await dailyStatsService.registerNewPublication();
 
     return { status: 201, body: { success: true, message: 'Publicación creada', data: pub } };
   }

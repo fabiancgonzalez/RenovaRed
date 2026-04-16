@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const UserDTO = require('../dtos/user.dto');
+const dailyStatsService = require('../services/dailyStats.service');
 
 const GOOGLE_DEFAULT_USER_TYPE = 'Persona';
 
@@ -86,6 +87,8 @@ const register = async (req, res) => {
       telefono: telefono || null,
       is_active: true
     });
+
+    await dailyStatsService.registerNewUser();
 
     // Generar token JWT
     const token = generateToken(user);

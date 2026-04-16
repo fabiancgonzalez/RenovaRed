@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const DailyStats = sequelize.define('DailyStats', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   fecha: { type: DataTypes.DATEONLY, allowNull: false, unique: true },
   nuevos_usuarios: { type: DataTypes.INTEGER, defaultValue: 0 },
   nuevas_publicaciones: { type: DataTypes.INTEGER, defaultValue: 0 },

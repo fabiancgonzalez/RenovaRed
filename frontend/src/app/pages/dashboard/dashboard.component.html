@@ -36,28 +36,40 @@
             <i class="fa-solid fa-users"></i>
             <div>
                 <span>Usuarios registrados</span>
-                <h2>{{ data?.metrics?.activos }}</h2>
+                <div class="metric-value-row">
+                    <h2>{{ data?.metrics?.today?.usuarios }}</h2>
+                    <p class="total">Acumulados: {{ data?.metrics?.total?.usuarios ?? 0 }}</p>
+                </div>
             </div>
         </div>
         <div class="card">
             <i class="fa-solid fa-cube"></i>
             <div>
                 <span>Materiales reutilizados</span>
-                <h2>{{ data?.metrics?.reutilizados }}</h2>
+                <div class="metric-value-row">
+                    <h2>{{ data?.metrics?.today?.reutilizados | number:'1.0-0' }} kg</h2>
+                    <p class="total">Acumulados: {{ (data?.metrics?.total?.reutilizados ?? 0) | number:'1.0-0' }} kg</p>
+                </div>
             </div>
         </div>
         <div class="card">
             <i class="fa-solid fa-repeat"></i>
             <div>
                 <span>Intercambios</span>
-                <h2>{{ data?.metrics?.intercambios }}</h2>
+                <div class="metric-value-row">
+                    <h2>{{ data?.metrics?.today?.intercambios }}</h2>
+                    <p class="total">Acumulados: {{ data?.metrics?.total?.intercambios ?? 0 }}</p>
+                </div>
             </div>
         </div>
         <div class="card">
             <i class="fa-solid fa-leaf"></i>
             <div>
                 <span>CO₂ ahorrado</span>
-                <h2>{{ data?.metrics?.co2 }}</h2>
+                <div class="metric-value-row">
+                    <h2>{{ data?.metrics?.today?.co2 | number:'1.0-0' }} kg</h2>
+                    <p class="total">Acumulados: {{ (data?.metrics?.total?.co2 ?? 0) | number:'1.0-0' }} kg</p>
+                </div>
             </div>
         </div>    
     </section>
